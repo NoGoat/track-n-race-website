@@ -1,0 +1,11 @@
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "track-n-race",
+  "compatibility_date": "2026-10-14",
+  "assets": {
+    // Site is served straight from the repo root; see .assetsignore for exclusions.
+    "directory": ".",
+    "html_handling": "auto-trailing-slash",
+    "not_found_handling": "404-page"
+  }
+}
