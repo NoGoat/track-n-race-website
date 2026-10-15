@@ -60,11 +60,12 @@ document.addEventListener('DOMContentLoaded', () => {
         // table. CSS times everything; SVG has no 3D transforms, so this projects each shape's 3D corners (data-p)
         // with an orthographic camera, reading the time from .t-stage's CSS animation. Shapes marked data-f follow
         // the camera only; the slice also slides and turns. Without that animation (reduced motion, inactive
-        // slide) it renders the final table, which is also the static markup.
-        const tnrd = document.querySelector('.tnrd-anim');
-        const tnrdStage = tnrd?.querySelector('.t-stage');
+        // slide) it renders the final table, which is also the static markup. The SVG lives in its own file
+        // (.tnrd-frame's data-src) and is fetched and inlined here, so styles.css and this script can reach into it.
         let tnrdKick = () => {};
-        if (tnrdStage) {
+        const setupTnrd = tnrd => {
+            const tnrdStage = tnrd?.querySelector('.t-stage');
+            if (!tnrdStage) return;
             const shapes = Array.from(tnrd.querySelectorAll('[data-p]')).map(el => ({
                 el,
                 fixed: el.hasAttribute('data-f'),
@@ -150,6 +151,29 @@ document.addEventListener('DOMContentLoaded', () => {
             };
             tnrdKick = () => { if (!tnrdRunning) requestAnimationFrame(tick); };
             tnrdStage.addEventListener('animationstart', tnrdKick);
+            tnrdKick();
+        };
+
+        const tnrdFrame = document.querySelector('.tnrd-frame[data-src]');
+        if (tnrdFrame) {
+            fetch(tnrdFrame.dataset.src)
+                .then(res => (res.ok ? res.text() : Promise.reject(new Error(`HTTP ${res.status}`))))
+                .then(svg => {
+                    tnrdFrame.innerHTML = svg;
+                    const tnrd = tnrdFrame.querySelector('.tnrd-anim');
+                    if (!tnrd) throw new Error('no .tnrd-anim in response');
+                    setupTnrd(tnrd);
+                })
+                .catch(err => {
+                    // Fall back to a still of the table and charts side by side
+                    console.warn('TNRD animation failed to load:', err);
+                    tnrdKick = () => {};
+                    const img = new Image(1600, 1000);
+                    img.className = 'tnrd-static';
+                    img.src = tnrdFrame.dataset.fallback;
+                    img.alt = 'Alonso\'s slice of a .tnrd file as a table of laps and data types, with lap 5\'s speed, RPM and ERS blocks drawn as traces alongside';
+                    tnrdFrame.replaceChildren(img);
+                });
         }
 
         const updateCarousel = (index, animate = true) => {
@@ -188,7 +212,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
         let carouselVisible = true;
         // The TNRD animation slide stays long enough to play and settle; the others move on quickly
-        const slideMs = () => (slides[currentSlideIndex]?.querySelector('.tnrd-anim') ? 20000 : 5000);
+        const slideMs = () => (slides[currentSlideIndex]?.querySelector('.tnrd-frame') ? 20000 : 5000);
 
         const resetAutoPlay = () => {
             clearTimeout(autoPlayInterval);
