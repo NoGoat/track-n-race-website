@@ -911,6 +911,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const openDownloadModal = (trigger) => {
             lastTrigger = trigger;
+            // Counted by worker/index.js; the downloads themselves are counted by their /download/ redirects
+            navigator.sendBeacon?.(`/api/event?name=download_modal_open&os=${detectedOS || ''}`);
             // Unsupported platforms (phones, tablets, ...) fall back to the Windows builds
             switchOsTab(detectedOS || 'windows');
 
@@ -983,7 +985,8 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         });
 
-        fetch('/assets/download-modal.html')
+        // Cloudflare serves .html files without the extension (html_handling in wrangler.jsonc)
+        fetch('/assets/download-modal')
             .then(res => (res.ok ? res.text() : Promise.reject(new Error(`HTTP ${res.status}`))))
             .then(html => {
                 document.body.insertAdjacentHTML('beforeend', html);

@@ -2,10 +2,18 @@
   "$schema": "./node_modules/wrangler/config-schema.json",
   "name": "track-n-race",
   "compatibility_date": "2026-10-14",
+  // Only /download/* and /api/* reach this script (see run_worker_first); every other request is a static asset
+  "main": "worker/index.js",
   "assets": {
     // Site is served straight from the repo root; see .assetsignore for exclusions.
     "directory": ".",
+    "binding": "ASSETS",
     "html_handling": "auto-trailing-slash",
-    "not_found_handling": "404-page"
-  }
+    "not_found_handling": "404-page",
+    "run_worker_first": ["/download/*", "/api/*"]
+  },
+  // Download and modal-open counts (worker/index.js). The dataset is created on the first write.
+  "analytics_engine_datasets": [
+    { "binding": "DOWNLOADS", "dataset": "track_n_race_downloads" }
+  ]
 }
