@@ -321,6 +321,7 @@ body.modal-open {
     font-size: 0.875rem;
     font-weight: 500;
     text-decoration: none;
+    white-space: nowrap;
     transition: color var(--fast);
 }
 
@@ -1513,11 +1514,40 @@ body.modal-open {
 }
 
 .compare-section .page-header {
-    margin-bottom: 2.5rem;
+    margin-bottom: 3.5rem;
 }
 
-.compare-vs {
+/* The summary table borrows the TNRD page's matrix; the builds' columns share the width evenly */
+.compare-matrix {
+    min-width: 560px;
+    table-layout: fixed;
+}
+
+.compare-note {
+    margin-top: 1rem;
+    font-size: 0.8rem;
+    line-height: 1.6;
     color: var(--text-3);
+}
+
+/* Closing call to action: a ruled row, heading and line on the left, the download button on the right */
+.compare-download {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1.25rem 2rem;
+    margin-top: 4.5rem;
+    padding-top: 2.5rem;
+    border-top: 1px solid var(--line);
+}
+
+.compare-download-text .section-desc {
+    margin: 0.5rem 0 0;
+}
+
+.compare-sliders-header {
+    margin-top: 4.5rem;
 }
 
 /* Before/after slider: Qt underneath, Electron on top clipped to the handle's left */
@@ -1936,10 +1966,11 @@ body.modal-open {
 .fmt-title {
     margin: 0 0 1.25rem;
     font-family: var(--font-mono);
-    font-size: clamp(4rem, 12vw, 9rem);
+    font-size: clamp(2rem, 4.5vw, 3.25rem);
     font-weight: 500;
-    line-height: 0.9;
-    letter-spacing: -0.06em;
+    line-height: 1.05;
+    letter-spacing: -0.05em;
+    text-wrap: balance;
     color: var(--text);
 }
 
@@ -2636,12 +2667,14 @@ body.modal-open {
 
 /* Single PC / Dual System: two tabs that split the width between them, each with
    its own underline (red when active), so together they read as one bar */
-.scenario-selector {
+.scenario-selector,
+.download-os-tabs {
     display: flex;
     margin: 0.25rem 0 1.5rem;
 }
 
-.scenario-btn {
+.scenario-btn,
+.download-os-tab {
     flex: 1 1 0;
     min-width: 0;
     display: inline-flex;
@@ -2661,16 +2694,19 @@ body.modal-open {
     transition: color var(--fast), border-color var(--fast);
 }
 
-.scenario-btn:hover {
+.scenario-btn:hover,
+.download-os-tab:hover {
     color: var(--text);
 }
 
-.scenario-btn.active {
+.scenario-btn.active,
+.download-os-tab.active {
     color: var(--text);
     border-bottom-color: var(--accent);
 }
 
-.scenario-btn svg {
+.scenario-btn svg,
+.download-os-tab svg {
     width: 15px;
     height: 15px;
     flex-shrink: 0;
@@ -2736,7 +2772,9 @@ body.modal-open {
 /* Tux is mostly outline, and the Apple mark is narrow and tall in its square:
    both a touch larger so they weigh the same as the Windows squares */
 .platform-tab-btn svg.apple,
-.platform-tab-btn svg.tux {
+.platform-tab-btn svg.tux,
+.download-os-tab svg.apple,
+.download-os-tab svg.tux {
     width: 16px;
     height: 16px;
 }
@@ -3430,6 +3468,329 @@ body.page-fit main {
     color: var(--text-2);
 }
 
+
+/* ==========================================================================
+   Download modal
+   Same frame as the license modal. The platform tabs reuse the Setup page's
+   full-width tabs; the three builds sit side by side like the hero specs,
+   split by hairlines, each with its own data rows and download button.
+   ========================================================================== */
+.download-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 10000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1.5rem;
+    background: rgba(5, 5, 6, 0.8);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s var(--ease);
+}
+
+.download-modal.active {
+    opacity: 1;
+    pointer-events: all;
+}
+
+.download-modal-content {
+    position: relative;
+    /* Two thirds of the way from the page (--bg) to the usual modal surface (--surface) */
+    background: #0d0d10;
+    max-width: 780px;
+    max-height: calc(100vh - 3rem);
+    max-height: calc(100dvh - 3rem);
+    overflow-y: auto;
+    padding: 1.75rem;
+    scrollbar-width: thin;
+    scrollbar-color: var(--surface-3) transparent;
+}
+
+.download-modal.active .download-modal-content {
+    transform: none;
+}
+
+.download-close {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+}
+
+/* Only the active platform's file type, link and "not available" note show */
+.download-modal[data-os="windows"] [data-os-only]:not([data-os-only="windows"]),
+.download-modal[data-os="macos"] [data-os-only]:not([data-os-only="macos"]),
+.download-modal[data-os="linux"] [data-os-only]:not([data-os-only="linux"]) {
+    display: none;
+}
+
+.download-head {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    padding-right: 2.5rem;
+    margin-bottom: 1.25rem;
+}
+
+.download-head .eyebrow {
+    gap: 0.5rem;
+    font-size: 0.7rem;
+}
+
+.download-head-sep {
+    color: var(--line-hover);
+}
+
+.download-head h3 {
+    font-size: 1.5rem;
+    font-weight: 600;
+    line-height: 1.2;
+    letter-spacing: -0.03em;
+}
+
+.download-head-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    color: var(--text-2);
+    text-decoration: none;
+    transition: color var(--fast);
+}
+
+.download-head-link:hover {
+    color: var(--text);
+}
+
+.download-head-link svg {
+    width: 11px;
+    height: 11px;
+}
+
+/* The pointer to the comparison, before any build: a raised panel with the solid white
+   button, while the downloads below stay outlined */
+.download-choose {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem 1.5rem;
+    margin-bottom: 1.25rem;
+    padding: 1rem 1rem 1rem 1.25rem;
+    background: var(--surface);
+    border: 1px solid var(--line-strong);
+    border-radius: var(--radius);
+}
+
+.download-choose-text {
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+    min-width: 0;
+}
+
+.download-choose-text strong {
+    font-size: 0.95rem;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+}
+
+.download-choose-text span {
+    font-size: 0.82rem;
+    color: var(--text-2);
+}
+
+.download-choose-btn.primary-btn {
+    flex-shrink: 0;
+    height: 38px;
+    white-space: nowrap;
+}
+
+.download-os-tabs {
+    margin-bottom: 0;
+}
+
+/* Three equal columns, split by hairlines like the hero specs */
+.download-builds {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.download-build {
+    display: flex;
+    flex-direction: column;
+    padding: 1.5rem 1.5rem 0;
+}
+
+.download-build:first-child {
+    padding-left: 0;
+}
+
+.download-build:last-child {
+    padding-right: 0;
+}
+
+.download-build + .download-build {
+    border-left: 1px solid var(--line);
+}
+
+/* Numbered like the module lists */
+.download-build-num {
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    font-weight: 500;
+    color: var(--text-3);
+}
+
+.download-build-name {
+    margin-top: 0.35rem;
+    font-size: 1.1rem;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+}
+
+.download-build-desc {
+    margin-top: 0.4rem;
+    font-size: 0.85rem;
+    line-height: 1.55;
+    color: var(--text-2);
+}
+
+/* Data rows in the mono label style; margin-top: auto lines them up across columns */
+.download-build-specs {
+    margin-top: auto;
+    padding-top: 1.25rem;
+}
+
+.download-build-specs div {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 0.5rem 0;
+    border-top: 1px solid var(--line);
+}
+
+.download-build-specs dt {
+    font-family: var(--font-mono);
+    font-size: 0.66rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text-3);
+}
+
+.download-build-specs dd {
+    font-family: var(--font-mono);
+    font-size: 0.8rem;
+    color: var(--text);
+}
+
+/* The download itself: a .secondary-btn, full column width */
+.download-build-get {
+    --fill: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    isolation: isolate;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    height: 40px;
+    margin-top: 0.75rem;
+    border: 1px solid var(--line-strong);
+    border-radius: var(--radius-sm);
+    color: var(--text);
+    font-size: 0.875rem;
+    font-weight: 500;
+    text-decoration: none;
+    transition: border-color var(--fill), color var(--fill);
+}
+
+/* The white fill fades in as its own layer: an opacity fade stays smooth where a
+   background-colour change on the fast, front-loaded --ease curve snapped */
+.download-build-get::before {
+    content: "";
+    position: absolute;
+    inset: -1px;
+    z-index: -1;
+    border-radius: inherit;
+    background: var(--text);
+    opacity: 0;
+    transition: opacity var(--fill);
+}
+
+.download-build-get.is-unavailable::before {
+    display: none;
+}
+
+.download-build-get svg {
+    width: 15px;
+    height: 15px;
+    flex-shrink: 0;
+}
+
+/* Hover takes the primary button's fill */
+a.download-build-get:hover {
+    border-color: var(--text);
+    color: var(--bg);
+}
+
+a.download-build-get:hover::before {
+    opacity: 1;
+}
+
+.download-build-get.is-unavailable {
+    border-style: dashed;
+    border-color: var(--line);
+    color: var(--text-3);
+    font-size: 0.8rem;
+}
+
+/* A build missing on this platform fades back */
+.download-modal[data-os="macos"] .download-build:has(.is-unavailable[data-os-only="macos"]) > :not(.download-build-get) {
+    opacity: 0.4;
+}
+
+/* Phones: the builds stack, each split from the next by a hairline */
+@media (max-width: 640px) {
+    .download-modal {
+        padding: 1rem;
+    }
+
+    .download-modal-content {
+        max-height: calc(100vh - 2rem);
+        max-height: calc(100dvh - 2rem);
+        padding: 1.25rem;
+    }
+
+    .download-builds {
+        grid-template-columns: 1fr;
+    }
+
+    .download-build,
+    .download-build:first-child,
+    .download-build:last-child {
+        padding: 1.25rem 0;
+    }
+
+    .download-build:last-child {
+        padding-bottom: 0;
+    }
+
+    .download-build + .download-build {
+        border-left: 0;
+        border-top: 1px solid var(--line);
+    }
+
+    .download-os-tab svg {
+        display: none;
+    }
+
+    .download-choose {
+        flex-direction: column;
+        align-items: stretch;
+    }
+}
+
 /* ==========================================================================
    Responsive
    ========================================================================== */
@@ -3625,25 +3986,8 @@ body.page-fit main {
     }
 }
 
-@media (max-width: 768px) {
-    :root {
-        --gutter: 1.25rem;
-    }
-
-    .section {
-        padding-top: 64px;
-        padding-bottom: 64px;
-    }
-
-    .hero-section {
-        padding-top: calc(var(--nav-h) + 56px);
-        padding-bottom: 32px;
-    }
-
-    .hero-visual {
-        margin-top: 2.5rem;
-    }
-
+/* Header: the nav collapses into the menu button once its links would run into the logo or the buttons */
+@media (max-width: 1100px) {
     .github-link-btn,
     .discord-link-btn {
         width: 34px;
@@ -3710,6 +4054,26 @@ body.page-fit main {
         height: 55%;
         background: var(--accent);
         transform: translateY(-50%);
+    }
+}
+
+@media (max-width: 768px) {
+    :root {
+        --gutter: 1.25rem;
+    }
+
+    .section {
+        padding-top: 64px;
+        padding-bottom: 64px;
+    }
+
+    .hero-section {
+        padding-top: calc(var(--nav-h) + 56px);
+        padding-bottom: 32px;
+    }
+
+    .hero-visual {
+        margin-top: 2.5rem;
     }
 
     .carousel-container {

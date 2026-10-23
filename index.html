@@ -78,7 +78,7 @@
           "name": "Track N Race",
           "alternateName": ["Track-N-Race", "Track N Race F1 Game telemetry"],
           "applicationCategory": "UtilitiesApplication",
-          "softwareVersion": "1.6.1",
+          "softwareVersion": "1.6.2",
           "operatingSystem": "Windows, macOS, Linux",
           "url": "https://track-n-race.com/",
           "downloadUrl": "https://github.com/NoGoat/Track-N-Race/releases/latest",
@@ -136,9 +136,9 @@
             </a>
             <nav class="nav-menu">
                 <a href="/" class="nav-btn active">Home</a>
-                <a href="/electron-vs-qt/" class="nav-btn">Electron vs Qt</a>
+                <a href="/electron-vs-qt/" class="nav-btn">Compare Frontends</a>
                 <a href="/setup/" class="nav-btn">Setup</a>
-                <a href="/tnrd/" class="nav-btn">TNRD</a>
+                <a href="/tnrd/" class="nav-btn">Meet the file format</a>
                 <a href="/credits/" class="nav-btn">Credits</a>
             </nav>
             <div class="nav-actions">
@@ -186,15 +186,16 @@
                         Analyze and find out where you lose that extra tenth over your competitors.
                     </p>
                     <div class="cta-group">
-                        <a id="downloadBtn" class="primary-btn"
-                            href="https://github.com/NoGoat/Track-N-Race/releases/latest" target="_blank" rel="noopener">
+                        <!-- Opens the shared download modal; without it, the link still goes to the release -->
+                        <a class="primary-btn" href="https://github.com/NoGoat/Track-N-Race/releases/tag/1.6.2"
+                            target="_blank" rel="noopener" data-download>
                             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                                 stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                 <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
                                 <polyline points="7 10 12 15 17 10"></polyline>
                                 <line x1="12" y1="15" x2="12" y2="3"></line>
                             </svg>
-                            <span>Download 1.6.1</span>
+                            <span>Download 1.6.2</span>
                         </a>
                         <a class="secondary-btn" href="/setup/">
                             <span>Setup guide</span>
@@ -1374,9 +1375,9 @@
             </div>
             <ul class="footer-links">
                 <li><a href="/">Home</a></li>
-                <li><a href="/electron-vs-qt/">Electron vs Qt</a></li>
+                <li><a href="/electron-vs-qt/">Compare Frontends</a></li>
                 <li><a href="/setup/">Setup</a></li>
-                <li><a href="/tnrd/">TNRD</a></li>
+                <li><a href="/tnrd/">Meet the file format</a></li>
                 <li><a href="/credits/">Credits</a></li>
                 <li><a href="/privacy/">Privacy Policy</a></li>
                 <li><a href="https://github.com/NoGoat/Track-N-Race" target="_blank" rel="noopener">GitHub</a></li>

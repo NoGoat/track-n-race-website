@@ -6,9 +6,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
     <!-- Primary Meta Tags -->
-    <title>Electron vs Qt — Compare the Track N Race Frontends</title>
+    <title>Compare Frontends — Track N Race Electron vs Qt</title>
     <meta name="description"
-        content="Compare the Electron and Qt frontends of Track N Race screen by screen. Drag the slider across the overview, lap analysis, session, standings, tyres, strategy and more to see both side by side.">
+        content="Compare the Electron and Qt frontends of Track N Race and the Minimal Recorder: platforms, RAM use and features in one table, then every screen side by side, from the overview and lap analysis to standings, tyres and strategy.">
     <meta name="keywords"
         content="Track N Race Electron vs Qt, Track N Race Qt, Track N Race Electron, F1 Game telemetry app comparison, F1 telemetry Qt app, F1 telemetry desktop app, F1 25 telemetry, F1 24 telemetry, F1 2026 telemetry, sim racing telemetry, F1 lap analysis software">
     <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1">
@@ -22,9 +22,9 @@
     <meta property="og:site_name" content="Track N Race">
     <meta property="og:locale" content="en_US">
     <meta property="og:url" content="https://track-n-race.com/electron-vs-qt/">
-    <meta property="og:title" content="Electron vs Qt — Compare the Track N Race Frontends">
+    <meta property="og:title" content="Compare Frontends — Track N Race Electron vs Qt">
     <meta property="og:description"
-        content="Compare the Electron and Qt frontends of Track N Race screen by screen. Drag the slider across the overview, lap analysis, session, standings, tyres, strategy and more to see both side by side.">
+        content="Compare the Electron and Qt frontends of Track N Race and the Minimal Recorder: platforms, RAM use and features in one table, then every screen side by side, from the overview and lap analysis to standings, tyres and strategy.">
     <meta property="og:image" content="https://track-n-race.com/assets/og-image.png">
     <meta property="og:image:width" content="1200">
     <meta property="og:image:height" content="630">
@@ -33,9 +33,9 @@
     <!-- Twitter -->
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:url" content="https://track-n-race.com/electron-vs-qt/">
-    <meta name="twitter:title" content="Electron vs Qt — Compare the Track N Race Frontends">
+    <meta name="twitter:title" content="Compare Frontends — Track N Race Electron vs Qt">
     <meta name="twitter:description"
-        content="Compare the Electron and Qt frontends of Track N Race screen by screen. Drag the slider across the overview, lap analysis, session, standings, tyres, strategy and more to see both side by side.">
+        content="Compare the Electron and Qt frontends of Track N Race and the Minimal Recorder: platforms, RAM use and features in one table, then every screen side by side, from the overview and lap analysis to standings, tyres and strategy.">
     <meta name="twitter:image" content="https://track-n-race.com/assets/og-image.png">
     <meta name="twitter:image:alt" content="Track N Race overview dashboard showing live speed, RPM and ERS traces with tyre temperatures">
 
@@ -60,7 +60,7 @@
             {
               "@type": "ListItem",
               "position": 2,
-              "name": "Electron vs Qt",
+              "name": "Compare Frontends",
               "item": "https://track-n-race.com/electron-vs-qt/"
             }
           ]
@@ -73,8 +73,8 @@
             "@id": "https://track-n-race.com/#software",
             "name": "Track N Race"
           },
-          "name": "Electron vs Qt — Compare the Track N Race Frontends",
-          "description": "Compare the Electron and Qt frontends of Track N Race screen by screen. Drag the slider across the overview, lap analysis, session, standings, tyres, strategy and more to see both side by side.",
+          "name": "Compare Frontends — Track N Race Electron vs Qt",
+          "description": "Compare the Electron and Qt frontends of Track N Race and the Minimal Recorder: platforms, RAM use and features in one table, then every screen side by side, from the overview and lap analysis to standings, tyres and strategy.",
           "isPartOf": {
             "@type": "WebSite",
             "@id": "https://track-n-race.com/#website",
@@ -197,9 +197,9 @@
             </a>
             <nav class="nav-menu">
                 <a href="/" class="nav-btn">Home</a>
-                <a href="/electron-vs-qt/" class="nav-btn active">Electron vs Qt</a>
+                <a href="/electron-vs-qt/" class="nav-btn active">Compare Frontends</a>
                 <a href="/setup/" class="nav-btn">Setup</a>
-                <a href="/tnrd/" class="nav-btn">TNRD</a>
+                <a href="/tnrd/" class="nav-btn">Meet the file format</a>
                 <a href="/credits/" class="nav-btn">Credits</a>
             </nav>
             <div class="nav-actions">
@@ -234,11 +234,102 @@
     </header>
 
     <main>
-        <!-- Electron vs Qt: one before/after slider per screen -->
+        <!-- Compare Frontends: a summary table, then one before/after slider per screen -->
         <section id="compare" class="section compare-section">
             <div class="page-header">
-                <h1 class="main-title">Electron <span class="compare-vs">vs</span> Qt</h1>
-                <p class="subtitle">Compare both to decide which one you prefer.</p>
+                <h1 class="main-title">Compare Frontends</h1>
+                <p class="subtitle">Electron, Qt or the Minimal Recorder. Compare them to decide which one you prefer.</p>
+            </div>
+
+            <div class="compare-block" id="at-a-glance">
+                <div class="section-header">
+                    <h2 class="section-heading">At a glance</h2>
+                    <span class="eyebrow">03 builds</span>
+                </div>
+
+                <div class="fmt-matrix-scroll">
+                    <table class="fmt-matrix compare-matrix">
+                        <thead>
+                            <tr>
+                                <th scope="col"><span class="visually-hidden">Feature</span></th>
+                                <th scope="col">Electron</th><th scope="col">Qt</th><th scope="col">Minimal Recorder</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <th scope="row">Windows</th>
+                                <td class="yes">Yes</td><td class="yes">Yes</td><td class="yes">Yes</td>
+                            </tr>
+                            <tr>
+                                <th scope="row">macOS</th>
+                                <td class="yes">Yes</td><td class="no">No</td><td class="yes">Yes</td>
+                            </tr>
+                            <tr>
+                                <th scope="row">Linux</th>
+                                <td class="yes">Yes</td><td class="yes">Yes</td><td class="yes">Yes</td>
+                            </tr>
+                            <tr>
+                                <th scope="row">RAM, idle</th>
+                                <td>282 MB</td><td>187 MB</td><td>7 MB</td>
+                            </tr>
+                            <tr>
+                                <th scope="row">RAM, end of a live race</th>
+                                <td>714 MB</td><td>444 MB</td><td>84 MB</td>
+                            </tr>
+                            <tr>
+                                <th scope="row">RAM, peak during a live race</th>
+                                <td>748 MB</td><td>463 MB</td><td>85 MB</td>
+                            </tr>
+                            <tr>
+                                <th scope="row">RAM, reviewing a race (All Laps)</th>
+                                <td>752 MB</td><td>570 MB</td><td class="no">&mdash;</td>
+                            </tr>
+                            <tr>
+                                <th scope="row">RAM, peak while reviewing</th>
+                                <td>1,115 MB</td><td>712 MB</td><td class="no">&mdash;</td>
+                            </tr>
+                            <tr>
+                                <th scope="row">Records sessions</th>
+                                <td class="yes">Yes</td><td class="yes">Yes</td><td class="yes">Yes</td>
+                            </tr>
+                            <tr>
+                                <th scope="row">Live telemetry while driving</th>
+                                <td class="yes">Yes</td><td class="yes">Yes</td><td class="no">No</td>
+                            </tr>
+                            <tr>
+                                <th scope="row">Lap analysis</th>
+                                <td class="yes">Yes</td><td class="yes">Yes</td><td class="no">No</td>
+                            </tr>
+                            <tr>
+                                <th scope="row">Layout editor</th>
+                                <td class="yes">Yes</td><td class="yes">Yes</td><td class="no">No</td>
+                            </tr>
+                            <tr>
+                                <th scope="row">UDP forwarding</th>
+                                <td class="yes">Yes</td><td class="yes">Yes</td><td class="yes">Yes</td>
+                            </tr>
+                            <tr>
+                                <th scope="row">New features</th>
+                                <td>First</td><td class="part">Might miss features</td><td class="no">&mdash;</td>
+                            </tr>
+                            <tr>
+                                <th scope="row">Built with</th>
+                                <td>Electron, React</td><td>Qt, QCustomPlot</td><td class="no">&mdash;</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <p class="compare-note">
+                    RAM is private memory on Windows 11, measured with the 92-minute S&atilde;o Paulo Grand Prix: its UDP
+                    data was recorded once, then played back into each app at real speed by a script. Live figures are on
+                    Overview with Current Lap, while recording to a file. Reviewing is the recording opened near the end of
+                    the race with All Laps on every page. The Minimal Recorder doesn't play recordings back.
+                </p>
+            </div>
+
+            <div class="section-header compare-sliders-header">
+                <h2 class="section-heading">Screen by screen</h2>
+                <span class="eyebrow">15 screens</span>
             </div>
 
             <div class="modules compare-modules">
@@ -607,6 +698,24 @@
                     </figure>
                 </div>
             </div>
+
+            <!-- Opens the shared download modal (/assets/download-modal.html); without it, the link goes to the release -->
+            <div class="compare-download">
+                <div class="compare-download-text">
+                    <h2 class="section-heading">Picked one?</h2>
+                    <p class="section-desc">Every build is free and open source, for Windows, macOS and Linux.</p>
+                </div>
+                <a class="primary-btn" href="https://github.com/NoGoat/Track-N-Race/releases/tag/1.6.2"
+                    target="_blank" rel="noopener" data-download>
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                        stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                        <polyline points="7 10 12 15 17 10"></polyline>
+                        <line x1="12" y1="15" x2="12" y2="3"></line>
+                    </svg>
+                    <span>Download 1.6.2</span>
+                </a>
+            </div>
         </section>
     </main>
 
@@ -627,9 +736,9 @@
             </div>
             <ul class="footer-links">
                 <li><a href="/">Home</a></li>
-                <li><a href="/electron-vs-qt/">Electron vs Qt</a></li>
+                <li><a href="/electron-vs-qt/">Compare Frontends</a></li>
                 <li><a href="/setup/">Setup</a></li>
-                <li><a href="/tnrd/">TNRD</a></li>
+                <li><a href="/tnrd/">Meet the file format</a></li>
                 <li><a href="/credits/">Credits</a></li>
                 <li><a href="/privacy/">Privacy Policy</a></li>
                 <li><a href="https://github.com/NoGoat/Track-N-Race" target="_blank" rel="noopener">GitHub</a></li>
