@@ -1,5 +1,3 @@
-<!-- Download modal, shared by every page with a [data-download] link. script.js fetches this
-     file and appends it to <body>; styles live in styles.css under "Download modal". -->
 <div class="download-modal" id="downloadModal" data-os="windows" role="dialog" aria-modal="true" aria-labelledby="downloadModalTitle">
     <div class="modal-content download-modal-content">
         <button class="modal-close download-close" id="closeDownloadModal" aria-label="Close modal">
@@ -12,9 +10,9 @@
 
         <div class="download-head">
             <p class="eyebrow">
-                <span>v1.6.2</span><span class="download-head-sep" aria-hidden="true">/</span>
+                <span>v{{VERSION}}</span><span class="download-head-sep" aria-hidden="true">/</span>
                 <span id="downloadDetectedNote">Free and open source</span><span class="download-head-sep" aria-hidden="true">/</span>
-                <a class="download-head-link" href="https://github.com/NoGoat/Track-N-Race/releases/tag/1.6.2" target="_blank" rel="noopener">
+                <a class="download-head-link" href="https://github.com/NoGoat/Track-N-Race/releases/tag/{{VERSION}}" target="_blank" rel="noopener">
                     All releases
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
                 </a>

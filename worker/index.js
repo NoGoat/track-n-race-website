@@ -8,7 +8,7 @@
 // Nothing identifying is stored: no IP, no cookies, no user agent. Each data point is the build, platform, the
 // page it came from and the visitor's country as Cloudflare reports it.
 
-const VERSION = '1.6.2';
+// The current release comes from env.VERSION ("vars" in wrangler.jsonc), which the pages are built from too
 const RELEASE = `https://github.com/NoGoat/Track-N-Race/releases`;
 
 // Only these slugs redirect, so /download/ can't be used to bounce visitors to arbitrary URLs
@@ -40,7 +40,7 @@ const sourcePage = (request, url) => {
 const record = (env, request, url, what, platform) => {
     env.DOWNLOADS?.writeDataPoint({
         indexes: [what],
-        blobs: [what, platform, sourcePage(request, url), request.cf?.country ?? '', VERSION],
+        blobs: [what, platform, sourcePage(request, url), request.cf?.country ?? '', env.VERSION],
         doubles: [1],
     });
 };
@@ -58,11 +58,11 @@ export default {
             let target;
             if (slug === 'release') {
                 record(env, request, url, 'release', '');
-                target = `${RELEASE}/tag/${VERSION}`;
+                target = `${RELEASE}/tag/${env.VERSION}`;
             } else if (FILES[slug]) {
                 const [build, platform] = slug.split('/');
                 record(env, request, url, build, platform);
-                target = `${RELEASE}/download/${VERSION}/${FILES[slug]}`;
+                target = `${RELEASE}/download/${env.VERSION}/${FILES[slug]}`;
             } else {
                 // Not a known build: the assets layer answers with the site's 404 page
                 return env.ASSETS.fetch(request);

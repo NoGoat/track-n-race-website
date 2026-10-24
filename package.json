@@ -3,7 +3,9 @@
   "private": true,
   "scripts": {
     "dev": "wrangler dev",
-    "deploy": "wrangler deploy"
+    "deploy": "wrangler deploy",
+    "partials": "node scripts/partials.mjs",
+    "partials:check": "node scripts/partials.mjs --check"
   },
   "devDependencies": {
     "wrangler": "^4.151.0"

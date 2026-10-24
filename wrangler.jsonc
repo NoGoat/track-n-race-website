@@ -4,6 +4,12 @@
   "compatibility_date": "2026-10-14",
   // Only /download/* and /api/* reach this script (see run_worker_first); every other request is a static asset
   "main": "worker/index.js",
+  // Copies partials/header.html and partials/footer.html into every page before dev and deploy (scripts/partials.mjs).
+  // During wrangler dev, editing a partial reruns it.
+  "build": {
+    "command": "node scripts/partials.mjs",
+    "watch_dir": "partials"
+  },
   "assets": {
     // Site is served straight from the repo root; see .assetsignore for exclusions.
     "directory": ".",
@@ -11,6 +17,11 @@
     "html_handling": "auto-trailing-slash",
     "not_found_handling": "404-page",
     "run_worker_first": ["/download/*", "/api/*"]
+  },
+  // The current release. The Worker uses it for /download/ redirects and its counts, and scripts/partials.mjs fills it
+  // into the pages ({{VERSION}} in partials/*.html, JSON-LD softwareVersion). Bump it here for a new release.
+  "vars": {
+    "VERSION": "1.6.2"
   },
   // Download and modal-open counts (worker/index.js). The dataset is created on the first write.
   "analytics_engine_datasets": [

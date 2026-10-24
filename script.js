@@ -869,10 +869,9 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    // Download modal: its markup lives in /assets/download-modal.html so every page can share it.
-    // A page opts in with links marked data-download; the file is fetched once on load and appended
-    // to <body>. Each trigger is a real link to the release, so until the modal arrives (or if the
-    // fetch fails) a click simply opens GitHub.
+    // Download modal: its markup lives in partials/download-modal.html and is built into every page
+    // with links marked data-download (scripts/partials.mjs). Each trigger is a real link to the
+    // release, so without the modal (or without JavaScript) a click simply opens GitHub.
     const downloadTriggers = document.querySelectorAll('[data-download]');
 
     const setupDownloadModal = (downloadModal) => {
@@ -974,26 +973,15 @@ document.addEventListener('DOMContentLoaded', () => {
         return openDownloadModal;
     };
 
-    if (downloadTriggers.length > 0) {
-        let openDownloadModal = null;
+    const downloadModal = document.getElementById('downloadModal');
+    if (downloadModal && downloadTriggers.length > 0) {
+        const openDownloadModal = setupDownloadModal(downloadModal);
 
         downloadTriggers.forEach(trigger => {
             trigger.addEventListener('click', (e) => {
-                if (!openDownloadModal) return; // not loaded: let the link open the release page
                 e.preventDefault();
                 openDownloadModal(trigger);
             });
         });
-
-        // Cloudflare serves .html files without the extension (html_handling in wrangler.jsonc)
-        fetch('/assets/download-modal')
-            .then(res => (res.ok ? res.text() : Promise.reject(new Error(`HTTP ${res.status}`))))
-            .then(html => {
-                document.body.insertAdjacentHTML('beforeend', html);
-                const downloadModal = document.getElementById('downloadModal');
-                if (!downloadModal) throw new Error('no #downloadModal in response');
-                openDownloadModal = setupDownloadModal(downloadModal);
-            })
-            .catch(err => console.warn('Download modal failed to load:', err));
     }
 });

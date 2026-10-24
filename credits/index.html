@@ -86,6 +86,7 @@
     }
     </script>
 
+    <!-- partial:head -->
     <!-- Favicon & App Icons -->
     <link rel="icon" type="image/x-icon" href="/favicon.ico">
     <link rel="icon" type="image/png" sizes="48x48" href="/assets/icons/favicon-48x48.png">
@@ -100,9 +101,11 @@
 
     <!-- Styles -->
     <link rel="stylesheet" href="/styles.css">
+    <!-- /partial:head -->
 </head>
 
 <body class="page-fit">
+    <!-- partial:header -->
     <header class="navbar">
         <div class="nav-container">
             <a href="/" class="brand-link" aria-label="Track N Race Home">
@@ -116,8 +119,8 @@
                 <a href="/" class="nav-btn">Home</a>
                 <a href="/electron-vs-qt/" class="nav-btn">Compare Frontends</a>
                 <a href="/setup/" class="nav-btn">Setup</a>
-                <a href="/tnrd/" class="nav-btn">Meet the file format</a>
-                <a href="/credits/" class="nav-btn active">Credits</a>
+                <a href="/tnrd/" class="nav-btn">TNRD Files</a>
+                <a href="/credits/" class="nav-btn active" aria-current="page">Credits</a>
             </nav>
             <div class="nav-actions">
                 <!-- Discord invite link: replace the href below -->
@@ -149,6 +152,7 @@
             </div>
         </div>
     </header>
+    <!-- /partial:header -->
 
     <main>
         <!-- Credits: open source library browser -->
@@ -404,6 +408,7 @@
     </main>
 
     <!-- Footer -->
+    <!-- partial:footer -->
     <footer class="site-footer">
         <div class="footer-container">
             <div class="footer-left">
@@ -422,8 +427,8 @@
                 <li><a href="/">Home</a></li>
                 <li><a href="/electron-vs-qt/">Compare Frontends</a></li>
                 <li><a href="/setup/">Setup</a></li>
-                <li><a href="/tnrd/">Meet the file format</a></li>
-                <li><a href="/credits/">Credits</a></li>
+                <li><a href="/tnrd/">TNRD Files</a></li>
+                <li><a href="/credits/" aria-current="page">Credits</a></li>
                 <li><a href="/privacy/">Privacy Policy</a></li>
                 <li><a href="https://github.com/NoGoat/Track-N-Race" target="_blank" rel="noopener">GitHub</a></li>
                 <!-- Discord invite link: replace the href below -->
@@ -431,8 +436,9 @@
             </ul>
         </div>
     </footer>
+    <!-- /partial:footer -->
 
-    <!-- Lightbox Modal -->
+    <!-- partial:lightbox -->
     <div class="lightbox" id="lightbox">
         <button class="lightbox-close" id="lightboxClose" aria-label="Close image">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"
@@ -447,8 +453,9 @@
             </div>
         </div>
     </div>
+    <!-- /partial:lightbox -->
 
-    <!-- License Modal -->
+    <!-- partial:license-modal -->
     <div class="license-modal" id="licenseModal">
         <div class="modal-content">
             <div class="modal-header">
@@ -466,6 +473,7 @@
             </div>
         </div>
     </div>
+    <!-- /partial:license-modal -->
 
     <script src="/script.js" defer></script>
 </body>

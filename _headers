@@ -31,7 +31,3 @@
 
 /apple-touch-icon.png
   Cache-Control: public, max-age=604800, stale-while-revalidate=2592000
-
-# The shared download modal is a fragment that script.js fetches into pages, not a page of its own
-/assets/download-modal*
-  X-Robots-Tag: noindex
