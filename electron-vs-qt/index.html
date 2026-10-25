@@ -810,7 +810,9 @@
                 </button>
             </div>
 
-            <!-- One column per build; the active platform (data-os on the modal) picks which link shows -->
+            <!-- One column per build; the active platform (data-os on the modal) picks which link shows.
+                 The links carry only a data-build slug: script.js turns it into /download/<slug> when the modal opens,
+                 so scrapers that read the page's HTML find no download URLs to hit (worker/index.js counts the hits). -->
             <div class="download-builds" id="downloadBuilds" role="tabpanel">
                 <section class="download-build">
                     <p class="download-build-num">01</p>
@@ -823,15 +825,15 @@
                             <span data-os-only="linux">.AppImage</span>
                         </dd></div>
                     </dl>
-                    <a class="download-build-get" data-os-only="windows" href="/download/electron/windows" rel="nofollow">
+                    <a class="download-build-get" data-os-only="windows" data-build="electron/windows">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
                         <span>Download</span>
                     </a>
-                    <a class="download-build-get" data-os-only="macos" href="/download/electron/macos" rel="nofollow">
+                    <a class="download-build-get" data-os-only="macos" data-build="electron/macos">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
                         <span>Download</span>
                     </a>
-                    <a class="download-build-get" data-os-only="linux" href="/download/electron/linux" rel="nofollow">
+                    <a class="download-build-get" data-os-only="linux" data-build="electron/linux">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
                         <span>Download</span>
                     </a>
@@ -847,12 +849,12 @@
                             <span data-os-only="linux">.AppImage</span>
                         </dd></div>
                     </dl>
-                    <a class="download-build-get" data-os-only="windows" href="/download/qt/windows" rel="nofollow">
+                    <a class="download-build-get" data-os-only="windows" data-build="qt/windows">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
                         <span>Download</span>
                     </a>
                     <span class="download-build-get is-unavailable" data-os-only="macos">Not available on macOS</span>
-                    <a class="download-build-get" data-os-only="linux" href="/download/qt/linux" rel="nofollow">
+                    <a class="download-build-get" data-os-only="linux" data-build="qt/linux">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
                         <span>Download</span>
                     </a>
@@ -868,15 +870,15 @@
                             <span data-os-only="linux">.AppImage</span>
                         </dd></div>
                     </dl>
-                    <a class="download-build-get" data-os-only="windows" href="/download/minimal/windows" rel="nofollow">
+                    <a class="download-build-get" data-os-only="windows" data-build="minimal/windows">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
                         <span>Download</span>
                     </a>
-                    <a class="download-build-get" data-os-only="macos" href="/download/minimal/macos" rel="nofollow">
+                    <a class="download-build-get" data-os-only="macos" data-build="minimal/macos">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
                         <span>Download</span>
                     </a>
-                    <a class="download-build-get" data-os-only="linux" href="/download/minimal/linux" rel="nofollow">
+                    <a class="download-build-get" data-os-only="linux" data-build="minimal/linux">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
                         <span>Download</span>
                     </a>

@@ -908,8 +908,17 @@ document.addEventListener('DOMContentLoaded', () => {
             downloadModal.dataset.os = os;
         };
 
+        // The build links ship without an href (see partials/download-modal.html) and get one on first open
+        const fillBuildLinks = () => {
+            downloadModal.querySelectorAll('a[data-build]:not([href])').forEach(link => {
+                link.href = `/download/${link.dataset.build}`;
+                link.rel = 'nofollow';
+            });
+        };
+
         const openDownloadModal = (trigger) => {
             lastTrigger = trigger;
+            fillBuildLinks();
             // Counted by worker/index.js; the downloads themselves are counted by their /download/ redirects
             navigator.sendBeacon?.(`/api/event?name=download_modal_open&os=${detectedOS || ''}`);
             // Unsupported platforms (phones, tablets, ...) fall back to the Windows builds
