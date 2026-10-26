@@ -139,10 +139,10 @@
             </a>
             <nav class="nav-menu">
                 <a href="/" class="nav-btn active" aria-current="page">Home</a>
+                <a href="/gallery/" class="nav-btn">Gallery</a>
                 <a href="/electron-vs-qt/" class="nav-btn">Compare Frontends</a>
                 <a href="/setup/" class="nav-btn">Setup</a>
                 <a href="/tnrd/" class="nav-btn">TNRD Files</a>
-                <a href="/credits/" class="nav-btn">Credits</a>
             </nav>
             <div class="nav-actions">
                 <!-- Discord invite link: replace the href below -->
@@ -262,7 +262,14 @@
         <section id="features" class="section feature-section">
             <div class="section-header">
                 <h2 class="section-heading">Highlights</h2>
-                <span class="eyebrow">05 features</span>
+                <a class="eyebrow section-link" href="/gallery/">
+                    <span>See every screen</span>
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <path d="M5 12h14"></path>
+                        <path d="m12 5 7 7-7 7"></path>
+                    </svg>
+                </a>
             </div>
 
             <!-- Feature Carousel -->
@@ -501,355 +508,14 @@
                 </div>
             </div>
 
-            <!-- Module switcher -->
-            <div class="section-header">
-                <h2 class="section-heading">Everything else</h2>
-                <span class="eyebrow">10 modules</span>
-            </div>
-            <div class="modules">
-                <div class="module-list" role="tablist" aria-label="Modules" aria-orientation="vertical">
-                    <button class="module-tab active" role="tab" id="module-tab-0"
-                        aria-controls="module-pane-0" aria-selected="true" tabindex="0">
-                        <span class="module-num">01</span>
-                        <span class="module-name">View Other Drivers</span>
-                    </button>
-                    <button class="module-tab" role="tab" id="module-tab-1"
-                        aria-controls="module-pane-1" aria-selected="false" tabindex="-1">
-                        <span class="module-num">02</span>
-                        <span class="module-name">Layout Editor</span>
-                    </button>
-                    <button class="module-tab" role="tab" id="module-tab-2"
-                        aria-controls="module-pane-2" aria-selected="false" tabindex="-1">
-                        <span class="module-num">03</span>
-                        <span class="module-name">Inputs</span>
-                    </button>
-                    <button class="module-tab" role="tab" id="module-tab-3"
-                        aria-controls="module-pane-3" aria-selected="false" tabindex="-1">
-                        <span class="module-num">04</span>
-                        <span class="module-name">Power</span>
-                    </button>
-                    <button class="module-tab" role="tab" id="module-tab-4"
-                        aria-controls="module-pane-4" aria-selected="false" tabindex="-1">
-                        <span class="module-num">05</span>
-                        <span class="module-name">Tyres</span>
-                    </button>
-                    <button class="module-tab" role="tab" id="module-tab-5"
-                        aria-controls="module-pane-5" aria-selected="false" tabindex="-1">
-                        <span class="module-num">06</span>
-                        <span class="module-name">Tyre Graphs</span>
-                    </button>
-                    <button class="module-tab" role="tab" id="module-tab-6"
-                        aria-controls="module-pane-6" aria-selected="false" tabindex="-1">
-                        <span class="module-num">07</span>
-                        <span class="module-name">Race Strategy</span>
-                    </button>
-                    <button class="module-tab" role="tab" id="module-tab-7"
-                        aria-controls="module-pane-7" aria-selected="false" tabindex="-1">
-                        <span class="module-num">08</span>
-                        <span class="module-name">Standings</span>
-                    </button>
-                    <button class="module-tab" role="tab" id="module-tab-8"
-                        aria-controls="module-pane-8" aria-selected="false" tabindex="-1">
-                        <span class="module-num">09</span>
-                        <span class="module-name">View Previous Times</span>
-                    </button>
-                    <button class="module-tab" role="tab" id="module-tab-9"
-                        aria-controls="module-pane-9" aria-selected="false" tabindex="-1">
-                        <span class="module-num">10</span>
-                        <span class="module-name">Data Tables</span>
-                    </button>
-                </div>
-                <div class="module-stage">
-                    <figure class="module-pane active" role="tabpanel" id="module-pane-0"
-                        aria-labelledby="module-tab-0">
-                        <div class="app-window">
-                            <div class="img-zoom-wrapper">
-                                <picture>
-                                    <source type="image/avif" srcset="/assets/screenshots/other_drivers-1280.avif 1280w, /assets/screenshots/other_drivers-1920.avif 1920w, /assets/screenshots/other_drivers-2624.avif 2624w"
-                                        sizes="(max-width: 860px) 100vw, 840px">
-                                    <img src="/assets/screenshots/other_drivers.webp"
-                                        alt="Overview screen switched to Albon's car, showing his speed, RPM and ERS traces, fuel and position"
-                                        class="mockup-img" width="2624" height="1624" loading="lazy">
-                                </picture>
-                                <div class="zoom-badge">
-                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                                        stroke-width="2">
-                                        <circle cx="11" cy="11" r="8"></circle>
-                                        <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-                                        <line x1="11" y1="8" x2="11" y2="14"></line>
-                                        <line x1="8" y1="11" x2="14" y2="11"></line>
-                                    </svg>
-                                    <span>Expand Image</span>
-                                </div>
-                            </div>
-                        </div>
-                        <figcaption class="module-caption">
-                            <h3 class="module-title">View Other Drivers</h3>
-                            <p class="module-desc">View telemetry for other drivers. Looks like Albon is doing a fine job here.</p>
-                        </figcaption>
-                    </figure>
-                    <figure class="module-pane" role="tabpanel" id="module-pane-1"
-                        aria-labelledby="module-tab-1" aria-hidden="true">
-                        <div class="app-window">
-                            <div class="img-zoom-wrapper">
-                                <picture>
-                                    <source type="image/avif" srcset="/assets/screenshots/editor-1280.avif 1280w, /assets/screenshots/editor-1920.avif 1920w, /assets/screenshots/editor-2624.avif 2624w"
-                                        sizes="(max-width: 860px) 100vw, 840px">
-                                    <img src="/assets/screenshots/editor.webp"
-                                        alt="Layout editor for choosing which sections appear on the overview screen"
-                                        class="mockup-img" width="2624" height="1624" loading="lazy">
-                                </picture>
-                                <div class="zoom-badge">
-                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                                        stroke-width="2">
-                                        <circle cx="11" cy="11" r="8"></circle>
-                                        <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-                                        <line x1="11" y1="8" x2="11" y2="14"></line>
-                                        <line x1="8" y1="11" x2="14" y2="11"></line>
-                                    </svg>
-                                    <span>Expand Image</span>
-                                </div>
-                            </div>
-                        </div>
-                        <figcaption class="module-caption">
-                            <h3 class="module-title">Layout Editor</h3>
-                            <p class="module-desc">Enable or disable cards based on your needs.</p>
-                        </figcaption>
-                    </figure>
-                    <figure class="module-pane" role="tabpanel" id="module-pane-2"
-                        aria-labelledby="module-tab-2" aria-hidden="true">
-                        <div class="app-window">
-                            <div class="img-zoom-wrapper">
-                                <picture>
-                                    <source type="image/avif" srcset="/assets/screenshots/inputs-1280.avif 1280w, /assets/screenshots/inputs-1920.avif 1920w, /assets/screenshots/inputs-2624.avif 2624w"
-                                        sizes="(max-width: 860px) 100vw, 840px">
-                                    <img src="/assets/screenshots/inputs.webp"
-                                        alt="Gear, throttle and brake, and steering input charts over a lap"
-                                        class="mockup-img" width="2624" height="1624" loading="lazy">
-                                </picture>
-                                <div class="zoom-badge">
-                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                                        stroke-width="2">
-                                        <circle cx="11" cy="11" r="8"></circle>
-                                        <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-                                        <line x1="11" y1="8" x2="11" y2="14"></line>
-                                        <line x1="8" y1="11" x2="14" y2="11"></line>
-                                    </svg>
-                                    <span>Expand Image</span>
-                                </div>
-                            </div>
-                        </div>
-                        <figcaption class="module-caption">
-                            <h3 class="module-title">Inputs</h3>
-                            <p class="module-desc">Track your acceleration, brake, gear and steering inputs. Duh.</p>
-                        </figcaption>
-                    </figure>
-                    <figure class="module-pane" role="tabpanel" id="module-pane-3"
-                        aria-labelledby="module-tab-3" aria-hidden="true">
-                        <div class="app-window">
-                            <div class="img-zoom-wrapper">
-                                <picture>
-                                    <source type="image/avif" srcset="/assets/screenshots/power-1280.avif 1280w, /assets/screenshots/power-1920.avif 1920w, /assets/screenshots/power-2624.avif 2624w"
-                                        sizes="(max-width: 860px) 100vw, 840px">
-                                    <img src="/assets/screenshots/power.webp"
-                                        alt="Power screen with ICE and MGU-K power split, ERS harvest, ERS store and fuel charts"
-                                        class="mockup-img" width="2624" height="1624" loading="lazy">
-                                </picture>
-                                <div class="zoom-badge">
-                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                                        stroke-width="2">
-                                        <circle cx="11" cy="11" r="8"></circle>
-                                        <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-                                        <line x1="11" y1="8" x2="11" y2="14"></line>
-                                        <line x1="8" y1="11" x2="14" y2="11"></line>
-                                    </svg>
-                                    <span>Expand Image</span>
-                                </div>
-                            </div>
-                        </div>
-                        <figcaption class="module-caption">
-                            <h3 class="module-title">Power</h3>
-                            <p class="module-desc">Track engine and fuel status.</p>
-                        </figcaption>
-                    </figure>
-                    <figure class="module-pane" role="tabpanel" id="module-pane-4"
-                        aria-labelledby="module-tab-4" aria-hidden="true">
-                        <div class="app-window">
-                            <div class="img-zoom-wrapper">
-                                <picture>
-                                    <source type="image/avif" srcset="/assets/screenshots/tyres-1280.avif 1280w, /assets/screenshots/tyres-1920.avif 1920w, /assets/screenshots/tyres-2624.avif 2624w"
-                                        sizes="(max-width: 860px) 100vw, 840px">
-                                    <img src="/assets/screenshots/tyres.webp"
-                                        alt="Tyre allocation listing every dry and wet set with wear, remaining life and lap-time delta, next to live tyre and brake temperatures"
-                                        class="mockup-img" width="2624" height="1624" loading="lazy">
-                                </picture>
-                                <div class="zoom-badge">
-                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                                        stroke-width="2">
-                                        <circle cx="11" cy="11" r="8"></circle>
-                                        <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-                                        <line x1="11" y1="8" x2="11" y2="14"></line>
-                                        <line x1="8" y1="11" x2="14" y2="11"></line>
-                                    </svg>
-                                    <span>Expand Image</span>
-                                </div>
-                            </div>
-                        </div>
-                        <figcaption class="module-caption">
-                            <h3 class="module-title">Tyres</h3>
-                            <p class="module-desc">Get a list of all the available compounds for the weekend</p>
-                        </figcaption>
-                    </figure>
-                    <figure class="module-pane" role="tabpanel" id="module-pane-5"
-                        aria-labelledby="module-tab-5" aria-hidden="true">
-                        <div class="app-window">
-                            <div class="img-zoom-wrapper">
-                                <picture>
-                                    <source type="image/avif" srcset="/assets/screenshots/tyres_charts-1280.avif 1280w, /assets/screenshots/tyres_charts-1920.avif 1920w, /assets/screenshots/tyres_charts-2624.avif 2624w"
-                                        sizes="(max-width: 860px) 100vw, 840px">
-                                    <img src="/assets/screenshots/tyres_charts.webp"
-                                        alt="Surface, inner and brake temperature charts plus tyre life for all four tyres"
-                                        class="mockup-img" width="2624" height="1624" loading="lazy">
-                                </picture>
-                                <div class="zoom-badge">
-                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                                        stroke-width="2">
-                                        <circle cx="11" cy="11" r="8"></circle>
-                                        <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-                                        <line x1="11" y1="8" x2="11" y2="14"></line>
-                                        <line x1="8" y1="11" x2="14" y2="11"></line>
-                                    </svg>
-                                    <span>Expand Image</span>
-                                </div>
-                            </div>
-                        </div>
-                        <figcaption class="module-caption">
-                            <h3 class="module-title">Tyre Graphs</h3>
-                            <p class="module-desc">Monitor compound degradation, surface, and inner carcass temperatures.</p>
-                        </figcaption>
-                    </figure>
-                    <figure class="module-pane" role="tabpanel" id="module-pane-6"
-                        aria-labelledby="module-tab-6" aria-hidden="true">
-                        <div class="app-window">
-                            <div class="img-zoom-wrapper">
-                                <picture>
-                                    <source type="image/avif" srcset="/assets/screenshots/strategy-1280.avif 1280w, /assets/screenshots/strategy-1920.avif 1920w, /assets/screenshots/strategy-2624.avif 2624w"
-                                        sizes="(max-width: 860px) 100vw, 840px">
-                                    <img src="/assets/screenshots/strategy.webp"
-                                        alt="Strategy screen comparing a conservative and an aggressive plan with target lap times for each stint"
-                                        class="mockup-img" width="2624" height="1624" loading="lazy">
-                                </picture>
-                                <div class="zoom-badge">
-                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                                        stroke-width="2">
-                                        <circle cx="11" cy="11" r="8"></circle>
-                                        <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-                                        <line x1="11" y1="8" x2="11" y2="14"></line>
-                                        <line x1="8" y1="11" x2="14" y2="11"></line>
-                                    </svg>
-                                    <span>Expand Image</span>
-                                </div>
-                            </div>
-                        </div>
-                        <figcaption class="module-caption">
-                            <h3 class="module-title">Race Strategy</h3>
-                            <p class="module-desc">This is a work in progress so expect the module to recreate Monaco 2022.</p>
-                        </figcaption>
-                    </figure>
-                    <figure class="module-pane" role="tabpanel" id="module-pane-7"
-                        aria-labelledby="module-tab-7" aria-hidden="true">
-                        <div class="app-window">
-                            <div class="img-zoom-wrapper">
-                                <picture>
-                                    <source type="image/avif" srcset="/assets/screenshots/standings-1280.avif 1280w, /assets/screenshots/standings-1920.avif 1920w, /assets/screenshots/standings-2624.avif 2624w"
-                                        sizes="(max-width: 860px) 100vw, 840px">
-                                    <img src="/assets/screenshots/standings.webp"
-                                        alt="Timing tower with positions, last lap, gaps and sector times for all 22 cars, plus the player's ERS, fuel and tyre info"
-                                        class="mockup-img" width="2624" height="1624" loading="lazy">
-                                </picture>
-                                <div class="zoom-badge">
-                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                                        stroke-width="2">
-                                        <circle cx="11" cy="11" r="8"></circle>
-                                        <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-                                        <line x1="11" y1="8" x2="11" y2="14"></line>
-                                        <line x1="8" y1="11" x2="14" y2="11"></line>
-                                    </svg>
-                                    <span>Expand Image</span>
-                                </div>
-                            </div>
-                        </div>
-                        <figcaption class="module-caption">
-                            <h3 class="module-title">Standings</h3>
-                            <p class="module-desc">If you are looking for telemetry software, you know what a timing tower is. I am not explaining that.</p>
-                        </figcaption>
-                    </figure>
-                    <figure class="module-pane" role="tabpanel" id="module-pane-8"
-                        aria-labelledby="module-tab-8" aria-hidden="true">
-                        <div class="app-window">
-                            <div class="img-zoom-wrapper">
-                                <picture>
-                                    <source type="image/avif" srcset="/assets/screenshots/previous_lap_times-1280.avif 1280w, /assets/screenshots/previous_lap_times-1920.avif 1920w, /assets/screenshots/previous_lap_times-2624.avif 2624w"
-                                        sizes="(max-width: 860px) 100vw, 840px">
-                                    <img src="/assets/screenshots/previous_lap_times.webp"
-                                        alt="Lap times popup from the standings, listing every lap with sector splits and the fastest lap and sectors highlighted"
-                                        class="mockup-img" width="2624" height="1624" loading="lazy">
-                                </picture>
-                                <div class="zoom-badge">
-                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                                        stroke-width="2">
-                                        <circle cx="11" cy="11" r="8"></circle>
-                                        <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-                                        <line x1="11" y1="8" x2="11" y2="14"></line>
-                                        <line x1="8" y1="11" x2="14" y2="11"></line>
-                                    </svg>
-                                    <span>Expand Image</span>
-                                </div>
-                            </div>
-                        </div>
-                        <figcaption class="module-caption">
-                            <h3 class="module-title">View Previous Times</h3>
-                            <p class="module-desc">View previous lap and sector times for all drivers.</p>
-                        </figcaption>
-                    </figure>
-                    <figure class="module-pane" role="tabpanel" id="module-pane-9"
-                        aria-labelledby="module-tab-9" aria-hidden="true">
-                        <div class="app-window">
-                            <div class="img-zoom-wrapper">
-                                <picture>
-                                    <source type="image/avif" srcset="/assets/screenshots/overview_table-1280.avif 1280w, /assets/screenshots/overview_table-1920.avif 1920w, /assets/screenshots/overview_table-2624.avif 2624w"
-                                        sizes="(max-width: 860px) 100vw, 840px">
-                                    <img src="/assets/screenshots/overview_table.webp"
-                                        alt="Overview screen with the charts swapped for data tables of speed, RPM, ERS and tyre temperatures"
-                                        class="mockup-img" width="2624" height="1624" loading="lazy">
-                                </picture>
-                                <div class="zoom-badge">
-                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                                        stroke-width="2">
-                                        <circle cx="11" cy="11" r="8"></circle>
-                                        <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-                                        <line x1="11" y1="8" x2="11" y2="14"></line>
-                                        <line x1="8" y1="11" x2="14" y2="11"></line>
-                                    </svg>
-                                    <span>Expand Image</span>
-                                </div>
-                            </div>
-                        </div>
-                        <figcaption class="module-caption">
-                            <h3 class="module-title">Data Tables</h3>
-                            <p class="module-desc">If you don't want graphs, you can swap them out for tables.</p>
-                        </figcaption>
-                    </figure>
-                </div>
-            </div>
         </section>
 
-        <!-- Qt frontend: switcher of the Qt app's screens -->
-        <section id="qt" class="section qt-section">
+        <!-- Alternate frontend: three Qt screens, linking to the Compare Frontends page -->
+        <section id="alternate-frontend" class="section alt-frontend-section">
             <div class="section-header">
                 <h2 class="section-heading">Qt frontend</h2>
                 <a class="eyebrow section-link" href="/electron-vs-qt/">
-                    <span>Compare with Electron</span>
+                    <span>Frontends</span>
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
                         stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                         <path d="M5 12h14"></path>
@@ -857,508 +523,100 @@
                     </svg>
                 </a>
             </div>
-            <p class="section-desc qt-intro">
-                Well, if you don't like Electron, you can use the Qt frontend. Advantages: Less RAM usage. Disadvantages: ... I might miss porting a feature or two to Qt. Electron will continue to be the primary frontend. But I will try and maintain Qt parity before each feature release.
+            <p class="section-desc alt-frontend-desc">
+                Track N Race is also available with a native, Qt frontend. It uses less RAM, but I might forget to add a feature or two to Qt. <a href="/electron-vs-qt/">Compare the frontends to decide which frontend suits you the best.</a>
             </p>
-            <div class="modules qt-modules">
-                <div class="module-list" role="tablist" aria-label="Qt frontend screens" aria-orientation="vertical">
-                    <button class="module-tab active" role="tab" id="qt-module-tab-0"
-                        aria-controls="qt-module-pane-0" aria-selected="true" tabindex="0">
-                        <span class="module-num">01</span>
-                        <span class="module-name">Overview</span>
-                    </button>
-                    <button class="module-tab" role="tab" id="qt-module-tab-1"
-                        aria-controls="qt-module-pane-1" aria-selected="false" tabindex="-1">
-                        <span class="module-num">02</span>
-                        <span class="module-name">Analysis</span>
-                    </button>
-                    <button class="module-tab" role="tab" id="qt-module-tab-2"
-                        aria-controls="qt-module-pane-2" aria-selected="false" tabindex="-1">
-                        <span class="module-num">03</span>
-                        <span class="module-name">Session</span>
-                    </button>
-                    <button class="module-tab" role="tab" id="qt-module-tab-3"
-                        aria-controls="qt-module-pane-3" aria-selected="false" tabindex="-1">
-                        <span class="module-num">04</span>
-                        <span class="module-name">Standings</span>
-                    </button>
-                    <button class="module-tab" role="tab" id="qt-module-tab-4"
-                        aria-controls="qt-module-pane-4" aria-selected="false" tabindex="-1">
-                        <span class="module-num">05</span>
-                        <span class="module-name">Lap Times</span>
-                    </button>
-                    <button class="module-tab" role="tab" id="qt-module-tab-5"
-                        aria-controls="qt-module-pane-5" aria-selected="false" tabindex="-1">
-                        <span class="module-num">06</span>
-                        <span class="module-name">Tyres</span>
-                    </button>
-                    <button class="module-tab" role="tab" id="qt-module-tab-6"
-                        aria-controls="qt-module-pane-6" aria-selected="false" tabindex="-1">
-                        <span class="module-num">07</span>
-                        <span class="module-name">Tyre Graphs</span>
-                    </button>
-                    <button class="module-tab" role="tab" id="qt-module-tab-7"
-                        aria-controls="qt-module-pane-7" aria-selected="false" tabindex="-1">
-                        <span class="module-num">08</span>
-                        <span class="module-name">Strategy</span>
-                    </button>
-                    <button class="module-tab" role="tab" id="qt-module-tab-8"
-                        aria-controls="qt-module-pane-8" aria-selected="false" tabindex="-1">
-                        <span class="module-num">09</span>
-                        <span class="module-name">Trends</span>
-                    </button>
-                    <button class="module-tab" role="tab" id="qt-module-tab-9"
-                        aria-controls="qt-module-pane-9" aria-selected="false" tabindex="-1">
-                        <span class="module-num">10</span>
-                        <span class="module-name">Damage</span>
-                    </button>
-                    <button class="module-tab" role="tab" id="qt-module-tab-10"
-                        aria-controls="qt-module-pane-10" aria-selected="false" tabindex="-1">
-                        <span class="module-num">11</span>
-                        <span class="module-name">Inputs</span>
-                    </button>
-                    <button class="module-tab" role="tab" id="qt-module-tab-11"
-                        aria-controls="qt-module-pane-11" aria-selected="false" tabindex="-1">
-                        <span class="module-num">12</span>
-                        <span class="module-name">Power</span>
-                    </button>
-                    <button class="module-tab" role="tab" id="qt-module-tab-12"
-                        aria-controls="qt-module-pane-12" aria-selected="false" tabindex="-1">
-                        <span class="module-num">13</span>
-                        <span class="module-name">Misc</span>
-                    </button>
-                    <button class="module-tab" role="tab" id="qt-module-tab-13"
-                        aria-controls="qt-module-pane-13" aria-selected="false" tabindex="-1">
-                        <span class="module-num">14</span>
-                        <span class="module-name">Other Drivers</span>
-                    </button>
-                    <button class="module-tab" role="tab" id="qt-module-tab-14"
-                        aria-controls="qt-module-pane-14" aria-selected="false" tabindex="-1">
-                        <span class="module-num">15</span>
-                        <span class="module-name">Layout Editor</span>
-                    </button>
-                    <button class="module-tab" role="tab" id="qt-module-tab-15"
-                        aria-controls="qt-module-pane-15" aria-selected="false" tabindex="-1">
-                        <span class="module-num">16</span>
-                        <span class="module-name">Data Tables</span>
-                    </button>
+
+            <div class="carousel-container alt-frontend-carousel">
+                <div class="carousel-viewport">
+                    <div class="carousel-track">
+                        <div class="carousel-slide active">
+                            <div class="shot shot-trimmed app-window">
+                                <div class="img-zoom-wrapper">
+                                    <picture>
+                                        <source type="image/avif" srcset="/assets/screenshots/qt/overview-2492.avif"
+                                            sizes="(max-width: 768px) 100vw, 1200px">
+                                        <img src="/assets/screenshots/qt/overview.webp" alt="Qt frontend: Overview"
+                                            class="mockup-img" width="2492" height="1492" loading="lazy">
+                                    </picture>
+                                    <div class="zoom-badge">
+                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                            stroke-width="2">
+                                            <circle cx="11" cy="11" r="8"></circle>
+                                            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                                            <line x1="11" y1="8" x2="11" y2="14"></line>
+                                            <line x1="8" y1="11" x2="14" y2="11"></line>
+                                        </svg>
+                                        <span>Expand Image</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="carousel-slide">
+                            <div class="shot app-window">
+                                <div class="img-zoom-wrapper">
+                                    <picture>
+                                        <source type="image/avif" srcset="/assets/screenshots/qt/analyze-1280.avif 1280w, /assets/screenshots/qt/analyze-1920.avif 1920w, /assets/screenshots/qt/analyze-2624.avif 2624w"
+                                            sizes="(max-width: 768px) 100vw, 1200px">
+                                        <img src="/assets/screenshots/qt/analyze.webp" alt="Qt frontend: Analysis"
+                                            class="mockup-img" width="2624" height="1624" loading="lazy">
+                                    </picture>
+                                    <div class="zoom-badge">
+                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                            stroke-width="2">
+                                            <circle cx="11" cy="11" r="8"></circle>
+                                            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                                            <line x1="11" y1="8" x2="11" y2="14"></line>
+                                            <line x1="8" y1="11" x2="14" y2="11"></line>
+                                        </svg>
+                                        <span>Expand Image</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="carousel-slide">
+                            <div class="shot app-window">
+                                <div class="img-zoom-wrapper">
+                                    <picture>
+                                        <source type="image/avif" srcset="/assets/screenshots/qt/session-1280.avif 1280w, /assets/screenshots/qt/session-1920.avif 1920w, /assets/screenshots/qt/session-2624.avif 2624w"
+                                            sizes="(max-width: 768px) 100vw, 1200px">
+                                        <img src="/assets/screenshots/qt/session.webp" alt="Qt frontend: Session"
+                                            class="mockup-img" width="2624" height="1624" loading="lazy">
+                                    </picture>
+                                    <div class="zoom-badge">
+                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                            stroke-width="2">
+                                            <circle cx="11" cy="11" r="8"></circle>
+                                            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                                            <line x1="11" y1="8" x2="11" y2="14"></line>
+                                            <line x1="8" y1="11" x2="14" y2="11"></line>
+                                        </svg>
+                                        <span>Expand Image</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-                <div class="module-stage">
-                    <figure class="module-pane active qt-shot-hero" role="tabpanel" id="qt-module-pane-0"
-                        aria-labelledby="qt-module-tab-0">
-                        <div class="app-window">
-                            <div class="img-zoom-wrapper">
-                                <picture>
-                                    <source type="image/avif" srcset="/assets/screenshots/qt/overview-2492.avif">
-                                    <img src="/assets/screenshots/qt/overview.webp" alt="Qt frontend: Overview"
-                                        class="mockup-img" width="2492" height="1492" loading="lazy">
-                                </picture>
-                                <div class="zoom-badge">
-                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                                        stroke-width="2">
-                                        <circle cx="11" cy="11" r="8"></circle>
-                                        <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-                                        <line x1="11" y1="8" x2="11" y2="14"></line>
-                                        <line x1="8" y1="11" x2="14" y2="11"></line>
-                                    </svg>
-                                    <span>Expand Image</span>
-                                </div>
-                            </div>
-                        </div>
-                        <figcaption class="module-caption">
-                            <h3 class="module-title">Overview</h3>
-                        </figcaption>
-                    </figure>
-                    <figure class="module-pane" role="tabpanel" id="qt-module-pane-1"
-                        aria-labelledby="qt-module-tab-1" aria-hidden="true">
-                        <div class="app-window">
-                            <div class="img-zoom-wrapper">
-                                <picture>
-                                    <source type="image/avif" srcset="/assets/screenshots/qt/analyze-1280.avif 1280w, /assets/screenshots/qt/analyze-1920.avif 1920w, /assets/screenshots/qt/analyze-2624.avif 2624w"
-                                        sizes="(max-width: 860px) 100vw, 840px">
-                                    <img src="/assets/screenshots/qt/analyze.webp" alt="Qt frontend: Analysis"
-                                        class="mockup-img" width="2624" height="1624" loading="lazy">
-                                </picture>
-                                <div class="zoom-badge">
-                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                                        stroke-width="2">
-                                        <circle cx="11" cy="11" r="8"></circle>
-                                        <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-                                        <line x1="11" y1="8" x2="11" y2="14"></line>
-                                        <line x1="8" y1="11" x2="14" y2="11"></line>
-                                    </svg>
-                                    <span>Expand Image</span>
-                                </div>
-                            </div>
-                        </div>
-                        <figcaption class="module-caption">
-                            <h3 class="module-title">Analysis</h3>
-                        </figcaption>
-                    </figure>
-                    <figure class="module-pane" role="tabpanel" id="qt-module-pane-2"
-                        aria-labelledby="qt-module-tab-2" aria-hidden="true">
-                        <div class="app-window">
-                            <div class="img-zoom-wrapper">
-                                <picture>
-                                    <source type="image/avif" srcset="/assets/screenshots/qt/session-1280.avif 1280w, /assets/screenshots/qt/session-1920.avif 1920w, /assets/screenshots/qt/session-2624.avif 2624w"
-                                        sizes="(max-width: 860px) 100vw, 840px">
-                                    <img src="/assets/screenshots/qt/session.webp" alt="Qt frontend: Session"
-                                        class="mockup-img" width="2624" height="1624" loading="lazy">
-                                </picture>
-                                <div class="zoom-badge">
-                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                                        stroke-width="2">
-                                        <circle cx="11" cy="11" r="8"></circle>
-                                        <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-                                        <line x1="11" y1="8" x2="11" y2="14"></line>
-                                        <line x1="8" y1="11" x2="14" y2="11"></line>
-                                    </svg>
-                                    <span>Expand Image</span>
-                                </div>
-                            </div>
-                        </div>
-                        <figcaption class="module-caption">
-                            <h3 class="module-title">Session</h3>
-                        </figcaption>
-                    </figure>
-                    <figure class="module-pane" role="tabpanel" id="qt-module-pane-3"
-                        aria-labelledby="qt-module-tab-3" aria-hidden="true">
-                        <div class="app-window">
-                            <div class="img-zoom-wrapper">
-                                <picture>
-                                    <source type="image/avif" srcset="/assets/screenshots/qt/standings-1280.avif 1280w, /assets/screenshots/qt/standings-1920.avif 1920w, /assets/screenshots/qt/standings-2624.avif 2624w"
-                                        sizes="(max-width: 860px) 100vw, 840px">
-                                    <img src="/assets/screenshots/qt/standings.webp" alt="Qt frontend: Standings"
-                                        class="mockup-img" width="2624" height="1624" loading="lazy">
-                                </picture>
-                                <div class="zoom-badge">
-                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                                        stroke-width="2">
-                                        <circle cx="11" cy="11" r="8"></circle>
-                                        <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-                                        <line x1="11" y1="8" x2="11" y2="14"></line>
-                                        <line x1="8" y1="11" x2="14" y2="11"></line>
-                                    </svg>
-                                    <span>Expand Image</span>
-                                </div>
-                            </div>
-                        </div>
-                        <figcaption class="module-caption">
-                            <h3 class="module-title">Standings</h3>
-                        </figcaption>
-                    </figure>
-                    <figure class="module-pane" role="tabpanel" id="qt-module-pane-4"
-                        aria-labelledby="qt-module-tab-4" aria-hidden="true">
-                        <div class="app-window">
-                            <div class="img-zoom-wrapper">
-                                <picture>
-                                    <source type="image/avif" srcset="/assets/screenshots/qt/previous_lap_times-1280.avif 1280w, /assets/screenshots/qt/previous_lap_times-1920.avif 1920w, /assets/screenshots/qt/previous_lap_times-2624.avif 2624w"
-                                        sizes="(max-width: 860px) 100vw, 840px">
-                                    <img src="/assets/screenshots/qt/previous_lap_times.webp" alt="Qt frontend: Lap Times"
-                                        class="mockup-img" width="2624" height="1624" loading="lazy">
-                                </picture>
-                                <div class="zoom-badge">
-                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                                        stroke-width="2">
-                                        <circle cx="11" cy="11" r="8"></circle>
-                                        <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-                                        <line x1="11" y1="8" x2="11" y2="14"></line>
-                                        <line x1="8" y1="11" x2="14" y2="11"></line>
-                                    </svg>
-                                    <span>Expand Image</span>
-                                </div>
-                            </div>
-                        </div>
-                        <figcaption class="module-caption">
-                            <h3 class="module-title">Lap Times</h3>
-                        </figcaption>
-                    </figure>
-                    <figure class="module-pane" role="tabpanel" id="qt-module-pane-5"
-                        aria-labelledby="qt-module-tab-5" aria-hidden="true">
-                        <div class="app-window">
-                            <div class="img-zoom-wrapper">
-                                <picture>
-                                    <source type="image/avif" srcset="/assets/screenshots/qt/tyres-1280.avif 1280w, /assets/screenshots/qt/tyres-1920.avif 1920w, /assets/screenshots/qt/tyres-2624.avif 2624w"
-                                        sizes="(max-width: 860px) 100vw, 840px">
-                                    <img src="/assets/screenshots/qt/tyres.webp" alt="Qt frontend: Tyres"
-                                        class="mockup-img" width="2624" height="1624" loading="lazy">
-                                </picture>
-                                <div class="zoom-badge">
-                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                                        stroke-width="2">
-                                        <circle cx="11" cy="11" r="8"></circle>
-                                        <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-                                        <line x1="11" y1="8" x2="11" y2="14"></line>
-                                        <line x1="8" y1="11" x2="14" y2="11"></line>
-                                    </svg>
-                                    <span>Expand Image</span>
-                                </div>
-                            </div>
-                        </div>
-                        <figcaption class="module-caption">
-                            <h3 class="module-title">Tyres</h3>
-                        </figcaption>
-                    </figure>
-                    <figure class="module-pane" role="tabpanel" id="qt-module-pane-6"
-                        aria-labelledby="qt-module-tab-6" aria-hidden="true">
-                        <div class="app-window">
-                            <div class="img-zoom-wrapper">
-                                <picture>
-                                    <source type="image/avif" srcset="/assets/screenshots/qt/tyres_charts-1280.avif 1280w, /assets/screenshots/qt/tyres_charts-1920.avif 1920w, /assets/screenshots/qt/tyres_charts-2624.avif 2624w"
-                                        sizes="(max-width: 860px) 100vw, 840px">
-                                    <img src="/assets/screenshots/qt/tyres_charts.webp" alt="Qt frontend: Tyre Graphs"
-                                        class="mockup-img" width="2624" height="1624" loading="lazy">
-                                </picture>
-                                <div class="zoom-badge">
-                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                                        stroke-width="2">
-                                        <circle cx="11" cy="11" r="8"></circle>
-                                        <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-                                        <line x1="11" y1="8" x2="11" y2="14"></line>
-                                        <line x1="8" y1="11" x2="14" y2="11"></line>
-                                    </svg>
-                                    <span>Expand Image</span>
-                                </div>
-                            </div>
-                        </div>
-                        <figcaption class="module-caption">
-                            <h3 class="module-title">Tyre Graphs</h3>
-                        </figcaption>
-                    </figure>
-                    <figure class="module-pane" role="tabpanel" id="qt-module-pane-7"
-                        aria-labelledby="qt-module-tab-7" aria-hidden="true">
-                        <div class="app-window">
-                            <div class="img-zoom-wrapper">
-                                <picture>
-                                    <source type="image/avif" srcset="/assets/screenshots/qt/strategy-1280.avif 1280w, /assets/screenshots/qt/strategy-1920.avif 1920w, /assets/screenshots/qt/strategy-2624.avif 2624w"
-                                        sizes="(max-width: 860px) 100vw, 840px">
-                                    <img src="/assets/screenshots/qt/strategy.webp" alt="Qt frontend: Strategy"
-                                        class="mockup-img" width="2624" height="1624" loading="lazy">
-                                </picture>
-                                <div class="zoom-badge">
-                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                                        stroke-width="2">
-                                        <circle cx="11" cy="11" r="8"></circle>
-                                        <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-                                        <line x1="11" y1="8" x2="11" y2="14"></line>
-                                        <line x1="8" y1="11" x2="14" y2="11"></line>
-                                    </svg>
-                                    <span>Expand Image</span>
-                                </div>
-                            </div>
-                        </div>
-                        <figcaption class="module-caption">
-                            <h3 class="module-title">Strategy</h3>
-                        </figcaption>
-                    </figure>
-                    <figure class="module-pane" role="tabpanel" id="qt-module-pane-8"
-                        aria-labelledby="qt-module-tab-8" aria-hidden="true">
-                        <div class="app-window">
-                            <div class="img-zoom-wrapper">
-                                <picture>
-                                    <source type="image/avif" srcset="/assets/screenshots/qt/trends-1280.avif 1280w, /assets/screenshots/qt/trends-1920.avif 1920w, /assets/screenshots/qt/trends-2624.avif 2624w"
-                                        sizes="(max-width: 860px) 100vw, 840px">
-                                    <img src="/assets/screenshots/qt/trends.webp" alt="Qt frontend: Trends"
-                                        class="mockup-img" width="2624" height="1624" loading="lazy">
-                                </picture>
-                                <div class="zoom-badge">
-                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                                        stroke-width="2">
-                                        <circle cx="11" cy="11" r="8"></circle>
-                                        <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-                                        <line x1="11" y1="8" x2="11" y2="14"></line>
-                                        <line x1="8" y1="11" x2="14" y2="11"></line>
-                                    </svg>
-                                    <span>Expand Image</span>
-                                </div>
-                            </div>
-                        </div>
-                        <figcaption class="module-caption">
-                            <h3 class="module-title">Trends</h3>
-                        </figcaption>
-                    </figure>
-                    <figure class="module-pane" role="tabpanel" id="qt-module-pane-9"
-                        aria-labelledby="qt-module-tab-9" aria-hidden="true">
-                        <div class="app-window">
-                            <div class="img-zoom-wrapper">
-                                <picture>
-                                    <source type="image/avif" srcset="/assets/screenshots/qt/damage-1280.avif 1280w, /assets/screenshots/qt/damage-1920.avif 1920w, /assets/screenshots/qt/damage-2624.avif 2624w"
-                                        sizes="(max-width: 860px) 100vw, 840px">
-                                    <img src="/assets/screenshots/qt/damage.webp" alt="Qt frontend: Damage"
-                                        class="mockup-img" width="2624" height="1624" loading="lazy">
-                                </picture>
-                                <div class="zoom-badge">
-                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                                        stroke-width="2">
-                                        <circle cx="11" cy="11" r="8"></circle>
-                                        <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-                                        <line x1="11" y1="8" x2="11" y2="14"></line>
-                                        <line x1="8" y1="11" x2="14" y2="11"></line>
-                                    </svg>
-                                    <span>Expand Image</span>
-                                </div>
-                            </div>
-                        </div>
-                        <figcaption class="module-caption">
-                            <h3 class="module-title">Damage</h3>
-                        </figcaption>
-                    </figure>
-                    <figure class="module-pane" role="tabpanel" id="qt-module-pane-10"
-                        aria-labelledby="qt-module-tab-10" aria-hidden="true">
-                        <div class="app-window">
-                            <div class="img-zoom-wrapper">
-                                <picture>
-                                    <source type="image/avif" srcset="/assets/screenshots/qt/inputs-1280.avif 1280w, /assets/screenshots/qt/inputs-1920.avif 1920w, /assets/screenshots/qt/inputs-2624.avif 2624w"
-                                        sizes="(max-width: 860px) 100vw, 840px">
-                                    <img src="/assets/screenshots/qt/inputs.webp" alt="Qt frontend: Inputs"
-                                        class="mockup-img" width="2624" height="1624" loading="lazy">
-                                </picture>
-                                <div class="zoom-badge">
-                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                                        stroke-width="2">
-                                        <circle cx="11" cy="11" r="8"></circle>
-                                        <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-                                        <line x1="11" y1="8" x2="11" y2="14"></line>
-                                        <line x1="8" y1="11" x2="14" y2="11"></line>
-                                    </svg>
-                                    <span>Expand Image</span>
-                                </div>
-                            </div>
-                        </div>
-                        <figcaption class="module-caption">
-                            <h3 class="module-title">Inputs</h3>
-                        </figcaption>
-                    </figure>
-                    <figure class="module-pane" role="tabpanel" id="qt-module-pane-11"
-                        aria-labelledby="qt-module-tab-11" aria-hidden="true">
-                        <div class="app-window">
-                            <div class="img-zoom-wrapper">
-                                <picture>
-                                    <source type="image/avif" srcset="/assets/screenshots/qt/power-1280.avif 1280w, /assets/screenshots/qt/power-1920.avif 1920w, /assets/screenshots/qt/power-2624.avif 2624w"
-                                        sizes="(max-width: 860px) 100vw, 840px">
-                                    <img src="/assets/screenshots/qt/power.webp" alt="Qt frontend: Power"
-                                        class="mockup-img" width="2624" height="1624" loading="lazy">
-                                </picture>
-                                <div class="zoom-badge">
-                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                                        stroke-width="2">
-                                        <circle cx="11" cy="11" r="8"></circle>
-                                        <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-                                        <line x1="11" y1="8" x2="11" y2="14"></line>
-                                        <line x1="8" y1="11" x2="14" y2="11"></line>
-                                    </svg>
-                                    <span>Expand Image</span>
-                                </div>
-                            </div>
-                        </div>
-                        <figcaption class="module-caption">
-                            <h3 class="module-title">Power</h3>
-                        </figcaption>
-                    </figure>
-                    <figure class="module-pane" role="tabpanel" id="qt-module-pane-12"
-                        aria-labelledby="qt-module-tab-12" aria-hidden="true">
-                        <div class="app-window">
-                            <div class="img-zoom-wrapper">
-                                <picture>
-                                    <source type="image/avif" srcset="/assets/screenshots/qt/misc-1280.avif 1280w, /assets/screenshots/qt/misc-1920.avif 1920w, /assets/screenshots/qt/misc-2624.avif 2624w"
-                                        sizes="(max-width: 860px) 100vw, 840px">
-                                    <img src="/assets/screenshots/qt/misc.webp" alt="Qt frontend: Misc"
-                                        class="mockup-img" width="2624" height="1624" loading="lazy">
-                                </picture>
-                                <div class="zoom-badge">
-                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                                        stroke-width="2">
-                                        <circle cx="11" cy="11" r="8"></circle>
-                                        <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-                                        <line x1="11" y1="8" x2="11" y2="14"></line>
-                                        <line x1="8" y1="11" x2="14" y2="11"></line>
-                                    </svg>
-                                    <span>Expand Image</span>
-                                </div>
-                            </div>
-                        </div>
-                        <figcaption class="module-caption">
-                            <h3 class="module-title">Misc</h3>
-                        </figcaption>
-                    </figure>
-                    <figure class="module-pane" role="tabpanel" id="qt-module-pane-13"
-                        aria-labelledby="qt-module-tab-13" aria-hidden="true">
-                        <div class="app-window">
-                            <div class="img-zoom-wrapper">
-                                <picture>
-                                    <source type="image/avif" srcset="/assets/screenshots/qt/other_drivers-1280.avif 1280w, /assets/screenshots/qt/other_drivers-1920.avif 1920w, /assets/screenshots/qt/other_drivers-2624.avif 2624w"
-                                        sizes="(max-width: 860px) 100vw, 840px">
-                                    <img src="/assets/screenshots/qt/other_drivers.webp" alt="Qt frontend: Other Drivers"
-                                        class="mockup-img" width="2624" height="1624" loading="lazy">
-                                </picture>
-                                <div class="zoom-badge">
-                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                                        stroke-width="2">
-                                        <circle cx="11" cy="11" r="8"></circle>
-                                        <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-                                        <line x1="11" y1="8" x2="11" y2="14"></line>
-                                        <line x1="8" y1="11" x2="14" y2="11"></line>
-                                    </svg>
-                                    <span>Expand Image</span>
-                                </div>
-                            </div>
-                        </div>
-                        <figcaption class="module-caption">
-                            <h3 class="module-title">Other Drivers</h3>
-                        </figcaption>
-                    </figure>
-                    <figure class="module-pane" role="tabpanel" id="qt-module-pane-14"
-                        aria-labelledby="qt-module-tab-14" aria-hidden="true">
-                        <div class="app-window">
-                            <div class="img-zoom-wrapper">
-                                <picture>
-                                    <source type="image/avif" srcset="/assets/screenshots/qt/editor-1280.avif 1280w, /assets/screenshots/qt/editor-1920.avif 1920w, /assets/screenshots/qt/editor-2624.avif 2624w"
-                                        sizes="(max-width: 860px) 100vw, 840px">
-                                    <img src="/assets/screenshots/qt/editor.webp" alt="Qt frontend: Layout Editor"
-                                        class="mockup-img" width="2624" height="1624" loading="lazy">
-                                </picture>
-                                <div class="zoom-badge">
-                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                                        stroke-width="2">
-                                        <circle cx="11" cy="11" r="8"></circle>
-                                        <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-                                        <line x1="11" y1="8" x2="11" y2="14"></line>
-                                        <line x1="8" y1="11" x2="14" y2="11"></line>
-                                    </svg>
-                                    <span>Expand Image</span>
-                                </div>
-                            </div>
-                        </div>
-                        <figcaption class="module-caption">
-                            <h3 class="module-title">Layout Editor</h3>
-                        </figcaption>
-                    </figure>
-                    <figure class="module-pane" role="tabpanel" id="qt-module-pane-15"
-                        aria-labelledby="qt-module-tab-15" aria-hidden="true">
-                        <div class="app-window">
-                            <div class="img-zoom-wrapper">
-                                <picture>
-                                    <source type="image/avif" srcset="/assets/screenshots/qt/overview_table-1280.avif 1280w, /assets/screenshots/qt/overview_table-1920.avif 1920w, /assets/screenshots/qt/overview_table-2624.avif 2624w"
-                                        sizes="(max-width: 860px) 100vw, 840px">
-                                    <img src="/assets/screenshots/qt/overview_table.webp" alt="Qt frontend: Data Tables"
-                                        class="mockup-img" width="2624" height="1624" loading="lazy">
-                                </picture>
-                                <div class="zoom-badge">
-                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                                        stroke-width="2">
-                                        <circle cx="11" cy="11" r="8"></circle>
-                                        <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-                                        <line x1="11" y1="8" x2="11" y2="14"></line>
-                                        <line x1="8" y1="11" x2="14" y2="11"></line>
-                                    </svg>
-                                    <span>Expand Image</span>
-                                </div>
-                            </div>
-                        </div>
-                        <figcaption class="module-caption">
-                            <h3 class="module-title">Data Tables</h3>
-                        </figcaption>
-                    </figure>
+
+                <div class="carousel-controls">
+                    <button class="carousel-btn prev" aria-label="Previous screenshot">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="m15 18-6-6 6-6" />
+                        </svg>
+                    </button>
+                    <div class="carousel-indicators">
+                        <span class="dot active" data-slide="0"></span>
+                        <span class="dot" data-slide="1"></span>
+                        <span class="dot" data-slide="2"></span>
+                    </div>
+                    <button class="carousel-btn next" aria-label="Next screenshot">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="m9 18 6-6-6-6" />
+                        </svg>
+                    </button>
                 </div>
             </div>
         </section>
@@ -1382,6 +640,7 @@
             </div>
             <ul class="footer-links">
                 <li><a href="/" aria-current="page">Home</a></li>
+                <li><a href="/gallery/">Gallery</a></li>
                 <li><a href="/electron-vs-qt/">Compare Frontends</a></li>
                 <li><a href="/setup/">Setup</a></li>
                 <li><a href="/tnrd/">TNRD Files</a></li>

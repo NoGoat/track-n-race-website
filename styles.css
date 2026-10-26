@@ -722,7 +722,6 @@ body.modal-open {
 .carousel-container {
     position: relative;
     width: 100%;
-    margin-bottom: 120px;
 }
 
 .carousel-viewport {
@@ -1443,17 +1442,157 @@ body.modal-open {
 }
 
 /* ==========================================================================
-   Qt frontend switcher (home) & Electron vs Qt comparison
+   Gallery & Electron vs Qt comparison
    ========================================================================== */
-.qt-section {
-    padding-top: 48px;
+/* Gallery header: title and frontend tabs. It sticks under the navbar like the TNRD
+   page's version rail: at rest its rule matches the content column; once stuck
+   (script.js adds .is-stuck) it runs edge to edge with the navbar's background,
+   border and shadow. */
+.gallery-section {
+    padding-top: calc(var(--nav-h) + 40px);
 }
 
-/* Intro between the section header and the switcher; the header's own bottom
-   margin spaces it from the rule above */
-.qt-intro {
+.gallery-head {
+    position: sticky;
+    top: var(--nav-h);
+    z-index: 5;
+    border-bottom: 1px solid transparent;
+    transition: background var(--fast), box-shadow var(--fast), border-color var(--fast);
+}
+
+.gallery-head.is-stuck {
+    background: var(--header-bg);
+    border-bottom-color: var(--line);
+    box-shadow: var(--header-shadow);
+}
+
+.gallery-head-inner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem 2rem;
+    width: min(var(--content), 100% - var(--gutter) * 2);
+    margin-inline: auto;
+    padding: 0.85rem 0;
+    border-bottom: 1px solid var(--line);
+}
+
+.gallery-head.is-stuck .gallery-head-inner {
+    border-color: transparent;
+}
+
+.gallery-head .main-title {
+    font-size: clamp(1.75rem, 3.5vw, 2.25rem);
+}
+
+/* Setup's tabs, without their page margins. Outranks .scenario-selector, which comes later. */
+.gallery-head .gallery-switch {
+    flex: 0 0 240px;
+    margin: 0;
+}
+
+.section.gallery-body {
+    padding-top: 2.5rem;
+}
+
+/* Only the picked frontend's screenshots show. A hidden lazy image never loads. */
+.gallery-section[data-ui="electron"] [data-ui="qt"]:not(.gallery-switch-btn),
+.gallery-section[data-ui="qt"] [data-ui="electron"]:not(.gallery-switch-btn) {
+    display: none;
+}
+
+.gallery-group + .gallery-group {
+    margin-top: 4.5rem;
+}
+
+.gallery-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 3rem 2rem;
+}
+
+.shot {
+    min-width: 0;
+}
+
+/* Same shadow crop as the home page's switcher: 111px sides, 75px top, 147px bottom of a
+   2624x1624 capture, leaving the 2402x1402 window */
+.shot .img-zoom-wrapper {
+    aspect-ratio: 2402 / 1402;
+}
+
+.shot .mockup-img {
+    width: 109.243%;   /* 2624 / 2402 */
     max-width: none;
-    margin: -0.5rem 0 2.5rem;
+    height: auto;
+    margin: -3.122% 0 0 -4.621%;   /* 75 / 2402, 111 / 2402 */
+}
+
+/* The Overview captures are pre-trimmed to 46/10/46/82 shadow margins (2492x1492) */
+.shot-trimmed .mockup-img {
+    width: 103.747%;   /* 2492 / 2402 */
+    margin: -0.416% 0 0 -1.915%;   /* 10 / 2402, 46 / 2402 */
+}
+
+/* Qt windows have KDE's 4px corner (at 1200px wide), scaled to the ~600px card */
+.gallery-section[data-ui="qt"] .shot .app-window {
+    border-radius: 2px;
+}
+
+.shot-caption {
+    display: flex;
+    gap: 0.9rem;
+    margin-top: 1rem;
+}
+
+.shot-caption .module-num {
+    padding-top: 0.2rem;
+}
+
+.shot-caption .module-desc {
+    margin-top: 0.25rem;
+}
+
+@media (max-width: 768px) {
+    .gallery-section {
+        padding-top: calc(var(--nav-h) + 28px);
+    }
+
+    .gallery-head .gallery-switch {
+        flex-basis: 180px;
+    }
+
+    .gallery-grid {
+        grid-template-columns: minmax(0, 1fr);
+        gap: 2.5rem;
+    }
+
+}
+
+/* Home page: Alternate frontend. A carousel of Qt shots, cropped like the gallery's .shot cards */
+.section.alt-frontend-section {
+    padding-top: 0;
+}
+
+.alt-frontend-desc {
+    margin: -1rem 0 2.5rem;
+}
+
+.alt-frontend-desc a {
+    color: var(--text);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+    text-decoration-color: var(--line-hover);
+    transition: text-decoration-color var(--fast);
+}
+
+.alt-frontend-desc a:hover {
+    text-decoration-color: currentColor;
+}
+
+/* Qt windows have KDE's 4px corner at 1200px wide, about the width of a slide */
+.alt-frontend-carousel .app-window {
+    border-radius: 4px;
 }
 
 /* Section-header link, styled as the header's mono eyebrow */
@@ -1472,24 +1611,6 @@ body.modal-open {
 
 .section-link:hover svg {
     transform: translateX(2px);
-}
-
-/* The Qt switcher reuses the module switcher. Its Overview capture is pre-trimmed to
-   46/10/46/82 shadow margins (2492x1492), so it is cropped with its own numbers. */
-.module-pane.qt-shot-hero .mockup-img {
-    width: 103.747%;   /* 2492 / 2402 */
-    margin: -0.416% 0 0 -1.915%;   /* 10 / 2402, 46 / 2402 */
-}
-
-/* The frame's corner follows the window's: KDE's 4px radius (at 1200px wide),
-   scaled to the ~840px pane, instead of the macOS-sized radius-lg */
-.qt-modules .app-window {
-    border-radius: 3px;
-}
-
-/* Sixteen screens: shorter rows keep the list about as tall as the screenshot */
-.qt-modules .module-tab {
-    min-height: 2.15rem;
 }
 
 .section.compare-section {
@@ -3177,7 +3298,7 @@ body.page-fit main {
     gap: 2rem;
 }
 
-/* Takes all the room beside the links, so its text only wraps when the window runs out */
+/* The text and the links split the row 50/50; each wraps within its own half */
 .footer-left {
     flex: 1 1 0;
     min-width: 0;
@@ -3213,11 +3334,12 @@ body.page-fit main {
     cursor: pointer;
 }
 
-/* Wraps onto more lines when the row runs out of room (phones) */
 .footer-links {
+    flex: 1 1 0;
     min-width: 0;
     display: flex;
     flex-wrap: wrap;
+    justify-content: flex-end;
     gap: 0.75rem 1.5rem;
     list-style: none;
 }
@@ -3300,6 +3422,8 @@ body.page-fit main {
     transition: opacity 0.25s var(--ease);
     user-select: none;
     -webkit-user-select: none;
+    /* script.js handles every touch gesture, so the browser must not pan or zoom the page */
+    touch-action: none;
 }
 
 .lightbox.active {
@@ -3335,6 +3459,10 @@ body.page-fit main {
 
 .lightbox.is-dragging img {
     cursor: grabbing !important;
+}
+
+.lightbox img {
+    -webkit-touch-callout: none;
 }
 
 /* Bare icon in the screen corner; the 40px box keeps the hit area comfortable */
@@ -4076,10 +4204,6 @@ a.download-build-get:hover::before {
         margin-top: 2.5rem;
     }
 
-    .carousel-container {
-        margin-bottom: 80px;
-    }
-
     .feature-title {
         font-size: 1.6rem;
     }
@@ -4096,6 +4220,10 @@ a.download-build-get:hover::before {
         flex-direction: column;
         gap: 1.5rem;
         padding: 2rem var(--gutter);
+    }
+
+    .footer-links {
+        justify-content: flex-start;
     }
 
     #features.section {

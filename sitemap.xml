@@ -8,6 +8,12 @@
   </url>
 
   <url>
+    <loc>https://track-n-race.com/gallery/</loc>
+    <lastmod>2026-10-26</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
     <loc>https://track-n-race.com/electron-vs-qt/</loc>
     <lastmod>2026-10-13</lastmod>
     <changefreq>monthly</changefreq>

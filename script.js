@@ -42,275 +42,276 @@ document.addEventListener('DOMContentLoaded', () => {
         btn.classList.toggle('active', normalisePath(href) === currentPath);
     });
 
-    // Carousel Logic
-    const viewport = document.querySelector('.carousel-viewport');
-    const track = document.querySelector('.carousel-track');
-    const slides = Array.from(track?.children || []);
-    const nextButton = document.querySelector('.carousel-btn.next');
-    const prevButton = document.querySelector('.carousel-btn.prev');
-    const dotsNav = document.querySelector('.carousel-indicators');
-    const dots = Array.from(dotsNav?.children || []);
-
-    if (viewport && track && slides.length > 0) {
-        let currentSlideIndex = 0;
-        const gap = 48; // Physical buffer gap between slides in px
-
-        // Slide 1's TNRD animation: the camera looks straight down on the grid (a file icon grows into it), pans
-        // round to an isometric view of the cube, then Alonso's slice splits off and the whole block turns into his
-        // table. CSS times everything; SVG has no 3D transforms, so this projects each shape's 3D corners (data-p)
-        // with an orthographic camera, reading the time from .t-stage's CSS animation. Shapes marked data-f follow
-        // the camera only; the slice also slides and turns. Without that animation (reduced motion, inactive
-        // slide) it renders the final table, which is also the static markup. The SVG lives in its own file
-        // (.tnrd-frame's data-src) and is fetched and inlined here, so styles.css and this script can reach into it.
-        let tnrdKick = () => {};
-        const setupTnrd = tnrd => {
-            const tnrdStage = tnrd?.querySelector('.t-stage');
-            if (!tnrdStage) return;
-            const shapes = Array.from(tnrd.querySelectorAll('[data-p]')).map(el => ({
-                el,
-                fixed: el.hasAttribute('data-f'),
-                pts: el.dataset.p.split(' ').map(q => q.split(',').map(Number))
-            }));
-            const ISO_SCALE = 56 / Math.sqrt(2 / 3);         // isometric cube with 56px cells
-            const ISO = { yaw: Math.PI / 4, pitch: Math.asin(Math.sqrt(1 / 3)), sx: ISO_SCALE, sy: ISO_SCALE };
-            const FLAT = { yaw: Math.PI / 2, pitch: 0, sx: 88, sy: 88 };    // table cells are 88 x 88
-            const TOP = { yaw: 0, pitch: Math.PI / 2, sx: 56, sy: 56 };     // straight down: the grid as a flat 8 x 10
-            const TOP_CENTRE = [800, 500];                   // where the cube's centre sits when seen from above
-            const CENTRE = [4, 5, 2.5];
-            const ISO_ORIGIN = [900, 418];                   // screen position of the cube's back corner
-            const PULL = 1.2;                                // how far the slice slides out, in cells
-            const ANCHOR = [8, 10, 5];                       // slice's front top-left corner = table's top-left (L1, Speed)
-            const TABLE = [170, 340];
-            const GROW = [800, 1500], PAN = [1800, 3400], SPLIT = [6200, 7000], TURN = [7200, 8900]; // ms, matches styles.css
-            // The file icon morphs into the grid's top face as seen from above: 224 x 280 with 12px corners and a
-            // 56px fold, growing to 448 x 560 with square corners and no fold, centred where the grid sits
-            const fileBody = tnrd.querySelector('.t-file-body'), fileFold = tnrd.querySelector('.t-file-fold');
-            const n = v => v.toFixed(1);
-            const drawFile = k => {
-                const w = 224 + 224 * k, h = 280 + 280 * k, r = 12 * (1 - k), fold = 56 * (1 - k);
-                const x0 = TOP_CENTRE[0] - w / 2, y0 = TOP_CENTRE[1] - h / 2, x1 = x0 + w, y1 = y0 + h;
-                fileBody?.setAttribute('d',
-                    `M${n(x0)},${n(y0 + r)} Q${n(x0)},${n(y0)} ${n(x0 + r)},${n(y0)} L${n(x1 - fold)},${n(y0)} ` +
-                    `L${n(x1)},${n(y0 + fold)} L${n(x1)},${n(y1 - r)} Q${n(x1)},${n(y1)} ${n(x1 - r)},${n(y1)} ` +
-                    `L${n(x0 + r)},${n(y1)} Q${n(x0)},${n(y1)} ${n(x0)},${n(y1 - r)} Z`);
-                fileFold?.setAttribute('d',
-                    `M${n(x1 - fold)},${n(y0)} L${n(x1 - fold)},${n(y0 + fold)} L${n(x1)},${n(y0 + fold)}`);
-            };
-            const ease = x => (x < 0.5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2);
-            const phase = (t, [a, b]) => ease(Math.min(1, Math.max(0, (t - a) / (b - a))));
-            const camera = ({ yaw, pitch, sx, sy }) => {
-                const cyaw = Math.cos(yaw), syaw = Math.sin(yaw), sp = Math.sin(pitch), cp = Math.cos(pitch);
-                return ([x, y, z]) => [sx * (x * cyaw - y * syaw), sy * ((x * syaw + y * cyaw) * sp - z * cp)];
-            };
-            const iso = camera(ISO);
-
-            const render = t => {
-                drawFile(phase(t, GROW));
-                // the camera pans from straight down to isometric; until the turn every shape uses it
-                const pan = phase(t, PAN);
-                const lerp = (a, b, k) => a + (b - a) * k;
-                const panCam = camera({
-                    yaw: lerp(TOP.yaw, ISO.yaw, pan), pitch: lerp(TOP.pitch, ISO.pitch, pan),
-                    sx: lerp(TOP.sx, ISO.sx, pan), sy: lerp(TOP.sy, ISO.sy, pan)
-                });
-                const centre = panCam(CENTRE), isoCentre = iso(CENTRE);
-                const pdx = lerp(TOP_CENTRE[0], isoCentre[0] + ISO_ORIGIN[0], pan) - centre[0];
-                const pdy = lerp(TOP_CENTRE[1], isoCentre[1] + ISO_ORIGIN[1], pan) - centre[1];
-                const pull = PULL * phase(t, SPLIT), turn = phase(t, TURN);
-                const mix = (a, b) => a + (b - a) * turn;
-                const project = camera({
-                    yaw: mix(ISO.yaw, FLAT.yaw), pitch: mix(ISO.pitch, FLAT.pitch), sx: mix(ISO.sx, FLAT.sx), sy: mix(ISO.sy, FLAT.sy)
-                });
-                // keep the anchor corner on a straight path from where the split left it to the table's corner
-                const anchor = [ANCHOR[0] + pull, ANCHOR[1], ANCHOR[2]];
-                const from = iso(anchor), now = project(anchor);
-                const dx = mix(from[0] + ISO_ORIGIN[0], TABLE[0]) - now[0];
-                const dy = mix(from[1] + ISO_ORIGIN[1], TABLE[1]) - now[1];
-                for (const { el, fixed, pts } of shapes) {
-                    const q = fixed || t < TURN[0]
-                        ? pts.map(([x, y, z]) => { const r = panCam([x + (fixed ? 0 : pull), y, z]); return [r[0] + pdx, r[1] + pdy]; })
-                        : pts.map(([x, y, z]) => { const r = project([x + pull, y, z]); return [r[0] + dx, r[1] + dy]; });
-                    if (el.tagName === 'line') {
-                        el.setAttribute('x1', q[0][0].toFixed(1));
-                        el.setAttribute('y1', q[0][1].toFixed(1));
-                        el.setAttribute('x2', q[1][0].toFixed(1));
-                        el.setAttribute('y2', q[1][1].toFixed(1));
-                    } else {
-                        el.setAttribute('points', q.map(v => `${v[0].toFixed(1)},${v[1].toFixed(1)}`).join(' '));
-                    }
-                }
-            };
-
-            let tnrdRunning = false;
-            const tick = () => {
-                const anim = tnrdStage.getAnimations()[0];
-                const t = anim ? Number(anim.currentTime) : Infinity;
-                render(t);
-                tnrdRunning = !!anim && anim.playState === 'running' && t < TURN[1];
-                if (tnrdRunning) requestAnimationFrame(tick);
-            };
-            tnrdKick = () => { if (!tnrdRunning) requestAnimationFrame(tick); };
-            tnrdStage.addEventListener('animationstart', tnrdKick);
-            tnrdKick();
+    // Slide 1's TNRD animation: the camera looks straight down on the grid (a file icon grows into it), pans
+    // round to an isometric view of the cube, then Alonso's slice splits off and the whole block turns into his
+    // table. CSS times everything; SVG has no 3D transforms, so this projects each shape's 3D corners (data-p)
+    // with an orthographic camera, reading the time from .t-stage's CSS animation. Shapes marked data-f follow
+    // the camera only; the slice also slides and turns. Without that animation (reduced motion, inactive
+    // slide) it renders the final table, which is also the static markup. The SVG lives in its own file
+    // (.tnrd-frame's data-src) and is fetched and inlined here, so styles.css and this script can reach into it.
+    let tnrdKick = () => {};
+    const setupTnrd = tnrd => {
+        const tnrdStage = tnrd?.querySelector('.t-stage');
+        if (!tnrdStage) return;
+        const shapes = Array.from(tnrd.querySelectorAll('[data-p]')).map(el => ({
+            el,
+            fixed: el.hasAttribute('data-f'),
+            pts: el.dataset.p.split(' ').map(q => q.split(',').map(Number))
+        }));
+        const ISO_SCALE = 56 / Math.sqrt(2 / 3);         // isometric cube with 56px cells
+        const ISO = { yaw: Math.PI / 4, pitch: Math.asin(Math.sqrt(1 / 3)), sx: ISO_SCALE, sy: ISO_SCALE };
+        const FLAT = { yaw: Math.PI / 2, pitch: 0, sx: 88, sy: 88 };    // table cells are 88 x 88
+        const TOP = { yaw: 0, pitch: Math.PI / 2, sx: 56, sy: 56 };     // straight down: the grid as a flat 8 x 10
+        const TOP_CENTRE = [800, 500];                   // where the cube's centre sits when seen from above
+        const CENTRE = [4, 5, 2.5];
+        const ISO_ORIGIN = [900, 418];                   // screen position of the cube's back corner
+        const PULL = 1.2;                                // how far the slice slides out, in cells
+        const ANCHOR = [8, 10, 5];                       // slice's front top-left corner = table's top-left (L1, Speed)
+        const TABLE = [170, 340];
+        const GROW = [800, 1500], PAN = [1800, 3400], SPLIT = [6200, 7000], TURN = [7200, 8900]; // ms, matches styles.css
+        // The file icon morphs into the grid's top face as seen from above: 224 x 280 with 12px corners and a
+        // 56px fold, growing to 448 x 560 with square corners and no fold, centred where the grid sits
+        const fileBody = tnrd.querySelector('.t-file-body'), fileFold = tnrd.querySelector('.t-file-fold');
+        const n = v => v.toFixed(1);
+        const drawFile = k => {
+            const w = 224 + 224 * k, h = 280 + 280 * k, r = 12 * (1 - k), fold = 56 * (1 - k);
+            const x0 = TOP_CENTRE[0] - w / 2, y0 = TOP_CENTRE[1] - h / 2, x1 = x0 + w, y1 = y0 + h;
+            fileBody?.setAttribute('d',
+                `M${n(x0)},${n(y0 + r)} Q${n(x0)},${n(y0)} ${n(x0 + r)},${n(y0)} L${n(x1 - fold)},${n(y0)} ` +
+                `L${n(x1)},${n(y0 + fold)} L${n(x1)},${n(y1 - r)} Q${n(x1)},${n(y1)} ${n(x1 - r)},${n(y1)} ` +
+                `L${n(x0 + r)},${n(y1)} Q${n(x0)},${n(y1)} ${n(x0)},${n(y1 - r)} Z`);
+            fileFold?.setAttribute('d',
+                `M${n(x1 - fold)},${n(y0)} L${n(x1 - fold)},${n(y0 + fold)} L${n(x1)},${n(y0 + fold)}`);
         };
-
-        const tnrdFrame = document.querySelector('.tnrd-frame[data-src]');
-        if (tnrdFrame) {
-            fetch(tnrdFrame.dataset.src)
-                .then(res => (res.ok ? res.text() : Promise.reject(new Error(`HTTP ${res.status}`))))
-                .then(svg => {
-                    tnrdFrame.innerHTML = svg;
-                    const tnrd = tnrdFrame.querySelector('.tnrd-anim');
-                    if (!tnrd) throw new Error('no .tnrd-anim in response');
-                    setupTnrd(tnrd);
-                })
-                .catch(err => {
-                    // Fall back to a still of the table and charts side by side
-                    console.warn('TNRD animation failed to load:', err);
-                    tnrdKick = () => {};
-                    const img = new Image(1600, 1000);
-                    img.className = 'tnrd-static';
-                    img.src = tnrdFrame.dataset.fallback;
-                    img.alt = 'Alonso\'s slice of a .tnrd file as a table of laps and data types, with lap 5\'s speed, RPM and ERS blocks drawn as traces alongside';
-                    tnrdFrame.replaceChildren(img);
-                });
-        }
-
-        const updateCarousel = (index, animate = true) => {
-            currentSlideIndex = ((index % slides.length) + slides.length) % slides.length;
-            const viewportWidth = viewport.getBoundingClientRect().width;
-            if (viewportWidth === 0) return;
-
-            slides.forEach((slide, i) => {
-                slide.style.width = `${viewportWidth}px`;
-                slide.classList.toggle('active', i === currentSlideIndex);
-            });
-
-            const offset = currentSlideIndex * (viewportWidth + gap);
-            track.style.transition = animate ? 'transform 0.45s cubic-bezier(0.25, 1, 0.5, 1)' : 'none';
-            track.style.transform = `translate3d(-${offset}px, 0, 0)`;
-
-            dots.forEach((dot, i) => {
-                dot.classList.toggle('active', i === currentSlideIndex);
-            });
-
-            tnrdKick();
+        const ease = x => (x < 0.5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2);
+        const phase = (t, [a, b]) => ease(Math.min(1, Math.max(0, (t - a) / (b - a))));
+        const camera = ({ yaw, pitch, sx, sy }) => {
+            const cyaw = Math.cos(yaw), syaw = Math.sin(yaw), sp = Math.sin(pitch), cp = Math.cos(pitch);
+            return ([x, y, z]) => [sx * (x * cyaw - y * syaw), sy * ((x * syaw + y * cyaw) * sp - z * cp)];
         };
+        const iso = camera(ISO);
 
-        updateCarousel(0, false);
-
-        // Keep dimensions perfectly synced on resize and zoom change
-        if (window.ResizeObserver) {
-            const ro = new ResizeObserver(() => {
-                updateCarousel(currentSlideIndex, false);
+        const render = t => {
+            drawFile(phase(t, GROW));
+            // the camera pans from straight down to isometric; until the turn every shape uses it
+            const pan = phase(t, PAN);
+            const lerp = (a, b, k) => a + (b - a) * k;
+            const panCam = camera({
+                yaw: lerp(TOP.yaw, ISO.yaw, pan), pitch: lerp(TOP.pitch, ISO.pitch, pan),
+                sx: lerp(TOP.sx, ISO.sx, pan), sy: lerp(TOP.sy, ISO.sy, pan)
             });
-            ro.observe(viewport);
-        } else {
-            window.addEventListener('resize', () => updateCarousel(currentSlideIndex, false));
-        }
-
-        const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-        let carouselVisible = true;
-        // The TNRD animation slide stays long enough to play and settle; the others move on quickly
-        const slideMs = () => (slides[currentSlideIndex]?.querySelector('.tnrd-frame') ? 20000 : 5000);
-
-        const resetAutoPlay = () => {
-            clearTimeout(autoPlayInterval);
-            if (reduceMotion || !carouselVisible) return;
-            autoPlayInterval = setTimeout(() => {
-                updateCarousel(currentSlideIndex + 1);
-                resetAutoPlay();
-            }, slideMs());
-        };
-
-        nextButton?.addEventListener('click', () => {
-            updateCarousel(currentSlideIndex + 1);
-            resetAutoPlay();
-        });
-
-        prevButton?.addEventListener('click', () => {
-            updateCarousel(currentSlideIndex - 1);
-            resetAutoPlay();
-        });
-
-        dotsNav?.addEventListener('click', e => {
-            const targetDot = e.target.closest('.dot');
-            if (!targetDot) return;
-            const index = dots.indexOf(targetDot);
-            if (index !== -1) {
-                updateCarousel(index);
-                resetAutoPlay();
-            }
-        });
-
-        // Touch Swipe Support for Mobile
-        let touchStartX = 0;
-        let touchStartY = 0;
-        let touchEndX = 0;
-        let touchEndY = 0;
-
-        track.addEventListener('touchstart', (e) => {
-            touchStartX = e.changedTouches[0].clientX;
-            touchStartY = e.changedTouches[0].clientY;
-            clearTimeout(autoPlayInterval);
-        }, { passive: true });
-
-        track.addEventListener('touchend', (e) => {
-            touchEndX = e.changedTouches[0].clientX;
-            touchEndY = e.changedTouches[0].clientY;
-            const diffX = touchStartX - touchEndX;
-            const diffY = touchStartY - touchEndY;
-
-            // Only trigger horizontal swipe if horizontal movement is greater than vertical movement
-            if (Math.abs(diffX) > Math.abs(diffY) && Math.abs(diffX) > 35) {
-                if (diffX > 0) {
-                    // Swiped Left -> Next Slide
-                    updateCarousel(currentSlideIndex + 1);
+            const centre = panCam(CENTRE), isoCentre = iso(CENTRE);
+            const pdx = lerp(TOP_CENTRE[0], isoCentre[0] + ISO_ORIGIN[0], pan) - centre[0];
+            const pdy = lerp(TOP_CENTRE[1], isoCentre[1] + ISO_ORIGIN[1], pan) - centre[1];
+            const pull = PULL * phase(t, SPLIT), turn = phase(t, TURN);
+            const mix = (a, b) => a + (b - a) * turn;
+            const project = camera({
+                yaw: mix(ISO.yaw, FLAT.yaw), pitch: mix(ISO.pitch, FLAT.pitch), sx: mix(ISO.sx, FLAT.sx), sy: mix(ISO.sy, FLAT.sy)
+            });
+            // keep the anchor corner on a straight path from where the split left it to the table's corner
+            const anchor = [ANCHOR[0] + pull, ANCHOR[1], ANCHOR[2]];
+            const from = iso(anchor), now = project(anchor);
+            const dx = mix(from[0] + ISO_ORIGIN[0], TABLE[0]) - now[0];
+            const dy = mix(from[1] + ISO_ORIGIN[1], TABLE[1]) - now[1];
+            for (const { el, fixed, pts } of shapes) {
+                const q = fixed || t < TURN[0]
+                    ? pts.map(([x, y, z]) => { const r = panCam([x + (fixed ? 0 : pull), y, z]); return [r[0] + pdx, r[1] + pdy]; })
+                    : pts.map(([x, y, z]) => { const r = project([x + pull, y, z]); return [r[0] + dx, r[1] + dy]; });
+                if (el.tagName === 'line') {
+                    el.setAttribute('x1', q[0][0].toFixed(1));
+                    el.setAttribute('y1', q[0][1].toFixed(1));
+                    el.setAttribute('x2', q[1][0].toFixed(1));
+                    el.setAttribute('y2', q[1][1].toFixed(1));
                 } else {
-                    // Swiped Right -> Prev Slide
-                    updateCarousel(currentSlideIndex - 1);
+                    el.setAttribute('points', q.map(v => `${v[0].toFixed(1)},${v[1].toFixed(1)}`).join(' '));
                 }
             }
-            resetAutoPlay();
-        }, { passive: true });
+        };
 
-        // Auto-play: one timeout per slide, rescheduled after each move
-        let autoPlayInterval = null;
-        resetAutoPlay();
+        let tnrdRunning = false;
+        const tick = () => {
+            const anim = tnrdStage.getAnimations()[0];
+            const t = anim ? Number(anim.currentTime) : Infinity;
+            render(t);
+            tnrdRunning = !!anim && anim.playState === 'running' && t < TURN[1];
+            if (tnrdRunning) requestAnimationFrame(tick);
+        };
+        tnrdKick = () => { if (!tnrdRunning) requestAnimationFrame(tick); };
+        tnrdStage.addEventListener('animationstart', tnrdKick);
+        tnrdKick();
+    };
 
-        // Pause on hover
-        const carouselContainer = document.querySelector('.carousel-container');
-        carouselContainer?.addEventListener('mouseenter', () => clearTimeout(autoPlayInterval));
-        carouselContainer?.addEventListener('mouseleave', () => resetAutoPlay());
-
-        // Pause while scrolled out of view, so it doesn't keep animating unseen
-        if (carouselContainer && window.IntersectionObserver) {
-            new IntersectionObserver(([entry]) => {
-                carouselVisible = entry.isIntersecting;
-                if (carouselVisible) {
-                    resetAutoPlay();
-                } else {
-                    clearTimeout(autoPlayInterval);
-                }
-            }).observe(carouselContainer);
-
-            // Slide 1's TNRD animation waits at its first frame until the carousel is mostly on screen
-            carouselContainer.dataset.animGate = '';
-            new IntersectionObserver(([entry]) => {
-                carouselContainer.classList.toggle('in-view', entry.isIntersecting);
-                tnrdKick();
-            }, { threshold: 0.4 }).observe(carouselContainer);
-        }
+    const tnrdFrame = document.querySelector('.tnrd-frame[data-src]');
+    if (tnrdFrame) {
+        fetch(tnrdFrame.dataset.src)
+            .then(res => (res.ok ? res.text() : Promise.reject(new Error(`HTTP ${res.status}`))))
+            .then(svg => {
+                tnrdFrame.innerHTML = svg;
+                const tnrd = tnrdFrame.querySelector('.tnrd-anim');
+                if (!tnrd) throw new Error('no .tnrd-anim in response');
+                setupTnrd(tnrd);
+            })
+            .catch(err => {
+                // Fall back to a still of the table and charts side by side
+                console.warn('TNRD animation failed to load:', err);
+                tnrdKick = () => {};
+                const img = new Image(1600, 1000);
+                img.className = 'tnrd-static';
+                img.src = tnrdFrame.dataset.fallback;
+                img.alt = 'Alonso\'s slice of a .tnrd file as a table of laps and data types, with lap 5\'s speed, RPM and ERS blocks drawn as traces alongside';
+                tnrdFrame.replaceChildren(img);
+            });
     }
 
-    // TNRD page: the version rail goes edge to edge once it sticks under the header
-    const fmtRail = document.querySelector('.fmt-rail');
-    if (fmtRail) {
+    // Carousels: Highlights and the Qt screens on the home page, each runs on its own
+    document.querySelectorAll('.carousel-container').forEach(carouselContainer => {
+        const viewport = carouselContainer.querySelector('.carousel-viewport');
+        const track = carouselContainer.querySelector('.carousel-track');
+        const slides = Array.from(track?.children || []);
+        const nextButton = carouselContainer.querySelector('.carousel-btn.next');
+        const prevButton = carouselContainer.querySelector('.carousel-btn.prev');
+        const dotsNav = carouselContainer.querySelector('.carousel-indicators');
+        const dots = Array.from(dotsNav?.children || []);
+
+        if (viewport && track && slides.length > 0) {
+            let currentSlideIndex = 0;
+            const gap = 48; // Physical buffer gap between slides in px
+
+            const updateCarousel = (index, animate = true) => {
+                currentSlideIndex = ((index % slides.length) + slides.length) % slides.length;
+                const viewportWidth = viewport.getBoundingClientRect().width;
+                if (viewportWidth === 0) return;
+
+                slides.forEach((slide, i) => {
+                    slide.style.width = `${viewportWidth}px`;
+                    slide.classList.toggle('active', i === currentSlideIndex);
+                });
+
+                const offset = currentSlideIndex * (viewportWidth + gap);
+                track.style.transition = animate ? 'transform 0.45s cubic-bezier(0.25, 1, 0.5, 1)' : 'none';
+                track.style.transform = `translate3d(-${offset}px, 0, 0)`;
+
+                dots.forEach((dot, i) => {
+                    dot.classList.toggle('active', i === currentSlideIndex);
+                });
+
+                tnrdKick();
+            };
+
+            updateCarousel(0, false);
+
+            // Keep dimensions perfectly synced on resize and zoom change
+            if (window.ResizeObserver) {
+                const ro = new ResizeObserver(() => {
+                    updateCarousel(currentSlideIndex, false);
+                });
+                ro.observe(viewport);
+            } else {
+                window.addEventListener('resize', () => updateCarousel(currentSlideIndex, false));
+            }
+
+            const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+            let carouselVisible = true;
+            // The TNRD animation slide stays long enough to play and settle; the others move on quickly
+            const slideMs = () => (slides[currentSlideIndex]?.querySelector('.tnrd-frame') ? 20000 : 5000);
+
+            const resetAutoPlay = () => {
+                clearTimeout(autoPlayInterval);
+                if (reduceMotion || !carouselVisible) return;
+                autoPlayInterval = setTimeout(() => {
+                    updateCarousel(currentSlideIndex + 1);
+                    resetAutoPlay();
+                }, slideMs());
+            };
+
+            nextButton?.addEventListener('click', () => {
+                updateCarousel(currentSlideIndex + 1);
+                resetAutoPlay();
+            });
+
+            prevButton?.addEventListener('click', () => {
+                updateCarousel(currentSlideIndex - 1);
+                resetAutoPlay();
+            });
+
+            dotsNav?.addEventListener('click', e => {
+                const targetDot = e.target.closest('.dot');
+                if (!targetDot) return;
+                const index = dots.indexOf(targetDot);
+                if (index !== -1) {
+                    updateCarousel(index);
+                    resetAutoPlay();
+                }
+            });
+
+            // Touch Swipe Support for Mobile
+            let touchStartX = 0;
+            let touchStartY = 0;
+            let touchEndX = 0;
+            let touchEndY = 0;
+
+            track.addEventListener('touchstart', (e) => {
+                touchStartX = e.changedTouches[0].clientX;
+                touchStartY = e.changedTouches[0].clientY;
+                clearTimeout(autoPlayInterval);
+            }, { passive: true });
+
+            track.addEventListener('touchend', (e) => {
+                touchEndX = e.changedTouches[0].clientX;
+                touchEndY = e.changedTouches[0].clientY;
+                const diffX = touchStartX - touchEndX;
+                const diffY = touchStartY - touchEndY;
+
+                // Only trigger horizontal swipe if horizontal movement is greater than vertical movement
+                if (Math.abs(diffX) > Math.abs(diffY) && Math.abs(diffX) > 35) {
+                    if (diffX > 0) {
+                        // Swiped Left -> Next Slide
+                        updateCarousel(currentSlideIndex + 1);
+                    } else {
+                        // Swiped Right -> Prev Slide
+                        updateCarousel(currentSlideIndex - 1);
+                    }
+                }
+                resetAutoPlay();
+            }, { passive: true });
+
+            // Auto-play: one timeout per slide, rescheduled after each move
+            let autoPlayInterval = null;
+            resetAutoPlay();
+
+            // Pause on hover
+            carouselContainer.addEventListener('mouseenter', () => clearTimeout(autoPlayInterval));
+            carouselContainer.addEventListener('mouseleave', () => resetAutoPlay());
+
+            // Pause while scrolled out of view, so it doesn't keep animating unseen
+            if (window.IntersectionObserver) {
+                new IntersectionObserver(([entry]) => {
+                    carouselVisible = entry.isIntersecting;
+                    if (carouselVisible) {
+                        resetAutoPlay();
+                    } else {
+                        clearTimeout(autoPlayInterval);
+                    }
+                }).observe(carouselContainer);
+
+                // Slide 1's TNRD animation waits at its first frame until the carousel is mostly on screen
+                carouselContainer.dataset.animGate = '';
+                new IntersectionObserver(([entry]) => {
+                    carouselContainer.classList.toggle('in-view', entry.isIntersecting);
+                    tnrdKick();
+                }, { threshold: 0.4 }).observe(carouselContainer);
+            }
+        }
+    });
+
+    // TNRD version rail and Gallery header: they go edge to edge once they stick under the navbar
+    const stickyBar = document.querySelector('.fmt-rail, .gallery-head');
+    if (stickyBar) {
         let railFrame = 0;
         const syncRail = () => {
             railFrame = 0;
-            const stickAt = parseFloat(getComputedStyle(fmtRail).top) || 0;
-            fmtRail.classList.toggle('is-stuck', fmtRail.getBoundingClientRect().top <= stickAt + 0.5);
+            const stickAt = parseFloat(getComputedStyle(stickyBar).top) || 0;
+            stickyBar.classList.toggle('is-stuck', stickyBar.getBoundingClientRect().top <= stickAt + 0.5);
         };
         const queueRail = () => { if (!railFrame) railFrame = requestAnimationFrame(syncRail); };
         window.addEventListener('scroll', queueRail, { passive: true });
@@ -334,7 +335,7 @@ document.addEventListener('DOMContentLoaded', () => {
         byId.forEach((_, id) => { const section = document.getElementById(id); if (section) observer.observe(section); });
     }
 
-    // Module switchers ("Everything else", "Qt frontend"): one tab per module, one visible
+    // Module switchers (Compare Frontends): one tab per module, one visible
     // screenshot. Each .modules block switches independently.
     document.querySelectorAll('.modules').forEach(modules => {
         const moduleTabs = Array.from(modules.querySelectorAll('.module-tab'));
@@ -383,6 +384,36 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         });
     });
+
+    // Gallery: the Electron / Qt switch shows every screen in the picked frontend.
+    // The pick is kept in the URL (#qt) so a link can open the gallery on Qt.
+    const gallery = document.querySelector('.gallery-section');
+    if (gallery) {
+        const switchBtns = Array.from(gallery.querySelectorAll('.gallery-switch-btn'));
+        const pickUi = (ui, focus = false) => {
+            gallery.dataset.ui = ui;
+            switchBtns.forEach(btn => {
+                const isActive = btn.dataset.ui === ui;
+                btn.classList.toggle('active', isActive);
+                btn.setAttribute('aria-checked', isActive ? 'true' : 'false');
+                btn.tabIndex = isActive ? 0 : -1;
+                if (isActive && focus) btn.focus();
+            });
+            history.replaceState(null, '', ui === 'qt' ? '#qt' : location.pathname + location.search);
+        };
+
+        switchBtns.forEach((btn, i) => {
+            btn.addEventListener('click', () => pickUi(btn.dataset.ui));
+            btn.addEventListener('keydown', (e) => {
+                const step = { ArrowRight: 1, ArrowDown: 1, ArrowLeft: -1, ArrowUp: -1 }[e.key];
+                if (!step) return;
+                e.preventDefault();
+                pickUi(switchBtns[(i + step + switchBtns.length) % switchBtns.length].dataset.ui, true);
+            });
+        });
+
+        if (location.hash === '#qt') pickUi('qt');
+    }
 
     // Compare Frontends sliders: the range input's value drives the clip position
     document.querySelectorAll('.compare').forEach(compare => {
@@ -460,6 +491,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const closeLightbox = () => {
             lightboxLoadId++;
+            lightbox.style.backgroundColor = '';
             lightbox.classList.remove('active', 'is-zoomed', 'is-dragging');
             currentScale = 1;
             translateX = 0;
@@ -551,22 +583,198 @@ document.addEventListener('DOMContentLoaded', () => {
             handlePointerUp();
         });
 
-        // Touch Events
-        lightboxImg.addEventListener('touchstart', (e) => {
-            if (e.touches.length === 1) {
-                handlePointerDown(e.touches[0].clientX, e.touches[0].clientY);
-            }
-        }, { passive: true });
+        // Touch gestures: pinch to zoom, one finger to pan when zoomed, double-tap to zoom in or out,
+        // swipe up or down to close when not zoomed, tap the backdrop to close. touchstart cancels the
+        // emulated mouse events and clicks, so the mouse handlers never see touch input.
+        const TOUCH_MAX_SCALE = 4;
+        const DOUBLE_TAP_SCALE = 2.5;
+        const TAP_SLOP = 10;
+        let gesture = null;
+        let lastTap = { time: 0, x: 0, y: 0 };
 
-        window.addEventListener('touchmove', (e) => {
-            if (e.touches.length === 1) {
-                handlePointerMove(e.touches[0].clientX, e.touches[0].clientY);
-            }
-        }, { passive: true });
+        const centre = () => ({ x: window.innerWidth / 2, y: window.innerHeight / 2 });
+        const touchDistance = (a, b) => Math.hypot(a.clientX - b.clientX, a.clientY - b.clientY);
+        const touchMidpoint = (a, b) => ({ x: (a.clientX + b.clientX) / 2, y: (a.clientY + b.clientY) / 2 });
 
-        window.addEventListener('touchend', () => {
-            handlePointerUp();
-        });
+        const setZoomed = () => lightbox.classList.toggle('is-zoomed', currentScale > 1);
+
+        // Zoom to `scale` keeping the screen point (x, y) over the same spot of the image
+        const zoomTo = (scale, x, y) => {
+            const c = centre();
+            const ratio = scale / currentScale;
+            translateX = (x - c.x) - ((x - c.x) - translateX) * ratio;
+            translateY = (y - c.y) - ((y - c.y) - translateY) * ratio;
+            currentScale = scale;
+        };
+
+        const resetZoom = () => {
+            currentScale = 1;
+            translateX = 0;
+            translateY = 0;
+        };
+
+        const startPan = (touch) => {
+            // Swipe-to-close only starts from a fresh one-finger touch, never from the tail of a pinch
+            gesture = {
+                type: currentScale > 1 || (gesture?.fingers ?? 1) > 1 ? 'pan' : 'swipe',
+                startX: touch.clientX, startY: touch.clientY,
+                startTX: translateX, startTY: translateY,
+                lastY: touch.clientY, lastTime: performance.now(), velocityY: 0,
+                moved: gesture?.moved ?? false,
+                startTime: gesture?.startTime ?? performance.now(),
+                fingers: gesture?.fingers ?? 1,
+            };
+        };
+
+        const startPinch = (a, b) => {
+            const mid = touchMidpoint(a, b);
+            const c = centre();
+            gesture = {
+                type: 'pinch',
+                startDistance: touchDistance(a, b) || 1,
+                startScale: currentScale,
+                // The image point under the fingers' midpoint, in unscaled image pixels from its centre
+                anchorX: (mid.x - c.x - translateX) / currentScale,
+                anchorY: (mid.y - c.y - translateY) / currentScale,
+                moved: true,
+                startTime: gesture?.startTime ?? performance.now(),
+                fingers: 2,
+            };
+        };
+
+        const setBackdropFade = (amount) => {
+            lightbox.style.backgroundColor = amount ? `rgba(5, 5, 6, ${0.96 * (1 - amount)})` : '';
+        };
+
+        lightbox.addEventListener('touchstart', (e) => {
+            if (!lightbox.classList.contains('active') || e.target.closest('.lightbox-close')) return;
+            e.preventDefault();
+            lightboxImg.style.transition = 'none';
+            if (e.touches.length >= 2) {
+                setBackdropFade(0);
+                startPinch(e.touches[0], e.touches[1]);
+            } else {
+                gesture = null;
+                startPan(e.touches[0]);
+            }
+            lightbox.classList.add('is-dragging');
+        }, { passive: false });
+
+        lightbox.addEventListener('touchmove', (e) => {
+            if (!gesture) return;
+            e.preventDefault();
+
+            if (gesture.type === 'pinch' && e.touches.length >= 2) {
+                const [a, b] = e.touches;
+                const mid = touchMidpoint(a, b);
+                const c = centre();
+                // Let the pinch overshoot a little either way; touchend settles it back in range
+                currentScale = Math.min(Math.max(gesture.startScale * touchDistance(a, b) / gesture.startDistance, 0.6), TOUCH_MAX_SCALE * 1.3);
+                translateX = mid.x - c.x - gesture.anchorX * currentScale;
+                translateY = mid.y - c.y - gesture.anchorY * currentScale;
+                applyTransform(false);
+                return;
+            }
+
+            const touch = e.touches[0];
+            const dx = touch.clientX - gesture.startX;
+            const dy = touch.clientY - gesture.startY;
+            if (Math.hypot(dx, dy) > TAP_SLOP) gesture.moved = true;
+            if (!gesture.moved) return;
+
+            if (gesture.type === 'pan') {
+                translateX = gesture.startTX + dx;
+                translateY = gesture.startTY + dy;
+                clampPan();
+            } else {
+                // Not zoomed: the image follows the finger vertically and the backdrop fades
+                const now = performance.now();
+                gesture.velocityY = (touch.clientY - gesture.lastY) / Math.max(now - gesture.lastTime, 1);
+                gesture.lastY = touch.clientY;
+                gesture.lastTime = now;
+                translateX = 0;
+                translateY = dy;
+                setBackdropFade(Math.min(Math.abs(dy) / 400, 0.7));
+            }
+            applyTransform(false);
+        }, { passive: false });
+
+        const endTouch = (e) => {
+            if (!gesture) return;
+            e.preventDefault();
+
+            // A finger lifted mid-pinch: carry on panning with the one that is left
+            if (e.touches.length === 1) {
+                if (gesture.type === 'pinch') {
+                    currentScale = Math.min(Math.max(currentScale, 1), TOUCH_MAX_SCALE);
+                    if (currentScale === 1) resetZoom();
+                    clampPan();
+                    applyTransform(true);
+                    setZoomed();
+                }
+                startPan(e.touches[0]);
+                return;
+            }
+            if (e.touches.length > 1) {
+                startPinch(e.touches[0], e.touches[1]);
+                return;
+            }
+
+            const ended = gesture;
+            const touch = e.changedTouches[0];
+            gesture = null;
+            lightbox.classList.remove('is-dragging');
+
+            if (ended.type === 'pinch') {
+                if (currentScale < 1.05) resetZoom();
+                else if (currentScale > TOUCH_MAX_SCALE) zoomTo(TOUCH_MAX_SCALE, touch.clientX, touch.clientY);
+                clampPan();
+                setZoomed();
+                applyTransform(true);
+                return;
+            }
+
+            if (ended.type === 'swipe' && ended.moved) {
+                const dy = touch.clientY - ended.startY;
+                if (Math.abs(dy) > 120 || Math.abs(ended.velocityY) > 0.6) {
+                    closeLightbox();
+                } else {
+                    translateY = 0;
+                    setBackdropFade(0);
+                    applyTransform(true);
+                }
+                return;
+            }
+
+            if (ended.moved || ended.fingers > 1) {
+                applyTransform(true);
+                return;
+            }
+
+            // A tap. Two in quick succession on the image toggle the zoom at that point;
+            // one on the backdrop closes.
+            const now = performance.now();
+            const onImage = e.target === lightboxImg;
+            const isDoubleTap = now - lastTap.time < 300 && Math.hypot(touch.clientX - lastTap.x, touch.clientY - lastTap.y) < 30;
+            if (onImage && isDoubleTap) {
+                if (currentScale > 1) resetZoom();
+                else zoomTo(DOUBLE_TAP_SCALE, touch.clientX, touch.clientY);
+                clampPan();
+                setZoomed();
+                applyTransform(true);
+                lastTap = { time: 0, x: 0, y: 0 };
+            } else if (!onImage && currentScale <= 1) {
+                closeLightbox();
+            } else {
+                lastTap = { time: now, x: touch.clientX, y: touch.clientY };
+            }
+        };
+
+        lightbox.addEventListener('touchend', endTouch, { passive: false });
+        lightbox.addEventListener('touchcancel', endTouch, { passive: false });
+
+        // Safari's own pinch-zoom of the page underneath
+        lightbox.addEventListener('gesturestart', (e) => e.preventDefault());
 
         // Click to Zoom in / Zoom out
         lightboxImg.addEventListener('click', (e) => {
