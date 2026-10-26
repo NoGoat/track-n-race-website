@@ -4,22 +4,22 @@
   "compatibility_date": "2026-10-14",
   // Only /download/* and /api/* reach this script (see run_worker_first); every other request is a static asset
   "main": "worker/index.js",
-  // Copies partials/header.html and partials/footer.html into every page before dev and deploy (scripts/partials.mjs).
-  // During wrangler dev, editing a partial reruns it.
+  // Builds the pages with Astro into dist/ (astro.config.mjs) before dev and deploy. During wrangler dev, editing
+  // anything in src/ rebuilds.
   "build": {
-    "command": "node scripts/partials.mjs",
-    "watch_dir": "partials"
+    "command": "npm run build",
+    "watch_dir": "src"
   },
   "assets": {
-    // Site is served straight from the repo root; see .assetsignore for exclusions.
-    "directory": ".",
+    // Astro's build output: the pages plus everything in public/
+    "directory": "./dist",
     "binding": "ASSETS",
     "html_handling": "auto-trailing-slash",
     "not_found_handling": "404-page",
     "run_worker_first": ["/download/*", "/api/*"]
   },
-  // The current release. The Worker uses it for /download/ redirects and its counts, and scripts/partials.mjs fills it
-  // into the pages ({{VERSION}} in partials/*.html, JSON-LD softwareVersion). Bump it here for a new release.
+  // The current release. The Worker uses it for /download/ redirects and its counts, and the Astro build reads it
+  // for the pages (src/version.ts). Bump it here for a new release.
   "vars": {
     "VERSION": "1.6.2"
   },

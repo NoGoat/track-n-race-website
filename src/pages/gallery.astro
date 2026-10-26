@@ -1,0 +1,164 @@
+---
+import Base from '../layouts/Base.astro';
+import '../styles/pages/gallery.css';
+import Lightbox from '../components/Lightbox.astro';
+import ZoomBadge from '../components/ZoomBadge.astro';
+import ScreenPicture from '../components/ScreenPicture.astro';
+import { screens } from '../data/screens';
+
+// The Gallery's screens, grouped by area; they're numbered in this order
+const groups = [
+    { id: "gallery-overview", title: "Overview", screens: ["overview", "overview_table", "other_drivers", "editor"] },
+    { id: "gallery-car", title: "Car", screens: ["inputs", "power", "damage", "misc"] },
+    { id: "gallery-tyres", title: "Tyres", screens: ["tyres", "tyres_charts"] },
+    { id: "gallery-race", title: "Race", screens: ["session", "standings", "previous_lap_times", "strategy"] },
+    { id: "gallery-analysis", title: "Analysis", screens: ["analyze", "trends"] },
+];
+const numbers = new Map(groups.flatMap(group => group.screens).map((file, i) => [file, i + 1]));
+const pad = (n: number) => String(n).padStart(2, '0');
+const SIZES = '(max-width: 768px) 100vw, 600px';
+
+const jsonLd = {
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "BreadcrumbList",
+      "@id": "https://track-n-race.com/gallery/#breadcrumb",
+      "itemListElement": [
+        {
+          "@type": "ListItem",
+          "position": 1,
+          "name": "Home",
+          "item": "https://track-n-race.com/"
+        },
+        {
+          "@type": "ListItem",
+          "position": 2,
+          "name": "Gallery",
+          "item": "https://track-n-race.com/gallery/"
+        }
+      ]
+    },
+    {
+      "@type": "WebPage",
+      "@id": "https://track-n-race.com/gallery/#about",
+      "about": {
+        "@type": "SoftwareApplication",
+        "@id": "https://track-n-race.com/#software",
+        "name": "Track N Race"
+      },
+      "name": "Gallery — Track N Race",
+      "description": "Every screen of Track N Race in the Electron and Qt frontends: overview, inputs, power, damage, tyres, standings, strategy, lap analysis and trends.",
+      "isPartOf": {
+        "@type": "WebSite",
+        "@id": "https://track-n-race.com/#website",
+        "name": "Track N Race",
+        "url": "https://track-n-race.com/"
+      },
+      "breadcrumb": { "@id": "https://track-n-race.com/gallery/#breadcrumb" }
+    }
+  ]
+};
+---
+<Base jsonLd={jsonLd}>
+    <Fragment slot="head">
+        <!-- Primary Meta Tags -->
+        <title>Gallery — Track N Race</title>
+        <meta name="description"
+            content="Every screen of Track N Race in the Electron and Qt frontends: overview, inputs, power, damage, tyres, standings, strategy, lap analysis and trends.">
+        <meta name="keywords"
+            content="Track N Race screenshots, Track N Race gallery, F1 Game telemetry screenshots, Track N Race Qt, Track N Race Electron, F1 telemetry dashboard, F1 tyre telemetry, F1 race strategy">
+        <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1">
+        <meta name="author" content="NoGoat">
+        <meta name="application-name" content="Track N Race">
+        <meta name="apple-mobile-web-app-title" content="Track N Race">
+        <meta name="theme-color" content="#09090b">
+
+        <!-- Open Graph / Facebook -->
+        <meta property="og:type" content="article">
+        <meta property="og:site_name" content="Track N Race">
+        <meta property="og:locale" content="en_US">
+        <meta property="og:url" content="https://track-n-race.com/gallery/">
+        <meta property="og:title" content="Gallery — Track N Race">
+        <meta property="og:description"
+            content="Every screen of Track N Race in the Electron and Qt frontends: overview, inputs, power, damage, tyres, standings, strategy, lap analysis and trends.">
+        <meta property="og:image" content="https://track-n-race.com/assets/og-image.png">
+        <meta property="og:image:width" content="1200">
+        <meta property="og:image:height" content="630">
+        <meta property="og:image:alt" content="Track N Race overview dashboard showing live speed, RPM and ERS traces with tyre temperatures">
+
+        <!-- Twitter -->
+        <meta name="twitter:card" content="summary_large_image">
+        <meta name="twitter:url" content="https://track-n-race.com/gallery/">
+        <meta name="twitter:title" content="Gallery — Track N Race">
+        <meta name="twitter:description"
+            content="Every screen of Track N Race in the Electron and Qt frontends: overview, inputs, power, damage, tyres, standings, strategy, lap analysis and trends.">
+        <meta name="twitter:image" content="https://track-n-race.com/assets/og-image.png">
+        <meta name="twitter:image:alt" content="Track N Race overview dashboard showing live speed, RPM and ERS traces with tyre temperatures">
+
+        <!-- Canonical URL -->
+        <link rel="canonical" href="https://track-n-race.com/gallery/">
+
+        <!-- JSON-LD Structured Data -->
+    </Fragment>
+
+    <main class="gallery-section" data-ui="electron">
+        <!-- Gallery: every screen, grouped by area. The switch shows each one in the Electron or the Qt frontend;
+             both captures sit in the markup, and the hidden frontend's lazy images don't load until it is picked. -->
+
+        <!-- Sticky header. At rest its rule matches the content column; once it sticks under the navbar
+             (scripts/sticky-bar.js adds .is-stuck) it runs edge to edge with the navbar's background, border and shadow. -->
+        <div class="gallery-head">
+            <div class="gallery-head-inner">
+                <h1 class="main-title">Gallery</h1>
+                <!-- Same tabs as the Setup page's Single PC / Dual System selector -->
+                <div class="scenario-selector gallery-switch" role="radiogroup" aria-label="Frontend">
+                    <button class="scenario-btn gallery-switch-btn active" role="radio" aria-checked="true" data-ui="electron">Electron</button>
+                    <button class="scenario-btn gallery-switch-btn" role="radio" aria-checked="false" data-ui="qt" tabindex="-1">Qt</button>
+                </div>
+            </div>
+        </div>
+
+        <section id="gallery" class="section gallery-body">
+            {groups.map((group, g) => (
+                <section class="gallery-group" aria-labelledby={group.id}>
+                    <div class="section-header">
+                        <h2 class="section-heading" id={group.id}>{group.title}</h2>
+                        <span class="eyebrow">{pad(group.screens.length)} screens</span>
+                    </div>
+                    <div class="gallery-grid">
+                        {group.screens.map(file => {
+                            const screen = screens[file];
+                            return (
+                                <figure class:list={['shot', { 'shot-trimmed': screen.width === 2492 }]}>
+                                    <div class="app-window">
+                                        <div class="img-zoom-wrapper">
+                                            <!-- Only the first group loads straight away; the rest wait until scrolled to -->
+                                            <ScreenPicture screen={screen} ui="electron" sizes={SIZES} lazy={g > 0} />
+                                            <ScreenPicture screen={screen} ui="qt" sizes={SIZES} lazy />
+                                            <ZoomBadge />
+                                        </div>
+                                    </div>
+                                    <figcaption class="shot-caption">
+                                        <span class="module-num">{pad(numbers.get(file)!)}</span>
+                                        <div>
+                                            <h3 class="module-title">{screen.name}</h3>
+                                            <p class="module-desc">{screen.desc}</p>
+                                        </div>
+                                    </figcaption>
+                                </figure>
+                            );
+                        })}
+                    </div>
+                </section>
+            ))}
+        </section>
+    </main>
+
+    <Lightbox slot="after-footer" />
+
+    <script>
+        import '../scripts/sticky-bar.js';
+        import '../scripts/gallery.js';
+    </script>
+</Base>

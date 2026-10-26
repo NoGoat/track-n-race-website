@@ -1,0 +1,313 @@
+/* ==========================================================================
+   Hero
+   ========================================================================== */
+.hero-section {
+    padding-top: calc(var(--nav-h) + 80px);
+    padding-bottom: 48px;
+}
+
+/* Centered stack: title, copy, buttons, then the specs as one inline row */
+.hero-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+}
+
+.hero-copy {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.hero-copy .main-title {
+    font-size: clamp(2.75rem, 7vw, 5.25rem);
+    line-height: 0.98;
+    letter-spacing: -0.05em;
+}
+
+.hero-copy .subtitle {
+    margin-top: 1.5rem;
+    max-width: 700px;
+    text-wrap: balance;
+}
+
+.hero-copy .cta-group {
+    margin-top: 2rem;
+    align-self: center;
+}
+
+/* Specs: label over value, cells split by hairlines */
+.hero-specs {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    margin-top: 3rem;
+}
+
+.hero-spec {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.3rem;
+    padding: 0 3.5rem;
+    min-width: 0;
+}
+
+.hero-spec + .hero-spec {
+    border-left: 1px solid var(--line-strong);
+}
+
+.hero-spec dt {
+    font-family: var(--font-mono);
+    font-size: 0.68rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text-3);
+}
+
+.hero-spec dd {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: baseline;
+    font-size: 0.92rem;
+    font-weight: 500;
+    letter-spacing: -0.01em;
+    color: var(--text);
+}
+
+.tag {
+    white-space: nowrap;
+}
+
+.tag + .tag::before {
+    content: "/";
+    margin: 0 0.45rem;
+    color: var(--text-3);
+    font-weight: 400;
+}
+
+.hero-visual {
+    margin-top: 3.5rem;
+}
+
+/* The screenshot is a 2x capture (2492px). Shown at exactly half size, each source
+   pixel pair maps to one screen pixel and stays sharp; any other width blurs it.
+   Its transparent shadow margin means the visible window is ~1200px, matching the column. */
+@media (min-width: 1300px) {
+    .hero-visual {
+        width: 1246px;
+        margin-left: calc((100% - 1246px) / 2);
+    }
+}
+
+@media (max-width: 768px) {
+    .hero-section {
+        padding-top: calc(var(--nav-h) + 56px);
+        padding-bottom: 32px;
+    }
+
+    .hero-visual {
+        margin-top: 2.5rem;
+    }
+}
+
+/* Four specs don't fit one row below desktop width: two rows of two, one divider each */
+@media (max-width: 1100px) {
+    .hero-specs {
+        display: grid;
+        grid-template-columns: repeat(2, auto);
+        justify-content: center;
+        row-gap: 1.5rem;
+    }
+
+    .hero-spec + .hero-spec {
+        border-left: 0;
+    }
+
+    .hero-spec:nth-child(2n) {
+        border-left: 1px solid var(--line-strong);
+    }
+}
+
+@media (max-width: 600px) {
+    .hero-specs {
+        grid-template-columns: auto;
+        gap: 1.1rem;
+        margin-top: 2.25rem;
+    }
+
+    .hero-spec:nth-child(2n) {
+        border-left: 0;
+    }
+}
+
+/* ==========================================================================
+   Highlights
+   The slides' text and layout; the carousel itself is styles/carousel.css
+   ========================================================================== */
+#features.section {
+    padding-top: 48px;
+    padding-bottom: 48px;
+}
+
+.feature-container {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.5fr);
+    gap: 4rem;
+    align-items: center;
+    width: 100%;
+    min-width: 0;
+}
+
+.feature-text,
+.feature-visual {
+    min-width: 0;
+}
+
+.feature-title {
+    font-size: 2rem;
+    font-weight: 600;
+    line-height: 1.1;
+    letter-spacing: -0.035em;
+    margin-bottom: 1rem;
+}
+
+.feature-list {
+    list-style: none;
+    border-top: 1px solid var(--line);
+}
+
+.feature-list li {
+    display: flex;
+    align-items: baseline;
+    gap: 0.75rem;
+    padding: 0.6rem 0;
+    border-bottom: 1px solid var(--line);
+    font-size: 0.9rem;
+    color: var(--text);
+}
+
+/* A slide's call to action, below its list */
+.feature-cta {
+    margin-top: 1.5rem;
+}
+
+.feature-list li::before {
+    content: "";
+    flex-shrink: 0;
+    width: 10px;
+    height: 1px;
+    background: var(--bullet, var(--text-3));
+    transform: translateY(-0.3em);
+}
+
+/* List dashes pick up the slide title's accent */
+.feature-text:has(.highlight-blue) { --bullet: #4a8cf2; }
+.feature-text:has(.highlight-yellow) { --bullet: #f9d923; }
+.feature-text:has(.highlight-green) { --bullet: #4cbb4c; }
+.feature-text:has(.highlight-red) { --bullet: var(--accent); }
+.feature-text:has(.highlight-purple) { --bullet: #c065f5; }
+
+.post-script {
+    margin-top: 0.85rem;
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    line-height: 1.55;
+    color: var(--text-3);
+}
+
+.post-script + .post-script {
+    margin-top: 0.35rem;
+}
+
+/* Carousel title accents, taken from the app's own trace colours
+   (green brightened from the app's #307c28 to stay legible on the page) */
+.highlight-blue,
+.highlight-green,
+.highlight-red,
+.highlight-yellow,
+.highlight-purple {
+    color: var(--trace);
+    font-weight: inherit;
+}
+
+.highlight-blue { --trace: #4a8cf2; }    /* progress bar / tags */
+.highlight-yellow { --trace: #f9d923; }  /* ERS trace */
+.highlight-green { --trace: #4cbb4c; }   /* speed trace */
+.highlight-red { --trace: var(--accent); }  /* recording red */
+.highlight-purple { --trace: #c065f5; }  /* fastest-sector purple (app --color-fastest) */
+
+@media (max-width: 1024px) {
+    .feature-container {
+        gap: 2.5rem;
+    }
+}
+
+@media (max-width: 860px) {
+    .feature-container {
+        grid-template-columns: minmax(0, 1fr);
+        gap: 2rem;
+    }
+
+    .feature-visual {
+        order: -1;
+    }
+}
+
+@media (max-width: 768px) {
+    .feature-title {
+        font-size: 1.6rem;
+    }
+
+    #features.section {
+        padding-bottom: 16px;
+    }
+}
+
+/* ==========================================================================
+   Alternate frontend
+   ========================================================================== */
+.section.alt-frontend-section {
+    padding-top: 0;
+}
+
+.alt-frontend-desc {
+    margin: -1rem 0 2.5rem;
+}
+
+.alt-frontend-desc a {
+    color: var(--text);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+    text-decoration-color: var(--line-hover);
+    transition: text-decoration-color var(--fast);
+}
+
+.alt-frontend-desc a:hover {
+    text-decoration-color: currentColor;
+}
+
+/* Qt windows have KDE's 4px corner at 1200px wide, about the width of a slide */
+.alt-frontend-carousel .app-window {
+    border-radius: 4px;
+}
+
+/* Section-header link, styled as the header's mono eyebrow */
+.section-link {
+    text-decoration: none;
+    transition: color var(--fast);
+}
+
+.section-link:hover {
+    color: var(--text);
+}
+
+.section-link svg {
+    transition: transform var(--fast);
+}
+
+.section-link:hover svg {
+    transform: translateX(2px);
+}

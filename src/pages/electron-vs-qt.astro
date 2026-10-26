@@ -1,0 +1,349 @@
+---
+import Base from '../layouts/Base.astro';
+import '../styles/pages/compare.css';
+import DownloadModal from '../components/DownloadModal.astro';
+import DownloadButton from '../components/DownloadButton.astro';
+import { screens } from '../data/screens';
+
+// The screens with a slider, in tab order
+const order = [
+    "overview",
+    "analyze",
+    "session",
+    "other_drivers",
+    "editor",
+    "inputs",
+    "power",
+    "tyres",
+    "tyres_charts",
+    "strategy",
+    "standings",
+    "previous_lap_times",
+    "overview_table",
+    "damage",
+    "trends",
+];
+const pad = (n: number) => String(n).padStart(2, '0');
+
+const jsonLd = {
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "BreadcrumbList",
+      "@id": "https://track-n-race.com/electron-vs-qt/#breadcrumb",
+      "itemListElement": [
+        {
+          "@type": "ListItem",
+          "position": 1,
+          "name": "Home",
+          "item": "https://track-n-race.com/"
+        },
+        {
+          "@type": "ListItem",
+          "position": 2,
+          "name": "Frontends",
+          "item": "https://track-n-race.com/electron-vs-qt/"
+        }
+      ]
+    },
+    {
+      "@type": "WebPage",
+      "@id": "https://track-n-race.com/electron-vs-qt/#about",
+      "about": {
+        "@type": "SoftwareApplication",
+        "@id": "https://track-n-race.com/#software",
+        "name": "Track N Race"
+      },
+      "name": "Frontends — Track N Race Electron vs Qt",
+      "description": "Compare the Electron and Qt frontends of Track N Race and the Minimal Recorder: platforms, RAM use and features in one table, then every screen side by side, from the overview and lap analysis to standings, tyres and strategy.",
+      "isPartOf": {
+        "@type": "WebSite",
+        "@id": "https://track-n-race.com/#website",
+        "name": "Track N Race",
+        "url": "https://track-n-race.com/"
+      },
+      "breadcrumb": { "@id": "https://track-n-race.com/electron-vs-qt/#breadcrumb" },
+      "mainEntity": {
+        "@type": "ItemList",
+        "name": "Screens compared",
+        "numberOfItems": 15,
+        "itemListElement": [
+            {
+              "@type": "ListItem",
+              "position": 1,
+              "name": "Overview"
+            },
+            {
+              "@type": "ListItem",
+              "position": 2,
+              "name": "Analysis"
+            },
+            {
+              "@type": "ListItem",
+              "position": 3,
+              "name": "Session"
+            },
+            {
+              "@type": "ListItem",
+              "position": 4,
+              "name": "View Other Drivers"
+            },
+            {
+              "@type": "ListItem",
+              "position": 5,
+              "name": "Layout Editor"
+            },
+            {
+              "@type": "ListItem",
+              "position": 6,
+              "name": "Inputs"
+            },
+            {
+              "@type": "ListItem",
+              "position": 7,
+              "name": "Power"
+            },
+            {
+              "@type": "ListItem",
+              "position": 8,
+              "name": "Tyres"
+            },
+            {
+              "@type": "ListItem",
+              "position": 9,
+              "name": "Tyre Graphs"
+            },
+            {
+              "@type": "ListItem",
+              "position": 10,
+              "name": "Race Strategy"
+            },
+            {
+              "@type": "ListItem",
+              "position": 11,
+              "name": "Standings"
+            },
+            {
+              "@type": "ListItem",
+              "position": 12,
+              "name": "View Previous Times"
+            },
+            {
+              "@type": "ListItem",
+              "position": 13,
+              "name": "Data Tables"
+            },
+            {
+              "@type": "ListItem",
+              "position": 14,
+              "name": "Damage"
+            },
+            {
+              "@type": "ListItem",
+              "position": 15,
+              "name": "Trends"
+            }
+        ]
+      }
+    }
+  ]
+};
+---
+<Base jsonLd={jsonLd}>
+    <Fragment slot="head">
+        <!-- Primary Meta Tags -->
+        <title>Frontends — Track N Race Electron vs Qt</title>
+        <meta name="description"
+            content="Compare the Electron and Qt frontends of Track N Race and the Minimal Recorder: platforms, RAM use and features in one table, then every screen side by side, from the overview and lap analysis to standings, tyres and strategy.">
+        <meta name="keywords"
+            content="Track N Race Electron vs Qt, Track N Race Qt, Track N Race Electron, F1 Game telemetry app comparison, F1 telemetry Qt app, F1 telemetry desktop app, F1 25 telemetry, F1 24 telemetry, F1 2026 telemetry, sim racing telemetry, F1 lap analysis software">
+        <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1">
+        <meta name="author" content="NoGoat">
+        <meta name="application-name" content="Track N Race">
+        <meta name="apple-mobile-web-app-title" content="Track N Race">
+        <meta name="theme-color" content="#09090b">
+
+        <!-- Open Graph / Facebook -->
+        <meta property="og:type" content="article">
+        <meta property="og:site_name" content="Track N Race">
+        <meta property="og:locale" content="en_US">
+        <meta property="og:url" content="https://track-n-race.com/electron-vs-qt/">
+        <meta property="og:title" content="Frontends — Track N Race Electron vs Qt">
+        <meta property="og:description"
+            content="Compare the Electron and Qt frontends of Track N Race and the Minimal Recorder: platforms, RAM use and features in one table, then every screen side by side, from the overview and lap analysis to standings, tyres and strategy.">
+        <meta property="og:image" content="https://track-n-race.com/assets/og-image.png">
+        <meta property="og:image:width" content="1200">
+        <meta property="og:image:height" content="630">
+        <meta property="og:image:alt" content="Track N Race overview dashboard showing live speed, RPM and ERS traces with tyre temperatures">
+
+        <!-- Twitter -->
+        <meta name="twitter:card" content="summary_large_image">
+        <meta name="twitter:url" content="https://track-n-race.com/electron-vs-qt/">
+        <meta name="twitter:title" content="Frontends — Track N Race Electron vs Qt">
+        <meta name="twitter:description"
+            content="Compare the Electron and Qt frontends of Track N Race and the Minimal Recorder: platforms, RAM use and features in one table, then every screen side by side, from the overview and lap analysis to standings, tyres and strategy.">
+        <meta name="twitter:image" content="https://track-n-race.com/assets/og-image.png">
+        <meta name="twitter:image:alt" content="Track N Race overview dashboard showing live speed, RPM and ERS traces with tyre temperatures">
+
+        <!-- Canonical URL -->
+        <link rel="canonical" href="https://track-n-race.com/electron-vs-qt/">
+
+        <!-- JSON-LD Structured Data -->
+    </Fragment>
+
+    <main>
+        <!-- Compare Frontends: a summary table, then one before/after slider per screen -->
+        <section id="compare" class="section compare-section">
+            <div class="page-header">
+                <h1 class="main-title">Compare Frontends</h1>
+                <p class="subtitle">Electron, Qt or the Minimal Recorder. Compare them to decide which one you prefer.</p>
+            </div>
+
+            <div class="compare-block" id="at-a-glance">
+                <div class="section-header">
+                    <h2 class="section-heading">At a glance</h2>
+                    <span class="eyebrow">03 builds</span>
+                </div>
+
+                <div class="fmt-matrix-scroll">
+                    <table class="fmt-matrix compare-matrix">
+                        <thead>
+                            <tr>
+                                <th scope="col"><span class="visually-hidden">Feature</span></th>
+                                <th scope="col">Electron</th><th scope="col">Qt</th><th scope="col">Minimal Recorder</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <th scope="row">Windows</th>
+                                <td class="yes">Yes</td><td class="yes">Yes</td><td class="yes">Yes</td>
+                            </tr>
+                            <tr>
+                                <th scope="row">macOS</th>
+                                <td class="yes">Yes</td><td class="no">No</td><td class="yes">Yes</td>
+                            </tr>
+                            <tr>
+                                <th scope="row">Linux</th>
+                                <td class="yes">Yes</td><td class="yes">Yes</td><td class="yes">Yes</td>
+                            </tr>
+                            <tr>
+                                <th scope="row">RAM, idle</th>
+                                <td>282 MB</td><td>187 MB</td><td>7 MB</td>
+                            </tr>
+                            <tr>
+                                <th scope="row">RAM, end of a live race</th>
+                                <td>714 MB</td><td>444 MB</td><td>84 MB</td>
+                            </tr>
+                            <tr>
+                                <th scope="row">RAM, peak during a live race</th>
+                                <td>748 MB</td><td>463 MB</td><td>85 MB</td>
+                            </tr>
+                            <tr>
+                                <th scope="row">RAM, reviewing a race (All Laps)</th>
+                                <td>752 MB</td><td>570 MB</td><td class="no">&mdash;</td>
+                            </tr>
+                            <tr>
+                                <th scope="row">RAM, peak while reviewing</th>
+                                <td>1,115 MB</td><td>712 MB</td><td class="no">&mdash;</td>
+                            </tr>
+                            <tr>
+                                <th scope="row">Records sessions</th>
+                                <td class="yes">Yes</td><td class="yes">Yes</td><td class="yes">Yes</td>
+                            </tr>
+                            <tr>
+                                <th scope="row">Live telemetry while driving</th>
+                                <td class="yes">Yes</td><td class="yes">Yes</td><td class="no">No</td>
+                            </tr>
+                            <tr>
+                                <th scope="row">Lap analysis</th>
+                                <td class="yes">Yes</td><td class="yes">Yes</td><td class="no">No</td>
+                            </tr>
+                            <tr>
+                                <th scope="row">Layout editor</th>
+                                <td class="yes">Yes</td><td class="yes">Yes</td><td class="no">No</td>
+                            </tr>
+                            <tr>
+                                <th scope="row">UDP forwarding</th>
+                                <td class="yes">Yes</td><td class="yes">Yes</td><td class="yes">Yes</td>
+                            </tr>
+                            <tr>
+                                <th scope="row">New features</th>
+                                <td>First</td><td class="part">Might miss features</td><td class="no">&mdash;</td>
+                            </tr>
+                            <tr>
+                                <th scope="row">Built with</th>
+                                <td>Electron, React</td><td>Qt, QCustomPlot</td><td class="no">&mdash;</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <p class="compare-note">
+                    RAM is private memory on Windows 11, measured with the 92-minute S&atilde;o Paulo Grand Prix: its UDP
+                    data was recorded once, then played back into each app at real speed by a script. Live figures are on
+                    Overview with Current Lap, while recording to a file. Reviewing is the recording opened near the end of
+                    the race with All Laps on every page. The Minimal Recorder doesn't play recordings back.
+                </p>
+            </div>
+
+            <div class="section-header compare-sliders-header">
+                <h2 class="section-heading">Screen by screen</h2>
+                <span class="eyebrow">15 screens</span>
+            </div>
+
+            <div class="modules compare-modules">
+                <div class="module-list" role="tablist" aria-label="Screens" aria-orientation="vertical">
+                    {order.map((file, i) => (
+                        <button class:list={['module-tab', { active: i === 0 }]} role="tab" id={`module-tab-${i}`}
+                            aria-controls={`module-pane-${i}`} aria-selected={i === 0 ? 'true' : 'false'} tabindex={i === 0 ? 0 : -1}>
+                            <span class="module-num">{pad(i + 1)}</span>
+                            <span class="module-name">{screens[file].name}</span>
+                        </button>
+                    ))}
+                </div>
+                <div class="module-stage">
+                    {order.map((file, i) => {
+                        const screen = screens[file];
+                        // Only the first slider loads straight away
+                        const loading = i === 0 ? undefined : 'lazy';
+                        return (
+                            <figure class:list={['module-pane', { active: i === 0 }]} role="tabpanel" id={`module-pane-${i}`}
+                                aria-labelledby={`module-tab-${i}`} aria-hidden={i === 0 ? undefined : 'true'}>
+                                <div class="compare" style={`aspect-ratio: ${screen.width} / ${screen.height}`}>
+                                    <img class="compare-img" src={`/assets/screenshots/qt/${file}.webp`}
+                                        alt={`Qt frontend: ${screen.name}`} width={screen.width} height={screen.height} loading={loading}>
+                                    <div class="compare-top">
+                                        <img class="compare-img" src={`/assets/screenshots/${file}.webp`}
+                                            alt={`Electron frontend: ${screen.name}`} width={screen.width} height={screen.height} loading={loading}>
+                                    </div>
+                                    <div class="compare-handle" aria-hidden="true"><span class="compare-knob"></span></div>
+                                    <input class="compare-range" type="range" min="0" max="100" step="0.1" value="50"
+                                        aria-label={`${screen.name}: slide between Electron and Qt`}>
+                                </div>
+                                <figcaption class="compare-caption">
+                                    <span class="compare-tag">Electron</span>
+                                    <h3 class="module-title">{screen.name}</h3>
+                                    <span class="compare-tag">Qt</span>
+                                </figcaption>
+                            </figure>
+                        );
+                    })}
+                </div>
+            </div>
+
+            <!-- Opens the shared download modal (components/DownloadModal.astro); without it, the link goes to the release -->
+            <div class="compare-download">
+                <div class="compare-download-text">
+                    <h2 class="section-heading">Picked one?</h2>
+                    <p class="section-desc">Every build is free and open source, for Windows, macOS and Linux.</p>
+                </div>
+                <DownloadButton />
+            </div>
+        </section>
+    </main>
+
+    <DownloadModal slot="after-footer" />
+
+    <script>
+        import '../scripts/compare.js';
+    </script>
+</Base>

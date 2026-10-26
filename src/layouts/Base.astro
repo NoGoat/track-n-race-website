@@ -1,0 +1,58 @@
+---
+// The page shell: head, header, footer and license pop-up, with the script every page needs. Each page imports its
+// own stylesheet bundle (styles/pages/), which starts with base.css and site.css.
+// A page passes its own <title> and meta tags in the "head" slot, and anything that sits after the footer
+// (the download modal, the lightbox) in the "after-footer" slot.
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+import LicenseModal from '../components/LicenseModal.astro';
+
+interface Props {
+    /** Structured data for search engines, written out as JSON-LD */
+    jsonLd?: object;
+    bodyClass?: string;
+}
+
+const { jsonLd, bodyClass } = Astro.props;
+---
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <slot name="head" />
+
+    {jsonLd && <script type="application/ld+json" is:inline set:html={JSON.stringify(jsonLd, null, 2)} />}
+
+    <!-- Favicon & App Icons -->
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+    <link rel="icon" type="image/png" sizes="48x48" href="/assets/icons/favicon-48x48.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="/assets/icons/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/assets/icons/favicon-16x16.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="/assets/icons/apple-touch-icon.png">
+    <link rel="manifest" href="/site.webmanifest">
+
+    <!-- Fonts -->
+    <link rel="preload" href="/assets/fonts/geist-latin.woff2" as="font" type="font/woff2" crossorigin>
+    <link rel="preload" href="/assets/fonts/geist-mono-latin.woff2" as="font" type="font/woff2" crossorigin>
+</head>
+
+<body class={bodyClass}>
+    <Header />
+
+    <slot />
+
+    <Footer />
+
+    <slot name="after-footer" />
+
+    <LicenseModal />
+
+    <script>
+        import '../scripts/site.js';
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,344 @@
+---
+import Base from '../layouts/Base.astro';
+import '../styles/pages/credits.css';
+
+const jsonLd = {
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "BreadcrumbList",
+      "@id": "https://track-n-race.com/credits/#breadcrumb",
+      "itemListElement": [
+        {
+          "@type": "ListItem",
+          "position": 1,
+          "name": "Home",
+          "item": "https://track-n-race.com/"
+        },
+        {
+          "@type": "ListItem",
+          "position": 2,
+          "name": "Credits & Licensing",
+          "item": "https://track-n-race.com/credits/"
+        }
+      ]
+    },
+    {
+      "@type": "WebPage",
+      "@id": "https://track-n-race.com/credits/#about",
+      "about": {
+        "@type": "SoftwareApplication",
+        "@id": "https://track-n-race.com/#software",
+        "name": "Track N Race"
+      },
+      "name": "Credits & Open Source Licensing — Track N Race",
+      "description": "Open source attributions, third-party libraries, and GNU General Public License v3.0 details for Track N Race F1 Game telemetry analysis software.",
+      "isPartOf": {
+        "@type": "WebSite",
+        "@id": "https://track-n-race.com/#website",
+        "name": "Track N Race",
+        "url": "https://track-n-race.com/"
+      }
+    }
+  ]
+};
+---
+<Base jsonLd={jsonLd} bodyClass="page-fit">
+    <Fragment slot="head">
+        <!-- Primary Meta Tags -->
+        <title>Credits & Licensing — Track N Race</title>
+        <meta name="description"
+            content="Track N Race open source attributions, third-party libraries, and additional information for Web and desktop telemetry frontends.">
+        <meta name="keywords"
+            content="Track N Race Credits, Open Source Attributions, F1 Game telemetry License, GNU GPL v3.0, Qt, Electron, React, glaze, zlib, libxlsxwriter, open source sim racing">
+        <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1">
+        <meta name="author" content="NoGoat">
+        <meta name="application-name" content="Track N Race">
+        <meta name="apple-mobile-web-app-title" content="Track N Race">
+        <meta name="theme-color" content="#09090b">
+
+        <!-- Open Graph / Facebook -->
+        <meta property="og:type" content="article">
+        <meta property="og:site_name" content="Track N Race">
+        <meta property="og:locale" content="en_US">
+        <meta property="og:url" content="https://track-n-race.com/credits/">
+        <meta property="og:title" content="Credits & Licensing — Track N Race">
+        <meta property="og:description"
+            content="Track N Race open source attributions, third-party libraries, and GNU General Public License v3.0 information for Web and desktop telemetry frontends.">
+        <meta property="og:image" content="https://track-n-race.com/assets/og-image.png">
+        <meta property="og:image:width" content="1200">
+        <meta property="og:image:height" content="630">
+        <meta property="og:image:alt" content="Track N Race overview dashboard showing live speed, RPM and ERS traces with tyre temperatures">
+
+        <!-- Twitter -->
+        <meta name="twitter:card" content="summary_large_image">
+        <meta name="twitter:url" content="https://track-n-race.com/credits/">
+        <meta name="twitter:title" content="Credits & Licensing — Track N Race">
+        <meta name="twitter:description"
+            content="Track N Race open source attributions, third-party libraries, and GNU General Public License v3.0 information for Web and desktop telemetry frontends.">
+        <meta name="twitter:image" content="https://track-n-race.com/assets/og-image.png">
+        <meta name="twitter:image:alt" content="Track N Race overview dashboard showing live speed, RPM and ERS traces with tyre temperatures">
+
+        <!-- Canonical URL -->
+        <link rel="canonical" href="https://track-n-race.com/credits/">
+
+        <!-- JSON-LD Structured Data -->
+    </Fragment>
+
+    <main>
+        <!-- Credits: open source library browser -->
+        <section id="attributions" class="section attributions-section">
+            <div class="attributions-container">
+                <div class="page-header">
+                    <h1 class="main-title">Credits</h1>
+                    <p class="section-desc">
+                        The following open source projects made Track N Race possible. Note that this is in no way
+                        trying to
+                        affiliate Track N Race with these projects. I just felt that it was appropriate to shout out
+                        these projects since these helped me in creation of Track N Race.
+                    </p>
+                </div>
+
+                <!-- Library browser: grouped project list beside a license reader.
+                     On phones the reader is hidden and licenses open in the pop-up instead. -->
+                <div class="library">
+                    <nav class="library-list" aria-label="Open source projects">
+                    <section class="library-group" data-stack="core">
+                        <h2 class="library-group-title">Core <span class="library-count">04</span></h2>
+                        <ul class="library-items">
+                            <li>
+                                <button class="library-item active" aria-pressed="true" aria-controls="library-reader"
+                                    data-file="Zlib.txt" data-spdx="Zlib" data-href="https://zlib.net" data-stack="core">
+                                    <span class="library-name">zlib</span>
+                                    <span class="library-spdx">Zlib</span>
+                                </button>
+                            </li>
+                            <li>
+                                <button class="library-item" aria-pressed="false" aria-controls="library-reader"
+                                    data-file="zstandard.txt" data-spdx="BSD-3-Clause" data-href="https://facebook.github.io/zstd/" data-stack="core">
+                                    <span class="library-name">Zstandard</span>
+                                    <span class="library-spdx">BSD-3-Clause</span>
+                                </button>
+                            </li>
+                            <li>
+                                <button class="library-item" aria-pressed="false" aria-controls="library-reader"
+                                    data-file="glaze.txt" data-spdx="MIT" data-href="https://github.com/stephenberry/glaze" data-stack="core">
+                                    <span class="library-name">glaze</span>
+                                    <span class="library-spdx">MIT</span>
+                                </button>
+                            </li>
+                            <li>
+                                <button class="library-item" aria-pressed="false" aria-controls="library-reader"
+                                    data-file="libxlsxwriter.txt" data-spdx="BSD-2-Clause" data-href="https://libxlsxwriter.github.io" data-stack="core">
+                                    <span class="library-name">libxlsxwriter</span>
+                                    <span class="library-spdx">BSD-2-Clause</span>
+                                </button>
+                            </li>
+                        </ul>
+                    </section>
+                    <section class="library-group" data-stack="electron">
+                        <h2 class="library-group-title">Electron <span class="library-count">17</span></h2>
+                        <ul class="library-items">
+                            <li>
+                                <button class="library-item" aria-pressed="false" aria-controls="library-reader"
+                                    data-file="electron.txt" data-spdx="MIT" data-href="https://electronjs.org" data-stack="electron">
+                                    <span class="library-name">Electron</span>
+                                    <span class="library-spdx">MIT</span>
+                                </button>
+                            </li>
+                            <li>
+                                <button class="library-item" aria-pressed="false" aria-controls="library-reader"
+                                    data-file="react.txt" data-spdx="MIT" data-href="https://react.dev" data-stack="electron">
+                                    <span class="library-name">React</span>
+                                    <span class="library-spdx">MIT</span>
+                                </button>
+                            </li>
+                            <li>
+                                <button class="library-item" aria-pressed="false" aria-controls="library-reader"
+                                    data-file="react-dom.txt" data-spdx="MIT" data-href="https://react.dev" data-stack="electron">
+                                    <span class="library-name">React DOM</span>
+                                    <span class="library-spdx">MIT</span>
+                                </button>
+                            </li>
+                            <li>
+                                <button class="library-item" aria-pressed="false" aria-controls="library-reader"
+                                    data-file="electron-store.txt" data-spdx="MIT" data-href="https://github.com/sindresorhus/electron-store" data-stack="electron">
+                                    <span class="library-name">electron-store</span>
+                                    <span class="library-spdx">MIT</span>
+                                </button>
+                            </li>
+                            <li>
+                                <button class="library-item" aria-pressed="false" aria-controls="library-reader"
+                                    data-file="lucide-react.txt" data-spdx="ISC" data-href="https://lucide.dev" data-stack="electron">
+                                    <span class="library-name">lucide-react</span>
+                                    <span class="library-spdx">ISC</span>
+                                </button>
+                            </li>
+                            <li>
+                                <button class="library-item" aria-pressed="false" aria-controls="library-reader"
+                                    data-file="react-select.txt" data-spdx="MIT" data-href="https://react-select.com" data-stack="electron">
+                                    <span class="library-name">react-select</span>
+                                    <span class="library-spdx">MIT</span>
+                                </button>
+                            </li>
+                            <li>
+                                <button class="library-item" aria-pressed="false" aria-controls="library-reader"
+                                    data-file="uiw-react-color.txt" data-spdx="MIT" data-href="https://github.com/uiwjs/react-color" data-stack="electron">
+                                    <span class="library-name">@uiw/react-color</span>
+                                    <span class="library-spdx">MIT</span>
+                                </button>
+                            </li>
+                            <li>
+                                <button class="library-item" aria-pressed="false" aria-controls="library-reader"
+                                    data-file="zustand.txt" data-spdx="MIT" data-href="https://zustand.docs.pmnd.rs/" data-stack="electron">
+                                    <span class="library-name">zustand</span>
+                                    <span class="library-spdx">MIT</span>
+                                </button>
+                            </li>
+                            <li>
+                                <button class="library-item" aria-pressed="false" aria-controls="library-reader"
+                                    data-file="timechart.txt" data-spdx="MIT" data-href="https://github.com/huww98/TimeChart" data-stack="electron">
+                                    <span class="library-name">TimeChart</span>
+                                    <span class="library-spdx">MIT</span>
+                                </button>
+                            </li>
+                            <li>
+                                <button class="library-item" aria-pressed="false" aria-controls="library-reader"
+                                    data-file="d3-axis.txt" data-spdx="ISC" data-href="https://d3js.org/d3-axis/" data-stack="electron">
+                                    <span class="library-name">d3-axis</span>
+                                    <span class="library-spdx">ISC</span>
+                                </button>
+                            </li>
+                            <li>
+                                <button class="library-item" aria-pressed="false" aria-controls="library-reader"
+                                    data-file="d3-color.txt" data-spdx="ISC" data-href="https://d3js.org/d3-color/" data-stack="electron">
+                                    <span class="library-name">d3-color</span>
+                                    <span class="library-spdx">ISC</span>
+                                </button>
+                            </li>
+                            <li>
+                                <button class="library-item" aria-pressed="false" aria-controls="library-reader"
+                                    data-file="d3-scale.txt" data-spdx="ISC" data-href="https://d3js.org/d3-scale/" data-stack="electron">
+                                    <span class="library-name">d3-scale</span>
+                                    <span class="library-spdx">ISC</span>
+                                </button>
+                            </li>
+                            <li>
+                                <button class="library-item" aria-pressed="false" aria-controls="library-reader"
+                                    data-file="d3-selection.txt" data-spdx="ISC" data-href="https://d3js.org/d3-selection/" data-stack="electron">
+                                    <span class="library-name">d3-selection</span>
+                                    <span class="library-spdx">ISC</span>
+                                </button>
+                            </li>
+                            <li>
+                                <button class="library-item" aria-pressed="false" aria-controls="library-reader"
+                                    data-file="gl-matrix.txt" data-spdx="MIT" data-href="https://glmatrix.net/" data-stack="electron">
+                                    <span class="library-name">gl-matrix</span>
+                                    <span class="library-spdx">MIT</span>
+                                </button>
+                            </li>
+                            <li>
+                                <button class="library-item" aria-pressed="false" aria-controls="library-reader"
+                                    data-file="tslib.txt" data-spdx="0BSD" data-href="https://github.com/microsoft/tslib" data-stack="electron">
+                                    <span class="library-name">tslib</span>
+                                    <span class="library-spdx">0BSD</span>
+                                </button>
+                            </li>
+                            <li>
+                                <button class="library-item" aria-pressed="false" aria-controls="library-reader"
+                                    data-file="cascadia-code.txt" data-spdx="OFL-1.1" data-href="https://github.com/microsoft/cascadia-code" data-stack="electron">
+                                    <span class="library-name">Cascadia Code</span>
+                                    <span class="library-spdx">OFL-1.1</span>
+                                </button>
+                            </li>
+                            <li>
+                                <button class="library-item" aria-pressed="false" aria-controls="library-reader"
+                                    data-file="node-addon-api.txt" data-spdx="MIT" data-href="https://github.com/nodejs/node-addon-api" data-stack="electron">
+                                    <span class="library-name">node-addon-api</span>
+                                    <span class="library-spdx">MIT</span>
+                                </button>
+                            </li>
+                        </ul>
+                    </section>
+                    <section class="library-group" data-stack="qt">
+                        <h2 class="library-group-title">Qt <span class="library-count">07</span></h2>
+                        <ul class="library-items">
+                            <li>
+                                <button class="library-item" aria-pressed="false" aria-controls="library-reader"
+                                    data-file="LGPL-3.0.txt" data-spdx="LGPL-3.0" data-href="https://www.qt.io" data-stack="qt">
+                                    <span class="library-name">Qt</span>
+                                    <span class="library-spdx">LGPL-3.0</span>
+                                </button>
+                            </li>
+                            <li>
+                                <button class="library-item" aria-pressed="false" aria-controls="library-reader"
+                                    data-file="GPL-3.0.txt" data-spdx="GPL-3.0" data-href="https://www.qcustomplot.com" data-stack="qt">
+                                    <span class="library-name">QCustomPlot</span>
+                                    <span class="library-spdx">GPL-3.0</span>
+                                </button>
+                            </li>
+                            <li>
+                                <button class="library-item" aria-pressed="false" aria-controls="library-reader"
+                                    data-file="MIT-qt-toast.txt" data-spdx="MIT" data-href="https://github.com/niklashenning/qt-toast" data-stack="qt">
+                                    <span class="library-name">qt-toast (fork)</span>
+                                    <span class="library-spdx">MIT</span>
+                                </button>
+                            </li>
+                            <li>
+                                <button class="library-item" aria-pressed="false" aria-controls="library-reader"
+                                    data-file="OFL-1.1-Noto.txt" data-spdx="OFL-1.1" data-href="https://fonts.google.com/noto/specimen/Noto+Sans" data-stack="qt">
+                                    <span class="library-name">Noto Sans</span>
+                                    <span class="library-spdx">OFL-1.1</span>
+                                </button>
+                            </li>
+                            <li>
+                                <button class="library-item" aria-pressed="false" aria-controls="library-reader"
+                                    data-file="GPL-2.0.txt" data-spdx="GPL-2.0" data-href="https://invent.kde.org/plasma/breeze" data-stack="qt">
+                                    <span class="library-name">Breeze style (Plasma)</span>
+                                    <span class="library-spdx">GPL-2.0</span>
+                                </button>
+                            </li>
+                            <li>
+                                <button class="library-item" aria-pressed="false" aria-controls="library-reader"
+                                    data-file="LGPL-3.0.txt" data-spdx="LGPL-3.0" data-href="https://invent.kde.org/frameworks/breeze-icons" data-stack="qt">
+                                    <span class="library-name">Breeze Icons</span>
+                                    <span class="library-spdx">LGPL-3.0</span>
+                                </button>
+                            </li>
+                            <li>
+                                <button class="library-item" aria-pressed="false" aria-controls="library-reader"
+                                    data-file="LGPL-2.1.txt" data-spdx="LGPL-2.1" data-href="https://develop.kde.org/products/frameworks/" data-stack="qt">
+                                    <span class="library-name">KDE Frameworks</span>
+                                    <span class="library-spdx">LGPL-2.1</span>
+                                </button>
+                            </li>
+                        </ul>
+                    </section>
+                    </nav>
+
+                    <article class="library-reader" id="library-reader" aria-live="polite">
+                        <header class="reader-head">
+                            <div class="reader-title">
+                                <h3 class="reader-name">zlib</h3>
+                                <p class="reader-meta"><span class="reader-stack" data-stack="core">Core</span><span class="reader-spdx">Zlib</span></p>
+                            </div>
+                            <a class="reader-link" href="https://zlib.net" target="_blank" rel="noopener">
+                                <span>Website</span>
+                                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                    stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                    <path d="M7 17 17 7"></path>
+                                    <path d="M7 7h10v10"></path>
+                                </svg>
+                            </a>
+                        </header>
+                        <pre class="reader-text">Loading...</pre>
+                    </article>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <script>
+        import '../scripts/credits.js';
+    </script>
+</Base>
