@@ -2,15 +2,18 @@
 // routes here first (assets.run_worker_first):
 //
 //   /download/<build>/<os>   Counts the download in Workers Analytics Engine, then redirects to the file on GitHub.
-//                            Hits that aren't a click on our pages (see isHumanClick) are flagged "bot" in blob6.
+//                            Hits that don't look like a person clicking on our pages are labelled in blob6 (see
+//                            botReason) and still redirected.
 //   /download/release        Same, for the release page (what the Download buttons open without the modal).
 //   /download                Also the release page, with or without the trailing slash.
 //   /api/event               Counts a page event sent with navigator.sendBeacon (only the names listed below).
 //
-// Nothing identifying is stored: no IP, no cookies, no user agent. Each data point is the build, platform, the
-// page it came from and the visitor's country as Cloudflare reports it.
+// Nothing identifying is stored: no IP, no cookies, no user agent, no network. Each data point is the build, platform,
+// the page it came from and the visitor's country as Cloudflare reports it, plus the bot label, which is worked out
+// from the request as it arrives.
 //
-// Leave the flagged hits out of download counts with WHERE blob6 != 'bot' (rows written before the flag have "").
+// Count people only with WHERE blob6 = ''. Labels: verified-bot, bot-ua, datacenter, not-click. Rows written before
+// the labels have "" or "bot".
 
 // The current release comes from env.VERSION ("vars" in wrangler.jsonc), which the pages are built from too
 const RELEASE = `https://github.com/NoGoat/Track-N-Race/releases`;
@@ -40,7 +43,7 @@ const sourcePage = (request, url) => {
 };
 
 // Analytics Engine data point. blob1: what, blob2: platform, blob3: page, blob4: country, blob5: version,
-// blob6: "bot" or "". index1 (the sampling key) is the "what". Writes never block or break the response.
+// blob6: the bot label (botReason) or "". index1 (the sampling key) is the "what". Writes never block or break the response.
 const record = (env, request, url, what, platform, flag = '') => {
     env.DOWNLOADS?.writeDataPoint({
         indexes: [what],
@@ -49,6 +52,28 @@ const record = (env, request, url, what, platform, flag = '') => {
     });
 };
 
+// Tools, crawlers and link previewers that name themselves in their user agent. Browsers never contain these words.
+// "bot" counts only as the end of a name ("Googlebot/2.1", "Slackbot-LinkExpanding"), so phones like the Cubot
+// brand don't match.
+const BOT_UA = /bot(?:[\/;)_-]|$)|crawl|spider|slurp|archiver|scan|monitor|preview|headless|phantomjs|puppeteer|playwright|selenium|curl|wget|httpie|python|aiohttp|httpx|scrapy|go-http-client|java\/|okhttp|axios|node-fetch|undici|libwww|lwp-|facebookexternalhit|whatsapp|embedly|skypeuripreview/i;
+
+// Cloud and hosting networks (autonomous system numbers). Scrapers and scanners run there; people rarely browse from
+// them, though some VPNs exit through them. Not Cloudflare's own 13335, which is also the 1.1.1.1 WARP app.
+const HOSTING_ASNS = new Set([
+    16509, 14618,           // Amazon Web Services
+    15169, 396982,          // Google, Google Cloud
+    8075,                   // Microsoft Azure
+    31898,                  // Oracle Cloud
+    45102, 132203,          // Alibaba Cloud, Tencent Cloud
+    14061,                  // DigitalOcean
+    24940,                  // Hetzner
+    16276,                  // OVHcloud
+    63949,                  // Akamai Linode
+    20473,                  // Vultr
+    12876,                  // Scaleway
+    51167,                  // Contabo
+]);
+
 // Whether a /download/ hit is a person clicking a link on our pages. Crawlers and link scanners that ignore robots.txt
 // fetch download URLs without a Referer or Sec-Fetch headers.
 // Browsers that send Sec-Fetch-* must mark it a same-origin user click; older ones without them need our Referer.
@@ -56,6 +81,20 @@ const isHumanClick = (request, url) => {
     const site = request.headers.get('Sec-Fetch-Site');
     if (site === null) return sourcePage(request, url) !== '';
     return site === 'same-origin' && request.headers.get('Sec-Fetch-User') === '?1';
+};
+
+// Why a /download/ hit doesn't look like a person, or "" when it does. The first that applies is recorded.
+const botReason = (request, url) => {
+    // Cloudflare's list of verified bots (search engines, uptime monitors, ...). Workers only see it directly with
+    // Enterprise Bot Management, so a Transform Rule passes it in (dashboard: Rules > Transform Rules > Request Header
+    // Transform Rules): when starts_with(http.request.uri.path, "/download"), set dynamic X-Verified-Bot to
+    // cf.client.bot. It runs before the Worker on every /download request and overwrites whatever the client sent.
+    if (request.headers.get('X-Verified-Bot') === 'true') return 'verified-bot';
+    const ua = request.headers.get('User-Agent') ?? '';
+    if (!ua || BOT_UA.test(ua)) return 'bot-ua';
+    if (HOSTING_ASNS.has(request.cf?.asn)) return 'datacenter';
+    if (!isHumanClick(request, url)) return 'not-click';
+    return '';
 };
 
 const noStore = { 'Cache-Control': 'no-store' };
@@ -68,8 +107,8 @@ export default {
         if (path === '/download' || path.startsWith('/download/')) {
             // Bare /download (with or without the trailing slash) is the release page, like /download/release
             const slug = path === '/download' ? 'release' : path.slice('/download/'.length).toLowerCase();
-            // Bots still get redirected, and are recorded flagged so the filter can be checked
-            const flag = isHumanClick(request, url) ? '' : 'bot';
+            // Bots still get redirected, and are recorded with their label so the filter can be checked
+            const flag = botReason(request, url);
 
             let target;
             if (slug === 'release') {

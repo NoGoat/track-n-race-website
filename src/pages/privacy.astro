@@ -30,7 +30,7 @@ const jsonLd = {
       "name": "Privacy Policy — Track N Race Android App, Desktop App & Website",
       "description": "Privacy Policy for the Track N Race Android app, Desktop app and website describing how they handle telemetry data, device permissions, local storage, update checks, website download counts, and user privacy.",
       "inLanguage": "en-US",
-      "dateModified": "2026-10-25",
+      "dateModified": "2026-10-26",
       "isPartOf": { "@id": "https://track-n-race.com/#website" }
     }
   ]
@@ -82,7 +82,7 @@ const jsonLd = {
             <div class="page-header">
                 <h1 class="main-title">Privacy <span class="gradient-text">Policy</span></h1>
                 <p class="subtitle">Covers the Track N Race Android app, Desktop app and website.</p>
-                <p class="privacy-last-updated">Last Updated: <time datetime="2026-10-25">October 25, 2026</time></p>
+                <p class="privacy-last-updated">Last Updated: <time datetime="2026-10-26">October 26, 2026</time></p>
             </div>
 
             <!-- Policy Body -->
@@ -265,10 +265,11 @@ const jsonLd = {
                         <p>The Website counts clicks on its download buttons and openings of its download dialog using Cloudflare Workers Analytics Engine, so that we can see which builds and platforms people use. Each count records only:</p>
                         <ul class="privacy-list">
                             <li>What was clicked: the build (Electron, Qt or Minimal), the release page, or the download dialog.</li>
-                            <li>The platform: the operating system of the chosen download, or, for the download dialog, the operating system your browser reports (Windows, macOS or Linux).</li>
+                            <li>The platform: the operating system of the chosen download, or, for the download dialog, the operating system your browser reports (Windows, macOS, Linux or Android).</li>
                             <li>The Website page the click came from.</li>
                             <li>Your country, as determined by Cloudflare from the request.</li>
                             <li>The current Track N Race release version.</li>
+                            <li>Whether the click looks automated rather than made by a person, as a short label such as &ldquo;crawler&rdquo; or &ldquo;data centre&rdquo;. It is worked out when the request arrives, from whether Cloudflare recognises it as a known bot, the browser user agent, the network it comes from and whether it came from a click on the Website. Only the label is stored.</li>
                         </ul>
                         <p>No IP address, cookie, browser user agent, or other identifier is stored with these counts, and they cannot be linked to an individual visitor. Cloudflare retains this data for a limited period, currently three months.</p>
 
