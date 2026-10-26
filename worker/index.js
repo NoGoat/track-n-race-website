@@ -4,6 +4,7 @@
 //   /download/<build>/<os>   Counts the download in Workers Analytics Engine, then redirects to the file on GitHub.
 //                            Hits that aren't a click on our pages (see isHumanClick) are flagged "bot" in blob6.
 //   /download/release        Same, for the release page (what the Download buttons open without the modal).
+//   /download                Also the release page, with or without the trailing slash.
 //   /api/event               Counts a page event sent with navigator.sendBeacon (only the names listed below).
 //
 // Nothing identifying is stored: no IP, no cookies, no user agent. Each data point is the build, platform, the
@@ -64,8 +65,9 @@ export default {
         const url = new URL(request.url);
         const path = url.pathname.replace(/\/+$/, '');
 
-        if (path.startsWith('/download/')) {
-            const slug = path.slice('/download/'.length).toLowerCase();
+        if (path === '/download' || path.startsWith('/download/')) {
+            // Bare /download (with or without the trailing slash) is the release page, like /download/release
+            const slug = path === '/download' ? 'release' : path.slice('/download/'.length).toLowerCase();
             // Bots still get redirected, and are recorded flagged so the filter can be checked
             const flag = isHumanClick(request, url) ? '' : 'bot';
 
