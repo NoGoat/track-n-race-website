@@ -8,7 +8,7 @@ export interface Screen {
     name: string;
     /** Gallery caption */
     desc: string;
-    /** Alt text for the Electron capture in the Gallery */
+    /** Alt text for the Gallery. Both frontends capture the same moment of the same São Paulo race, so it fits either one. */
     alt: string;
     /** Full size of the capture. 2624x1624 with the window's shadow; Overview is pre-trimmed to 2492x1492. */
     width: number;
@@ -84,7 +84,7 @@ const list: Screen[] = [
     {
         file: "session", name: "Session",
         desc: "Live map with every car's position, the race details and an events feed.",
-        alt: "Session view with a live map of Bahrain showing every car's position, race details and an events feed",
+        alt: "Session view with a live map of São Paulo showing every car's position, race details and an events feed",
         width: 2624, height: 1624, widths: FULL, qtWidths: FULL,
     },
     {

@@ -17,10 +17,9 @@ const widths = ui === 'qt' ? screen.qtWidths : screen.widths;
 const srcset = widths.length === 1
     ? `${dir}/${screen.file}-${widths[0]}.avif`
     : widths.map(w => `${dir}/${screen.file}-${w}.avif ${w}w`).join(', ');
-const alt = ui === 'qt' ? `Qt frontend: ${screen.name}` : screen.alt;
 ---
 <picture data-ui={ui}>
     <source type="image/avif" srcset={srcset} sizes={widths.length === 1 ? undefined : sizes}>
-    <img src={`${dir}/${screen.file}.webp`} alt={alt}
+    <img src={`${dir}/${screen.file}.webp`} alt={screen.alt}
         class="mockup-img" width={screen.width} height={screen.height} loading={lazy ? 'lazy' : undefined}>
 </picture>
