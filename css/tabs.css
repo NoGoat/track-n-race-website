@@ -1,0 +1,63 @@
+/* ==========================================================================
+   Full-width tabs
+   Setup's Single PC / Dual System switch, the Gallery's Electron / Qt switch and the
+   download modal's platform tabs.
+   ========================================================================== */
+/* Single PC / Dual System: two tabs that split the width between them, each with
+   its own underline (red when active), so together they read as one bar */
+.scenario-selector,
+.download-os-tabs {
+    display: flex;
+    margin: 0.25rem 0 1.5rem;
+}
+
+.scenario-btn,
+.download-os-tab {
+    flex: 1 1 0;
+    min-width: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 0.6rem 0.75rem;
+    background: transparent;
+    border: 0;
+    border-bottom: 1px solid var(--line-strong);
+    color: var(--text-2);
+    font-family: var(--font-sans);
+    font-size: 0.9rem;
+    text-align: center;
+    font-weight: 500;
+    cursor: pointer;
+    transition: color var(--fast), border-color var(--fast);
+}
+
+.scenario-btn:hover,
+.download-os-tab:hover {
+    color: var(--text);
+}
+
+.scenario-btn.active,
+.download-os-tab.active {
+    color: var(--text);
+    border-bottom-color: var(--accent);
+}
+
+.scenario-btn svg,
+.download-os-tab svg {
+    width: 15px;
+    height: 15px;
+    flex-shrink: 0;
+}
+
+@media (max-width: 600px) {
+    /* Half a phone is narrow: drop the icons so the labels keep to two lines */
+    .scenario-btn {
+        padding: 0.6rem 0.4rem;
+        font-size: 0.82rem;
+    }
+
+    .scenario-btn svg {
+        display: none;
+    }
+}

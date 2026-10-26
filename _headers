@@ -1,5 +1,5 @@
 # Cloudflare static asset headers (https://developers.cloudflare.com/workers/static-assets/headers/)
-# Anything not listed (HTML, styles.css, script.js, the .tnrd SVGs, licenses) keeps Cloudflare's default:
+# Anything not listed (HTML, css/*.css, js/*.js, the .tnrd SVGs, licenses) keeps Cloudflare's default:
 # browsers re-check every load and get a cheap 304 when nothing changed.
 # Keep these patterns from overlapping: if two rules match, their Cache-Control values are merged.
 

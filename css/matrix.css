@@ -1,0 +1,71 @@
+/* ==========================================================================
+   Comparison table
+   The TNRD page's version matrix and the Frontends page's summary table
+   ========================================================================== */
+.fmt-matrix-scroll {
+    overflow-x: auto;
+}
+
+.fmt-matrix {
+    width: 100%;
+    min-width: 640px;
+    border-collapse: collapse;
+    font-size: 0.88rem;
+}
+
+.fmt-matrix th,
+.fmt-matrix td {
+    padding: 0.75rem;
+    border-bottom: 1px solid var(--line);
+    text-align: center;
+}
+
+.fmt-matrix thead th {
+    font-family: var(--font-mono);
+    font-size: 0.8rem;
+    font-weight: 500;
+    color: var(--text-3);
+}
+
+.fmt-matrix tbody th {
+    padding-left: 0;
+    text-align: left;
+    font-weight: 500;
+    color: var(--text);
+}
+
+/* Capability names stay put while the version columns scroll on narrow screens */
+.fmt-matrix tbody th,
+.fmt-matrix thead th:first-child {
+    position: sticky;
+    left: 0;
+    z-index: 1;
+    min-width: 11rem;
+    background: var(--bg);
+}
+
+.fmt-matrix td {
+    font-family: var(--font-mono);
+    font-size: 0.78rem;
+    color: var(--text-2);
+}
+
+.fmt-matrix td.yes {
+    color: var(--ok);
+}
+
+.fmt-matrix td.no {
+    color: var(--text-3);
+}
+
+.fmt-matrix td.part {
+    color: #f9d923;
+}
+
+.fmt-matrix .is-current {
+    background: rgba(242, 34, 59, 0.06);
+}
+
+.fmt-matrix thead .is-current {
+    color: var(--accent);
+}

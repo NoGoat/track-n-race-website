@@ -1,0 +1,375 @@
+/* ==========================================================================
+   Credits — library browser
+   Grouped project list beside a sticky license reader (module-switcher pattern).
+   ========================================================================== */
+/* Credits fits one screen, footer included: the body is exactly the window height
+   (640px minimum), the footer keeps its natural height and the credits section takes
+   the rest. The list and license text scroll inside. The reader never shrinks below
+   250px; when the screen is too short for that, the page scrolls instead. */
+body.page-fit {
+    height: 100vh;
+    height: 100dvh;
+    min-height: 640px;
+}
+
+body.page-fit main {
+    flex: 1 1 0;
+    display: flex;
+    flex-direction: column;
+}
+
+.attributions-section {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    max-width: calc(var(--content) + var(--gutter) * 2);
+    padding: calc(var(--nav-h) + 40px) var(--gutter) 24px;
+}
+
+.attributions-container {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.attributions-section .page-header {
+    flex-shrink: 0;
+    gap: 0.6rem;
+    padding-bottom: 1.25rem;
+}
+
+.attributions-section .main-title {
+    font-size: clamp(2rem, 4vw, 2.75rem);
+}
+
+.attributions-section .page-header .section-desc {
+    font-size: 0.925rem;
+}
+
+/* Stack colours reuse the app trace colours from the home page carousel */
+[data-stack="core"] { --stack: #f9d923; }
+[data-stack="electron"] { --stack: #4a8cf2; }
+[data-stack="qt"] { --stack: #4cbb4c; }
+
+/* height: 0 + flex-grow means the browser takes exactly the leftover space and its
+   28-row list never props it open; min-height is the floor the page scrolls beyond */
+.library {
+    flex: 1 1 0;
+    height: 0;
+    min-height: 250px;
+    display: grid;
+    grid-template-columns: 300px minmax(0, 1fr);
+    grid-template-rows: minmax(0, 1fr);
+    gap: 2.5rem;
+    margin-top: 1.5rem;
+}
+
+.library-list {
+    min-height: 0;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    padding-right: 0.75rem;
+    scrollbar-width: thin;
+    scrollbar-color: var(--surface-3) transparent;
+}
+
+.library-group + .library-group {
+    margin-top: 1.25rem;
+}
+
+.library-group-title {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.6rem;
+    padding-bottom: 0.5rem;
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text-2);
+}
+
+.library-count {
+    color: var(--text-3);
+}
+
+.library-items {
+    list-style: none;
+    border-top: 1px solid var(--line);
+}
+
+.library-items li {
+    border-bottom: 1px solid var(--line);
+}
+
+/* Same row language as the Frontends page's module list: red bar marks the active item */
+.library-item {
+    position: relative;
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 1rem;
+    width: 100%;
+    padding: 0.42rem 0 0.42rem 1rem;
+    background: transparent;
+    border: none;
+    color: var(--text-2);
+    font-family: var(--font-sans);
+    font-size: 0.875rem;
+    font-weight: 500;
+    text-align: left;
+    cursor: pointer;
+    transition: color var(--fast);
+}
+
+.library-item::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 50%;
+    width: 2px;
+    height: 0;
+    background: var(--accent);
+    transform: translateY(-50%);
+    transition: height 0.2s var(--ease);
+}
+
+.library-item:hover,
+.library-item.active {
+    color: var(--text);
+}
+
+.library-item.active::before {
+    height: 60%;
+}
+
+.library-name {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.library-spdx {
+    flex-shrink: 0;
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    color: var(--text-3);
+}
+
+.library-item.active .library-spdx {
+    color: var(--text-2);
+}
+
+/* Reader fills the browser's height (250px minimum); only the license text scrolls inside */
+.library-reader {
+    min-height: 250px;
+    display: flex;
+    flex-direction: column;
+    border: 1px solid var(--line);
+    border-radius: var(--radius-lg);
+    background: var(--surface);
+    overflow: hidden;
+}
+
+.reader-head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 1.1rem 1.4rem 1rem;
+    border-bottom: 1px solid var(--line);
+}
+
+.reader-title {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+    min-width: 0;
+}
+
+.reader-name {
+    font-size: 1.35rem;
+    font-weight: 600;
+    line-height: 1.15;
+    letter-spacing: -0.03em;
+}
+
+.reader-meta {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--text-3);
+}
+
+.reader-stack {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.reader-stack::before {
+    content: "";
+    width: 3px;
+    height: 11px;
+    border-radius: 1px;
+    background: var(--stack);
+}
+
+.reader-spdx {
+    color: var(--text);
+}
+
+.reader-link {
+    flex-shrink: 0;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    height: 32px;
+    padding: 0 0.75rem;
+    border: 1px solid var(--line-strong);
+    border-radius: var(--radius-sm);
+    color: var(--text-2);
+    font-size: 0.8rem;
+    font-weight: 500;
+    text-decoration: none;
+    transition: color var(--fast), border-color var(--fast);
+}
+
+.reader-link:hover {
+    color: var(--text);
+    border-color: var(--line-hover);
+}
+
+.reader-text {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    margin: 0;
+    padding: 1.1rem 1.4rem 1.4rem;
+    white-space: pre-wrap;
+    font-family: var(--font-mono);
+    font-size: 0.78rem;
+    line-height: 1.75;
+    color: var(--text-2);
+    scrollbar-width: thin;
+    scrollbar-color: var(--surface-3) transparent;
+    transition: opacity 0.15s var(--ease);
+}
+
+.reader-text.is-loading {
+    opacity: 0.4;
+}
+
+@media (max-width: 860px) {
+    /* Credits: the list becomes a scrolling strip of project tabs above the reader */
+    .section.attributions-section {
+        padding: calc(var(--nav-h) + 28px) var(--gutter) 16px;
+    }
+
+    .attributions-section .page-header {
+        padding-bottom: 1rem;
+    }
+
+    .attributions-section .page-header .section-desc {
+        font-size: 0.85rem;
+        line-height: 1.55;
+    }
+
+    .library {
+        grid-template-columns: minmax(0, 1fr);
+        grid-template-rows: auto minmax(0, 1fr);
+        gap: 1rem;
+        min-height: calc(250px + 2.6rem + 1rem);   /* reader floor + project strip + gap */
+        margin-top: 0.75rem;
+    }
+
+    .library-list {
+        display: flex;
+        align-items: center;
+        gap: 1.5rem;
+        overflow-x: auto;
+        overflow-y: hidden;
+        scrollbar-width: none;
+        margin-right: calc(var(--gutter) * -1);
+        padding-right: var(--gutter);
+        box-shadow: inset 0 -1px 0 var(--line);
+    }
+
+    .library-list::-webkit-scrollbar {
+        display: none;
+    }
+
+    .library-group {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        flex-shrink: 0;
+    }
+
+    .library-group + .library-group {
+        margin-top: 0;
+    }
+
+    .library-group-title {
+        padding: 0;
+        font-size: 0.65rem;
+        white-space: nowrap;
+    }
+
+    .library-items {
+        display: flex;
+        gap: 1rem;
+        border-top: none;
+    }
+
+    .library-items li {
+        border-bottom: none;
+    }
+
+    .library-item {
+        width: auto;
+        padding: 0.65rem 0;
+        border-bottom: 1px solid transparent;
+        white-space: nowrap;
+    }
+
+    .library-item::before,
+    .library-spdx {
+        display: none;
+    }
+
+    .library-item.active {
+        border-bottom-color: var(--accent);
+    }
+
+    .library-name {
+        overflow: visible;
+    }
+
+    .reader-head {
+        padding: 0.9rem 1rem 0.8rem;
+    }
+
+    .reader-name {
+        font-size: 1.1rem;
+    }
+
+    .reader-link {
+        height: 30px;
+        padding: 0 0.6rem;
+        font-size: 0.75rem;
+    }
+
+    .reader-text {
+        padding: 0.9rem 1rem 1rem;
+        font-size: 0.72rem;
+        line-height: 1.65;
+    }
+}

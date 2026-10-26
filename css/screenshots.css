@@ -1,0 +1,87 @@
+/* ==========================================================================
+   Screenshot frames
+   Home page and Gallery
+   ========================================================================== */
+/* Screenshots ship with their own window chrome, so no extra frame here */
+.app-window {
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+}
+
+.hero-img,
+.img-zoom-wrapper {
+    position: relative;
+    width: 100%;
+    overflow: hidden;
+    cursor: zoom-in;
+}
+
+.img-zoom-wrapper {
+    aspect-ratio: 16 / 10;
+}
+
+.hero-img > picture,
+.img-zoom-wrapper > picture {
+    display: contents;
+}
+
+.mockup-img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.mockup-img.fit-contain {
+    object-fit: contain;
+}
+
+.zoom-badge {
+    position: absolute;
+    right: 10px;
+    bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.3rem 0.55rem;
+    background: rgba(9, 9, 11, 0.88);
+    border: 1px solid var(--line-strong);
+    border-radius: var(--radius-sm);
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    color: var(--text-2);
+    opacity: 0;
+    transform: translateY(4px);
+    transition: opacity var(--fast), transform var(--fast);
+    pointer-events: none;
+}
+
+.hero-img:hover .zoom-badge,
+.img-zoom-wrapper:hover .zoom-badge {
+    opacity: 1;
+    transform: none;
+}
+
+/* Cards: crop the screenshots' transparent shadow (111px sides, 75px top, 147px bottom of a
+   2624x1624 capture) inside the frame, so the visible 2402x1402 window fills it exactly.
+   Margin percentages resolve against the frame's width, which here is the window's width. */
+.shot {
+    min-width: 0;
+}
+
+.shot .img-zoom-wrapper {
+    aspect-ratio: 2402 / 1402;
+}
+
+.shot .mockup-img {
+    width: 109.243%;   /* 2624 / 2402 */
+    max-width: none;
+    height: auto;
+    margin: -3.122% 0 0 -4.621%;   /* 75 / 2402, 111 / 2402 */
+}
+
+/* The Overview captures are pre-trimmed to 46/10/46/82 shadow margins (2492x1492) */
+.shot-trimmed .mockup-img {
+    width: 103.747%;   /* 2492 / 2402 */
+    margin: -0.416% 0 0 -1.915%;   /* 10 / 2402, 46 / 2402 */
+}

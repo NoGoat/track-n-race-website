@@ -1,0 +1,428 @@
+/* ==========================================================================
+   Setup
+   Driven by js/setup.js
+   ========================================================================== */
+.setup-flow {
+    display: flex;
+    flex-direction: column;
+}
+
+.setup-step-card {
+    display: grid;
+    grid-template-columns: 220px minmax(0, 1fr);
+    column-gap: 3rem;
+    padding: 2.5rem 0;
+    border-bottom: 1px solid var(--line);
+}
+
+.setup-step-card > * {
+    grid-column: 2;
+}
+
+.setup-step-card-header {
+    grid-column: 1;
+    grid-row: 1 / span 20;
+    align-self: start;
+    position: sticky;
+    top: calc(var(--nav-h) + 1.5rem);
+}
+
+.setup-step-title-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+}
+
+.setup-step-badge {
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    color: var(--accent);
+}
+
+.setup-step-badge::before {
+    content: "STEP ";
+    color: var(--text-3);
+}
+
+.setup-step-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    line-height: 1.25;
+    letter-spacing: -0.025em;
+}
+
+.step-desc {
+    font-size: 0.95rem;
+    line-height: 1.65;
+    color: var(--text-2);
+    margin-bottom: 1.25rem;
+}
+
+.step-desc strong,
+.config-subtext strong {
+    color: var(--text);
+    font-weight: 500;
+}
+
+.step-desc code,
+.config-subtext code,
+.info-box-text code {
+    font-size: 0.82em;
+    padding: 0.1rem 0.35rem;
+    background: var(--surface-2);
+    border: 1px solid var(--line);
+    border-radius: 4px;
+    color: var(--text);
+}
+
+.subheading {
+    margin: 0 0 0.75rem;
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text-3);
+}
+
+/* Settings rows — one bordered table, rows split by hairlines */
+.config-list {
+    display: flex;
+    flex-direction: column;
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    background: var(--surface);
+    overflow: hidden;
+}
+
+.config-list + .subheading,
+.scenario-pane > .config-list {
+    margin-bottom: 1.75rem;
+}
+
+.config-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1.25rem;
+    padding: 0.85rem 1.1rem;
+}
+
+.config-item + .config-item {
+    border-top: 1px solid var(--line);
+}
+
+.config-info {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    flex: 1;
+}
+
+.config-label {
+    font-size: 0.9rem;
+    font-weight: 500;
+}
+
+.config-subtext {
+    font-size: 0.85rem;
+    line-height: 1.55;
+    color: var(--text-2);
+}
+
+.config-value-group {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    flex-shrink: 0;
+}
+
+.code-pill {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.2rem 0.55rem;
+    font-family: var(--font-mono);
+    font-size: 0.8rem;
+    font-weight: 500;
+    color: var(--text);
+    background: var(--surface-2);
+    border: 1px solid var(--line);
+    border-radius: 5px;
+}
+
+.code-pill.green {
+    color: var(--ok);
+    background: var(--ok-soft);
+    border-color: var(--ok-line);
+}
+
+.copy-action-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.25rem 0.6rem;
+    background: transparent;
+    border: 1px solid var(--line-strong);
+    border-radius: 5px;
+    color: var(--text-2);
+    font-family: var(--font-sans);
+    font-size: 0.775rem;
+    font-weight: 500;
+    cursor: pointer;
+    user-select: none;
+    transition: color var(--fast), border-color var(--fast), background var(--fast);
+}
+
+.copy-action-btn:hover {
+    color: var(--text);
+    border-color: var(--line-hover);
+    background: var(--surface-2);
+}
+
+.copy-action-btn.copied {
+    color: var(--ok);
+    border-color: var(--ok-line);
+    background: var(--ok-soft);
+}
+
+.copy-action-btn svg {
+    width: 13px;
+    height: 13px;
+    flex-shrink: 0;
+}
+
+.step-callout {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.6rem;
+    margin-top: 1rem;
+    font-size: 0.85rem;
+    line-height: 1.55;
+    color: var(--text-2);
+}
+
+.step-callout svg {
+    flex-shrink: 0;
+    width: 16px;
+    height: 16px;
+    margin-top: 2px;
+    color: var(--text-3);
+}
+
+.scenario-pane,
+.platform-pane {
+    display: none;
+}
+
+.scenario-pane.active {
+    display: block;
+    animation: fadeIn 0.2s ease;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(3px); }
+    to { opacity: 1; transform: none; }
+}
+
+/* Underline tabs: a faint rule as long as the three tabs (not the column), the
+   active tab's red underline sitting on it, like the Single PC / Dual System bar */
+.platform-tabs-nav {
+    display: inline-flex;
+    flex-wrap: wrap;
+    gap: 0 1.25rem;
+    margin-bottom: 0.5rem;
+    border-bottom: 1px solid var(--line-strong);
+}
+
+.platform-tab-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    padding: 0.6rem 0;
+    margin-bottom: -1px;
+    background: transparent;
+    border: none;
+    border-bottom: 1px solid transparent;
+    color: var(--text-2);
+    font-family: var(--font-sans);
+    font-size: 0.85rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: color var(--fast), border-color var(--fast);
+}
+
+.platform-tab-btn:hover {
+    color: var(--text);
+}
+
+.platform-tab-btn.active {
+    color: var(--text);
+    border-bottom-color: var(--accent);
+}
+
+.platform-tab-btn svg {
+    width: 14px;
+    height: 14px;
+    flex-shrink: 0;
+}
+
+/* Tux is mostly outline, and the Apple mark is narrow and tall in its square:
+   both a touch larger so they weigh the same as the Windows squares */
+.platform-tab-btn svg.apple,
+.platform-tab-btn svg.tux {
+    width: 16px;
+    height: 16px;
+}
+
+.platform-pane.active {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    animation: fadeIn 0.2s ease;
+}
+
+.platform-method-card {
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+    padding: 1rem 1.1rem;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+}
+
+.platform-method-badge {
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text-3);
+}
+
+.command-box {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.85rem;
+    padding: 0.5rem 0.5rem 0.5rem 0.85rem;
+    background: var(--bg);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-sm);
+}
+
+.command-box code {
+    font-size: 0.85rem;
+    color: var(--text);
+}
+
+.command-box code::before {
+    content: "$ ";
+    color: var(--text-3);
+}
+
+kbd {
+    display: inline-block;
+    padding: 0.05rem 0.4rem;
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    line-height: 1.4;
+    color: var(--text);
+    background: var(--surface-2);
+    border: 1px solid var(--line-strong);
+    border-bottom-width: 2px;
+    border-radius: 4px;
+}
+
+.info-box {
+    display: grid;
+    grid-template-columns: 220px minmax(0, 1fr);
+    column-gap: 3rem;
+    padding: 2.5rem 0 0;
+}
+
+.info-box-icon {
+    display: none;
+}
+
+.info-box-text {
+    display: contents;
+}
+
+.info-box-text > strong {
+    grid-column: 1;
+    font-size: 1.05rem;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+}
+
+.info-box-checklist {
+    grid-column: 2;
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.info-box-checklist li {
+    position: relative;
+    padding-left: 1.25rem;
+    font-size: 0.9rem;
+    line-height: 1.6;
+    color: var(--text-2);
+}
+
+.info-box-checklist li::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 0.75em;
+    width: 8px;
+    height: 1px;
+    background: var(--text-3);
+}
+
+.info-box-checklist strong {
+    color: var(--text);
+    font-weight: 500;
+}
+
+@media (max-width: 860px) {
+    .setup-step-card,
+    .info-box {
+        grid-template-columns: 1fr;
+        row-gap: 0;
+    }
+
+    .setup-step-card > *,
+    .setup-step-card-header,
+    .info-box-text > strong,
+    .info-box-checklist {
+        grid-column: 1;
+    }
+
+    .setup-step-card-header {
+        grid-row: auto;
+        position: static;
+        margin-bottom: 1rem;
+    }
+
+    .info-box-text > strong {
+        margin-bottom: 1rem;
+    }
+}
+
+@media (max-width: 600px) {
+    .config-item {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.65rem;
+    }
+
+    .command-box {
+        flex-wrap: wrap;
+    }
+}

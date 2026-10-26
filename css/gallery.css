@@ -1,0 +1,105 @@
+/* ==========================================================================
+   Gallery
+   Driven by js/gallery.js and js/sticky-bar.js
+   ========================================================================== */
+/* Gallery header: title and frontend tabs. It sticks under the navbar like the TNRD
+   page's version rail: at rest its rule matches the content column; once stuck
+   (js/sticky-bar.js adds .is-stuck) it runs edge to edge with the navbar's background,
+   border and shadow. */
+.gallery-section {
+    padding-top: calc(var(--nav-h) + 40px);
+}
+
+.gallery-head {
+    position: sticky;
+    top: var(--nav-h);
+    z-index: 5;
+    border-bottom: 1px solid transparent;
+    transition: background var(--fast), box-shadow var(--fast), border-color var(--fast);
+}
+
+.gallery-head.is-stuck {
+    background: var(--header-bg);
+    border-bottom-color: var(--line);
+    box-shadow: var(--header-shadow);
+}
+
+.gallery-head-inner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem 2rem;
+    width: min(var(--content), 100% - var(--gutter) * 2);
+    margin-inline: auto;
+    padding: 0.85rem 0;
+    border-bottom: 1px solid var(--line);
+}
+
+.gallery-head.is-stuck .gallery-head-inner {
+    border-color: transparent;
+}
+
+.gallery-head .main-title {
+    font-size: clamp(1.75rem, 3.5vw, 2.25rem);
+}
+
+/* Setup's tabs, without their page margins. Outranks .scenario-selector (css/tabs.css). */
+.gallery-head .gallery-switch {
+    flex: 0 0 240px;
+    margin: 0;
+}
+
+.section.gallery-body {
+    padding-top: 2.5rem;
+}
+
+/* Only the picked frontend's screenshots show. A hidden lazy image never loads. */
+.gallery-section[data-ui="electron"] [data-ui="qt"]:not(.gallery-switch-btn),
+.gallery-section[data-ui="qt"] [data-ui="electron"]:not(.gallery-switch-btn) {
+    display: none;
+}
+
+.gallery-group + .gallery-group {
+    margin-top: 4.5rem;
+}
+
+.gallery-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 3rem 2rem;
+}
+
+/* Qt windows have KDE's 4px corner (at 1200px wide), scaled to the ~600px card */
+.gallery-section[data-ui="qt"] .shot .app-window {
+    border-radius: 2px;
+}
+
+.shot-caption {
+    display: flex;
+    gap: 0.9rem;
+    margin-top: 1rem;
+}
+
+.shot-caption .module-num {
+    padding-top: 0.2rem;
+}
+
+.shot-caption .module-desc {
+    margin-top: 0.25rem;
+}
+
+@media (max-width: 768px) {
+    .gallery-section {
+        padding-top: calc(var(--nav-h) + 28px);
+    }
+
+    .gallery-head .gallery-switch {
+        flex-basis: 180px;
+    }
+
+    .gallery-grid {
+        grid-template-columns: minmax(0, 1fr);
+        gap: 2.5rem;
+    }
+
+}
