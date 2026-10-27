@@ -272,7 +272,14 @@
     color: var(--text-3);
 }
 
+/* A button (it opens the license pop-up) dressed as an inline link */
 .footer-license {
+    display: inline;
+    padding: 0;
+    background: none;
+    border: none;
+    font: inherit;
+    text-align: inherit;
     color: var(--text);
     text-decoration: underline;
     text-decoration-color: var(--line-hover);
@@ -398,6 +405,11 @@
     padding: 1.25rem;
     scrollbar-width: thin;
     scrollbar-color: var(--surface-3) transparent;
+}
+
+/* .modal-content clips anything outside it, so the focus ring goes inside */
+.modal-body:focus-visible {
+    outline-offset: -2px;
 }
 
 .modal-body::-webkit-scrollbar-track {

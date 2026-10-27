@@ -36,6 +36,24 @@
     object-fit: contain;
 }
 
+/* The Expand Image button (components/ZoomBadge.astro) covers the whole frame, so a click anywhere opens the
+   lightbox. The frame clips its edges, so the focus ring goes inside. */
+.zoom-btn {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    padding: 0;
+    background: none;
+    border: none;
+    border-radius: inherit;
+    font: inherit;
+    cursor: zoom-in;
+}
+
+.zoom-btn:focus-visible {
+    outline-offset: -2px;
+}
+
 .zoom-badge {
     position: absolute;
     right: 10px;
@@ -57,7 +75,8 @@
 }
 
 .hero-img:hover .zoom-badge,
-.img-zoom-wrapper:hover .zoom-badge {
+.img-zoom-wrapper:hover .zoom-badge,
+.zoom-btn:focus-visible .zoom-badge {
     opacity: 1;
     transform: none;
 }

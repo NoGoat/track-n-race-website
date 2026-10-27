@@ -1,8 +1,10 @@
 // Lightbox Logic & Fluid GPU Zoom & Pan Algorithm
+import { setupDialog } from './dialog.js';
+
 const lightbox = document.getElementById('lightbox');
 const lightboxImg = lightbox?.querySelector('img');
 const lightboxClose = document.getElementById('lightboxClose');
-const clickableImages = document.querySelectorAll('.mockup-img');
+const zoomButtons = document.querySelectorAll('.zoom-btn');
 
 if (lightbox && lightboxImg) {
     let currentScale = 1;
@@ -36,12 +38,28 @@ if (lightbox && lightboxImg) {
     };
 
     let lightboxLoadId = 0;
+    let lastTrigger = null;
 
-    const openLightbox = (src, previewSrc) => {
+    // Runs once the dialog has closed (button, Esc, backdrop or swipe): reset for next time, focus back to the screenshot
+    const lightboxDialog = setupDialog(lightbox, {
+        onClose: () => {
+            lightboxLoadId++;
+            lightbox.style.backgroundColor = '';
+            lightbox.classList.remove('is-zoomed', 'is-dragging');
+            currentScale = 1;
+            translateX = 0;
+            translateY = 0;
+            applyTransform(false);
+            lastTrigger?.focus();
+        }
+    });
+
+    const openLightbox = (src, previewSrc, alt) => {
         // Show the already-loaded card image instantly so the previous image never flashes,
         // then swap in the full-size file once it has downloaded and decoded.
         const loadId = ++lightboxLoadId;
         lightboxImg.src = previewSrc || src;
+        lightboxImg.alt = alt;
         if (previewSrc && previewSrc !== src) {
             const full = new Image();
             full.src = src;
@@ -56,35 +74,23 @@ if (lightbox && lightboxImg) {
         translateY = 0;
         lightbox.classList.remove('is-zoomed', 'is-dragging');
         applyTransform(false);
-        lightbox.classList.add('active');
-        document.documentElement.classList.add('modal-open');
-        document.body.classList.add('modal-open');
-        document.documentElement.style.overflow = 'hidden';
-        document.body.style.overflow = 'hidden';
+        lightboxDialog.open();
+        lightboxClose?.focus();
     };
 
-    const closeLightbox = () => {
-        lightboxLoadId++;
-        lightbox.style.backgroundColor = '';
-        lightbox.classList.remove('active', 'is-zoomed', 'is-dragging');
-        currentScale = 1;
-        translateX = 0;
-        translateY = 0;
-        applyTransform(false);
-        document.documentElement.classList.remove('modal-open');
-        document.body.classList.remove('modal-open');
-        document.documentElement.style.overflow = '';
-        document.body.style.overflow = '';
-    };
+    const closeLightbox = lightboxDialog.close;
 
-    clickableImages.forEach(wrapper => {
-        wrapper.addEventListener('click', () => {
-            const img = wrapper.tagName === 'IMG' ? wrapper : wrapper.querySelector('img');
+    zoomButtons.forEach(btn => {
+        btn.addEventListener('click', () => {
+            // The screenshot the button sits on; the Gallery holds both frontends' and hides one
+            const img = Array.from(btn.parentElement.querySelectorAll('.mockup-img'))
+                .find(el => el.getClientRects().length > 0);
             if (img && img.src) {
+                lastTrigger = btn;
                 // Open the lossless full-size PNG that sits next to every screenshot's WebP
                 // (e.g. overview.webp -> overview.png); the compressed card image shows meanwhile.
                 const fullPng = img.src.replace(/\.[a-z0-9]+(?=$|[?#])/i, '.png');
-                openLightbox(fullPng, img.currentSrc || img.src);
+                openLightbox(fullPng, img.currentSrc || img.src, img.alt);
             }
         });
     });
@@ -97,13 +103,6 @@ if (lightbox && lightboxImg) {
     // Close on background click (when clicking outside the image)
     lightbox.addEventListener('click', (e) => {
         if (e.target === lightbox || e.target.id === 'lightboxScroll' || e.target.id === 'lightboxCenterer') {
-            closeLightbox();
-        }
-    });
-
-    // ESC key to close
-    document.addEventListener('keydown', (e) => {
-        if (e.key === 'Escape' && lightbox.classList.contains('active')) {
             closeLightbox();
         }
     });
@@ -409,4 +408,30 @@ if (lightbox && lightboxImg) {
         clampPan();
         applyTransform(true);
     }, { passive: false });
+
+    // Keyboard: + and - zoom on the centre, 0 resets, the arrow keys pan while zoomed (Esc is the dialog's)
+    const KEY_PAN = 80;
+    lightbox.addEventListener('keydown', (e) => {
+        if (e.ctrlKey || e.metaKey || e.altKey) return;
+        const c = centre();
+        if (e.key === '+' || e.key === '=') {
+            zoomTo(Math.min(currentScale * 1.5, TOUCH_MAX_SCALE), c.x, c.y);
+        } else if (e.key === '-' || e.key === '_') {
+            const scale = currentScale / 1.5;
+            if (scale <= 1.05) resetZoom();
+            else zoomTo(scale, c.x, c.y);
+        } else if (e.key === '0') {
+            resetZoom();
+        } else if (currentScale > 1 && e.key.startsWith('Arrow')) {
+            const [dx, dy] = { ArrowLeft: [1, 0], ArrowRight: [-1, 0], ArrowUp: [0, 1], ArrowDown: [0, -1] }[e.key] || [0, 0];
+            translateX += dx * KEY_PAN;
+            translateY += dy * KEY_PAN;
+        } else {
+            return;
+        }
+        e.preventDefault();
+        clampPan();
+        setZoomed();
+        applyTransform(true);
+    });
 }

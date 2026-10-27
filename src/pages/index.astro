@@ -110,7 +110,7 @@ const jsonLd = {
         <!-- JSON-LD Structured Data -->
     </Fragment>
 
-    <main>
+    <main id="main">
         <!-- Hero Section -->
         <section id="hero" class="section hero-section">
             <div class="hero-content">
@@ -129,7 +129,7 @@ const jsonLd = {
                         <a class="secondary-btn" href="/setup/" data-astro-prefetch>
                             <span>Setup guide</span>
                             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                                stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                                 <path d="M5 12h14"></path>
                                 <path d="m12 5 7 7-7 7"></path>
                             </svg>
@@ -187,7 +187,7 @@ const jsonLd = {
             </div>
 
             <!-- Feature Carousel -->
-            <div class="carousel-container">
+            <div class="carousel-container" role="region" aria-roledescription="carousel" aria-label="Highlights">
                 <div class="carousel-card">
                     <div class="carousel-viewport">
                         <div class="carousel-track">
@@ -364,22 +364,32 @@ const jsonLd = {
                 </div>
 
                 <div class="carousel-controls">
-                    <button class="carousel-btn prev" aria-label="Previous slide">
+                    <button class="carousel-btn carousel-pause" type="button" aria-label="Pause slideshow" aria-pressed="false">
+                        <svg class="icon-pause" width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                            <rect x="6" y="5" width="4" height="14" rx="1" />
+                            <rect x="14" y="5" width="4" height="14" rx="1" />
+                        </svg>
+                        <svg class="icon-play" width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                            <path d="M8 5.5v13a1 1 0 0 0 1.5.86l10.5-6.5a1 1 0 0 0 0-1.72L9.5 4.64A1 1 0 0 0 8 5.5z" />
+                        </svg>
+                    </button>
+                    <button class="carousel-btn prev" type="button" aria-label="Previous slide">
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                            stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                             <path d="m15 18-6-6 6-6" />
                         </svg>
                     </button>
-                    <div class="carousel-indicators">
+                    <!-- Mouse shortcuts only: Previous and Next do the same from the keyboard -->
+                    <div class="carousel-indicators" aria-hidden="true">
                         <span class="dot active" data-slide="0"></span>
                         <span class="dot" data-slide="1"></span>
                         <span class="dot" data-slide="2"></span>
                         <span class="dot" data-slide="3"></span>
                         <span class="dot" data-slide="4"></span>
                     </div>
-                    <button class="carousel-btn next" aria-label="Next slide">
+                    <button class="carousel-btn next" type="button" aria-label="Next slide">
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                            stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                             <path d="m9 18 6-6-6-6" />
                         </svg>
                     </button>
@@ -405,7 +415,7 @@ const jsonLd = {
                 Track N Race is also available with a native, Qt frontend. It uses less RAM, but I might forget to add a feature or two to Qt. <a href="/electron-vs-qt/" data-astro-prefetch>Compare the frontends to decide which frontend suits you the best.</a>
             </p>
 
-            <div class="carousel-container alt-frontend-carousel">
+            <div class="carousel-container alt-frontend-carousel" role="region" aria-roledescription="carousel" aria-label="Qt frontend screenshots">
                 <div class="carousel-viewport">
                     <div class="carousel-track">
                         <div class="carousel-slide active">
@@ -451,20 +461,30 @@ const jsonLd = {
                 </div>
 
                 <div class="carousel-controls">
-                    <button class="carousel-btn prev" aria-label="Previous screenshot">
+                    <button class="carousel-btn carousel-pause" type="button" aria-label="Pause slideshow" aria-pressed="false">
+                        <svg class="icon-pause" width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                            <rect x="6" y="5" width="4" height="14" rx="1" />
+                            <rect x="14" y="5" width="4" height="14" rx="1" />
+                        </svg>
+                        <svg class="icon-play" width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                            <path d="M8 5.5v13a1 1 0 0 0 1.5.86l10.5-6.5a1 1 0 0 0 0-1.72L9.5 4.64A1 1 0 0 0 8 5.5z" />
+                        </svg>
+                    </button>
+                    <button class="carousel-btn prev" type="button" aria-label="Previous screenshot">
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                            stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                             <path d="m15 18-6-6 6-6" />
                         </svg>
                     </button>
-                    <div class="carousel-indicators">
+                    <!-- Mouse shortcuts only: Previous and Next do the same from the keyboard -->
+                    <div class="carousel-indicators" aria-hidden="true">
                         <span class="dot active" data-slide="0"></span>
                         <span class="dot" data-slide="1"></span>
                         <span class="dot" data-slide="2"></span>
                     </div>
-                    <button class="carousel-btn next" aria-label="Next screenshot">
+                    <button class="carousel-btn next" type="button" aria-label="Next screenshot">
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                            stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                             <path d="m9 18 6-6-6-6" />
                         </svg>
                     </button>

@@ -224,6 +224,47 @@ body.modal-open {
     overflow: hidden !important;
 }
 
+/* Pop-ups (license, download, lightbox) are <dialog>s opened with showModal(), so the browser keeps focus in
+   them and makes the page behind inert. Each one covers the viewport and draws its own overlay, so the
+   browser's frame and backdrop go; a closed one is display: none whatever its own display is. */
+dialog {
+    width: auto;
+    height: auto;
+    max-width: none;
+    max-height: none;
+    border: none;
+    background: transparent;
+    color: inherit;
+}
+
+dialog:not([open]) {
+    display: none;
+}
+
+dialog::backdrop {
+    background: transparent;
+}
+
+/* Skip link: the first thing Tab reaches, hidden until focused */
+.skip-link {
+    position: fixed;
+    top: 0.75rem;
+    left: 0.75rem;
+    z-index: 10002;
+    padding: 0.5rem 0.9rem;
+    background: var(--text);
+    color: var(--bg);
+    font-size: 0.85rem;
+    font-weight: 600;
+    text-decoration: none;
+    border-radius: var(--radius-sm);
+    transform: translateY(calc(-100% - 1rem));
+}
+
+.skip-link:focus {
+    transform: none;
+}
+
 /* Small uppercase mono label, used like the app's data-channel labels */
 .eyebrow {
     display: inline-flex;
@@ -245,6 +286,11 @@ body.modal-open {
     max-width: calc(var(--content) + var(--gutter) * 2);
     margin: 0 auto;
     padding: 96px var(--gutter);
+    scroll-margin-top: var(--nav-h);
+}
+
+/* The skip link's target; it lands under the fixed navbar */
+#main {
     scroll-margin-top: var(--nav-h);
 }
 

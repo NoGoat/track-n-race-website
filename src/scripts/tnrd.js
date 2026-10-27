@@ -5,7 +5,11 @@ if (fmtLinks.length && window.IntersectionObserver) {
     const visible = new Set();
     const sync = () => {
         const first = fmtLinks.find(link => visible.has(link.getAttribute('href').slice(1)));
-        fmtLinks.forEach(link => link.classList.toggle('active', link === first));
+        fmtLinks.forEach(link => {
+            link.classList.toggle('active', link === first);
+            if (link === first) link.setAttribute('aria-current', 'true');
+            else link.removeAttribute('aria-current');
+        });
     };
     const observer = new IntersectionObserver(entries => {
         entries.forEach(entry => entry.isIntersecting ? visible.add(entry.target.id) : visible.delete(entry.target.id));

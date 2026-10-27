@@ -263,6 +263,11 @@ body.page-fit main {
     transition: opacity 0.15s var(--ease);
 }
 
+/* Focusable to scroll it from the keyboard; the ring goes inside the reader's frame */
+.reader-text:focus-visible {
+    outline-offset: -2px;
+}
+
 .reader-text.is-loading {
     opacity: 0.4;
 }

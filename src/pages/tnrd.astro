@@ -66,7 +66,7 @@ const jsonLd = {
         <!-- JSON-LD Structured Data -->
     </Fragment>
 
-    <main class="fmt">
+    <main id="main" class="fmt">
         <!-- Hero -->
         <header class="fmt-hero">
             <h1 class="fmt-title">.tnrd - The format that powers Track N Race</h1>
@@ -75,7 +75,7 @@ const jsonLd = {
                 It started as a gzipped text log and is now an indexed container split by driver, lap and data type. This is 
                 the full history: how each version lays out the file, what it fixed, and what it still got wrong.
             </p>
-            <div class="fmt-legend" aria-label="Diagram legend">
+            <div class="fmt-legend" role="group" aria-label="Diagram legend">
                 <span class="fmt-legend-item"><span class="fmt-swatch is-ctrl"></span>Uncompressed, readable on open</span>
                 <span class="fmt-legend-item"><span class="fmt-swatch is-data"></span>Compressed data</span>
                 <span class="fmt-legend-item fmt-legend-note">Diagrams are not to scale</span>
@@ -674,6 +674,8 @@ const jsonLd = {
                     </tbody>
                 </table>
             </div>
+            <!-- The same note is each Partial cell's tooltip; here it reaches keyboard, touch and screen readers too -->
+            <p class="fmt-anatomy-note">Partial: some data for other drivers, mostly only usable on the Session and Standings pages.</p>
         </section>
     </main>
 

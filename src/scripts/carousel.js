@@ -128,6 +128,7 @@ document.querySelectorAll('.carousel-container').forEach(carouselContainer => {
     const slides = Array.from(track?.children || []);
     const nextButton = carouselContainer.querySelector('.carousel-btn.next');
     const prevButton = carouselContainer.querySelector('.carousel-btn.prev');
+    const pauseButton = carouselContainer.querySelector('.carousel-pause');
     const dotsNav = carouselContainer.querySelector('.carousel-indicators');
     const dots = Array.from(dotsNav?.children || []);
 
@@ -135,8 +136,16 @@ document.querySelectorAll('.carousel-container').forEach(carouselContainer => {
         let currentSlideIndex = 0;
         const gap = 48; // Physical buffer gap between slides in px
 
+        slides.forEach((slide, i) => {
+            slide.setAttribute('role', 'group');
+            slide.setAttribute('aria-roledescription', 'slide');
+            slide.setAttribute('aria-label', `${i + 1} of ${slides.length}`);
+        });
+
         const updateCarousel = (index, animate = true) => {
             currentSlideIndex = ((index % slides.length) + slides.length) % slides.length;
+            // Only the slide on screen can be tabbed to or read out; the others sit off to the side
+            slides.forEach((slide, i) => { slide.inert = i !== currentSlideIndex; });
             const viewportWidth = viewport.getBoundingClientRect().width;
             if (viewportWidth === 0) return;
 
@@ -170,17 +179,39 @@ document.querySelectorAll('.carousel-container').forEach(carouselContainer => {
 
         const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
         let carouselVisible = true;
+        let hovering = false;
+        let keyboardInside = false;
+        let userPaused = false;
         // The TNRD animation slide stays long enough to play and settle; the others move on quickly
         const slideMs = () => (slides[currentSlideIndex]?.querySelector('.tnrd-frame') ? 20000 : 5000);
 
+        // It moves on its own only while nobody is using it: not paused, not hovered, no keyboard focus inside, on
+        // screen, and no pop-up open (the lightbox's screenshot has to stay put so focus can go back to it).
+        const canAutoPlay = () => !reduceMotion && !userPaused && !hovering && !keyboardInside && carouselVisible
+            && !document.querySelector('dialog[open]');
+
         const resetAutoPlay = () => {
             clearTimeout(autoPlayInterval);
-            if (reduceMotion || !carouselVisible) return;
+            const playing = canAutoPlay();
+            // Screen readers announce the new slide when it's changed by hand, not every few seconds
+            track.setAttribute('aria-live', playing ? 'off' : 'polite');
+            if (!playing) return;
             autoPlayInterval = setTimeout(() => {
+                if (!canAutoPlay()) return;
                 updateCarousel(currentSlideIndex + 1);
                 resetAutoPlay();
             }, slideMs());
         };
+
+        // Pause / play. Without autoplay (reduced motion) there's nothing to pause.
+        if (pauseButton) {
+            pauseButton.hidden = reduceMotion;
+            pauseButton.addEventListener('click', () => {
+                userPaused = !userPaused;
+                pauseButton.setAttribute('aria-pressed', userPaused ? 'true' : 'false');
+                resetAutoPlay();
+            });
+        }
 
         nextButton?.addEventListener('click', () => {
             updateCarousel(currentSlideIndex + 1);
@@ -238,18 +269,28 @@ document.querySelectorAll('.carousel-container').forEach(carouselContainer => {
         resetAutoPlay();
 
         // Pause on hover
-        carouselContainer.addEventListener('mouseenter', () => clearTimeout(autoPlayInterval));
-        carouselContainer.addEventListener('mouseleave', () => resetAutoPlay());
+        carouselContainer.addEventListener('mouseenter', () => { hovering = true; resetAutoPlay(); });
+        carouselContainer.addEventListener('mouseleave', () => { hovering = false; resetAutoPlay(); });
+
+        // Pause while keyboard focus is inside (a mouse click on a button doesn't count)
+        carouselContainer.addEventListener('focusin', (e) => {
+            keyboardInside = e.target.matches(':focus-visible');
+            resetAutoPlay();
+        });
+        carouselContainer.addEventListener('focusout', (e) => {
+            if (carouselContainer.contains(e.relatedTarget)) return;
+            keyboardInside = false;
+            resetAutoPlay();
+        });
+
+        // Carry on once a pop-up closes ('close' doesn't bubble, so listen as it passes down)
+        document.addEventListener('close', resetAutoPlay, true);
 
         // Pause while scrolled out of view, so it doesn't keep animating unseen
         if (window.IntersectionObserver) {
             new IntersectionObserver(([entry]) => {
                 carouselVisible = entry.isIntersecting;
-                if (carouselVisible) {
-                    resetAutoPlay();
-                } else {
-                    clearTimeout(autoPlayInterval);
-                }
+                resetAutoPlay();
             }).observe(carouselContainer);
 
             // Slide 1's TNRD animation waits at its first frame until the carousel is mostly on screen

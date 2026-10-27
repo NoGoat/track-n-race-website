@@ -37,17 +37,23 @@
     border-top: 1px solid var(--line);
 }
 
-.carousel-controls .carousel-btn.prev {
+/* Dots on the left; pause, previous and next on the right. The dots' auto margin takes the free space, so the
+   buttons stay together whether or not the pause button shows (it's hidden under reduced motion). */
+.carousel-controls .carousel-pause {
     order: 2;
-    margin-left: auto;
+}
+
+.carousel-controls .carousel-btn.prev {
+    order: 3;
 }
 
 .carousel-controls .carousel-btn.next {
-    order: 3;
+    order: 4;
 }
 
 .carousel-indicators {
     order: 1;
+    margin-right: auto;
     display: flex;
     align-items: center;
     gap: 6px;
@@ -102,6 +108,20 @@
 .carousel-btn svg {
     width: 16px;
     height: 16px;
+}
+
+.carousel-btn[hidden] {
+    display: none;
+}
+
+/* The pause button shows the action it will take: pause while playing, play while paused */
+.carousel-pause .icon-play,
+.carousel-pause[aria-pressed="true"] .icon-pause {
+    display: none;
+}
+
+.carousel-pause[aria-pressed="true"] .icon-play {
+    display: block;
 }
 
 /* ==========================================================================

@@ -1,4 +1,5 @@
 import { normalisePath, currentPath } from './paths.js';
+import { setupDialog } from './dialog.js';
 
 // Download modal: its markup is components/DownloadModal.astro, on the pages that have links marked
 // data-download (components/DownloadButton.astro). Each trigger is a real link to the
@@ -8,7 +9,9 @@ const downloadTriggers = document.querySelectorAll('[data-download]');
 const setupDownloadModal = (downloadModal) => {
     const closeDownloadModal = downloadModal.querySelector('#closeDownloadModal');
     const downloadOsTabs = downloadModal.querySelectorAll('.download-os-tab');
+    const downloadBuilds = downloadModal.querySelector('#downloadBuilds');
     let lastTrigger = null;
+    const downloadDialog = setupDialog(downloadModal, { onClose: () => lastTrigger?.focus() });
 
     // The "What to choose" callout points at the comparison page; drop it when already there
     const chooseLink = downloadModal.querySelector('.download-choose a');
@@ -35,6 +38,7 @@ const setupDownloadModal = (downloadModal) => {
             tab.classList.toggle('active', isActive);
             tab.setAttribute('aria-selected', isActive ? 'true' : 'false');
             tab.tabIndex = isActive ? 0 : -1;
+            if (isActive) downloadBuilds?.setAttribute('aria-labelledby', tab.id);
         });
         // CSS shows only the links and file types marked data-os-only for this platform
         downloadModal.dataset.os = os;
@@ -61,35 +65,11 @@ const setupDownloadModal = (downloadModal) => {
             ? `${osLabels[detectedOS]} detected`
             : 'Desktop only';
 
-        downloadModal.classList.add('active');
-        document.documentElement.classList.add('modal-open');
-        document.body.classList.add('modal-open');
-        document.documentElement.style.overflow = 'hidden';
-        document.body.style.overflow = 'hidden';
-
+        downloadDialog.open();
         closeDownloadModal?.focus();
     };
 
-    const closeDownloadModalFn = () => {
-        downloadModal.classList.remove('active');
-        document.documentElement.classList.remove('modal-open');
-        document.body.classList.remove('modal-open');
-        document.documentElement.style.overflow = '';
-        document.body.style.overflow = '';
-        lastTrigger?.focus();
-    };
-
-    closeDownloadModal?.addEventListener('click', closeDownloadModalFn);
-
-    downloadModal.addEventListener('click', (e) => {
-        if (e.target === downloadModal) closeDownloadModalFn();
-    });
-
-    document.addEventListener('keydown', (e) => {
-        if (e.key === 'Escape' && downloadModal.classList.contains('active')) {
-            closeDownloadModalFn();
-        }
-    });
+    closeDownloadModal?.addEventListener('click', downloadDialog.close);
 
     // OS tab switching
     downloadOsTabs.forEach(tab => {

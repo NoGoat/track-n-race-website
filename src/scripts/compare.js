@@ -1,3 +1,6 @@
+// Smooth scrolling, unless reduced motion is asked for (CSS's own setting doesn't reach scrollTo / scrollBy)
+const scrollBehavior = window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth';
+
 // Module switchers (Compare Frontends): one tab per module, one visible
 // screenshot. Each .modules block switches independently.
 document.querySelectorAll('.modules').forEach(modules => {
@@ -27,7 +30,7 @@ document.querySelectorAll('.modules').forEach(modules => {
         if (moduleList.scrollWidth > moduleList.clientWidth) {
             moduleList.scrollTo({
                 left: tab.offsetLeft - (moduleList.clientWidth - tab.offsetWidth) / 2,
-                behavior: 'smooth'
+                behavior: scrollBehavior
             });
         }
     };

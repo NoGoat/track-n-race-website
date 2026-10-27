@@ -1,5 +1,8 @@
 import { loadLicense, licenseError } from './licenses.js';
 
+// Smooth scrolling, unless reduced motion is asked for (CSS's own setting doesn't reach scrollTo / scrollBy)
+const scrollBehavior = window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth';
+
 // Credits library browser: selecting a project shows its license in the reader.
 // On phones the list is a horizontal strip above the reader.
 const libraryItems = Array.from(document.querySelectorAll('.library-item'));
@@ -30,12 +33,12 @@ if (libraryItems.length > 0 && libraryReader) {
             if (libraryList.scrollWidth > libraryList.clientWidth) {
                 libraryList.scrollBy({
                     left: itemRect.left - listRect.left - (listRect.width - itemRect.width) / 2,
-                    behavior: 'smooth'
+                    behavior: scrollBehavior
                 });
             } else if (itemRect.top < listRect.top || itemRect.bottom > listRect.bottom) {
                 libraryList.scrollBy({
                     top: itemRect.top - listRect.top - (listRect.height - itemRect.height) / 2,
-                    behavior: 'smooth'
+                    behavior: scrollBehavior
                 });
             }
         }

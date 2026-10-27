@@ -1,6 +1,7 @@
 // Every page: the navbar and the footer's license pop-up
 import { normalisePath, currentPath } from './paths.js';
 import { loadLicense, licenseError } from './licenses.js';
+import { setupDialog } from './dialog.js';
 
 // Mobile Navigation Toggle
 const mobileToggleBtn = document.getElementById('mobileToggleBtn');
@@ -18,6 +19,15 @@ if (mobileToggleBtn && navMenu) {
         if (navMenu.classList.contains('mobile-active') && !navMenu.contains(e.target) && !mobileToggleBtn.contains(e.target)) {
             navMenu.classList.remove('mobile-active');
             mobileToggleBtn.setAttribute('aria-expanded', 'false');
+        }
+    });
+
+    // Close menu on Esc, back to the toggle
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && navMenu.classList.contains('mobile-active')) {
+            navMenu.classList.remove('mobile-active');
+            mobileToggleBtn.setAttribute('aria-expanded', 'false');
+            mobileToggleBtn.focus();
         }
     });
 
@@ -40,66 +50,39 @@ navButtons.forEach(btn => {
     btn.classList.toggle('active', normalisePath(href) === currentPath);
 });
 
-// License Modal Logic
+// License pop-up (the footer's GPL link)
 const licenseModal = document.getElementById('licenseModal');
 const closeLicenseModal = document.getElementById('closeLicenseModal');
 const licenseTextContent = document.getElementById('licenseTextContent');
 const licenseModalTitle = document.getElementById('licenseModalTitle');
 let licenseModalRequest = 0;
 
-const openLicenseModal = async (title, file) => {
-    if (!licenseModal) return;
-    const request = ++licenseModalRequest;
-    licenseModalTitle.textContent = title;
-    licenseTextContent.textContent = 'Loading...';
-    licenseModal.classList.add('active');
-    document.documentElement.classList.add('modal-open');
-    document.body.classList.add('modal-open');
-    document.documentElement.style.overflow = 'hidden';
-    document.body.style.overflow = 'hidden';
-
-    try {
-        const text = await loadLicense(file);
-        if (request === licenseModalRequest) licenseTextContent.textContent = text;
-    } catch (error) {
-        if (request === licenseModalRequest) licenseTextContent.textContent = licenseError;
-        console.error(error);
-    }
-};
-
 if (licenseModal) {
-    // Footer GPL link (a non-button trigger, so it needs keyboard activation too)
-    document.querySelectorAll('[data-license]').forEach(btn => {
-        if (btn.tagName !== 'BUTTON') {
-            btn.addEventListener('keydown', (e) => {
-                if (e.key === 'Enter' || e.key === ' ') {
-                    e.preventDefault();
-                    btn.click();
-                }
-            });
-        }
-        btn.addEventListener('click', () => openLicenseModal('Track N Race License', btn.getAttribute('data-license')));
-    });
+    let lastTrigger = null;
+    const licenseDialog = setupDialog(licenseModal, { onClose: () => lastTrigger?.focus() });
 
-    const closeModal = () => {
-        licenseModal.classList.remove('active');
-        document.documentElement.classList.remove('modal-open');
-        document.body.classList.remove('modal-open');
-        document.documentElement.style.overflow = '';
-        document.body.style.overflow = '';
+    const openLicenseModal = async (title, file) => {
+        const request = ++licenseModalRequest;
+        licenseModalTitle.textContent = title;
+        licenseTextContent.textContent = 'Loading...';
+        licenseDialog.open();
+        closeLicenseModal?.focus();
+
+        try {
+            const text = await loadLicense(file);
+            if (request === licenseModalRequest) licenseTextContent.textContent = text;
+        } catch (error) {
+            if (request === licenseModalRequest) licenseTextContent.textContent = licenseError;
+            console.error(error);
+        }
     };
 
-    closeLicenseModal?.addEventListener('click', closeModal);
-
-    licenseModal.addEventListener('click', (e) => {
-        if (e.target === licenseModal) {
-            closeModal();
-        }
+    document.querySelectorAll('[data-license]').forEach(btn => {
+        btn.addEventListener('click', () => {
+            lastTrigger = btn;
+            openLicenseModal('Track N Race License', btn.getAttribute('data-license'));
+        });
     });
 
-    document.addEventListener('keydown', (e) => {
-        if (e.key === 'Escape' && licenseModal.classList.contains('active')) {
-            closeModal();
-        }
-    });
+    closeLicenseModal?.addEventListener('click', licenseDialog.close);
 }

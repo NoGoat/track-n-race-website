@@ -83,7 +83,7 @@ const jsonLd = {
         <!-- JSON-LD Structured Data -->
     </Fragment>
 
-    <main>
+    <main id="main">
         <!-- Credits: open source library browser -->
         <section id="attributions" class="section attributions-section">
             <div class="attributions-container">
@@ -314,7 +314,7 @@ const jsonLd = {
                     </section>
                     </nav>
 
-                    <article class="library-reader" id="library-reader" aria-live="polite">
+                    <article class="library-reader" id="library-reader">
                         <header class="reader-head">
                             <div class="reader-title">
                                 <h3 class="reader-name">zlib</h3>
@@ -329,7 +329,8 @@ const jsonLd = {
                                 </svg>
                             </a>
                         </header>
-                        <pre class="reader-text">Loading...</pre>
+                        <!-- Focusable so the keyboard can scroll the license -->
+                        <pre class="reader-text" tabindex="0" role="region" aria-label="License text">Loading...</pre>
                     </article>
                 </div>
             </div>
