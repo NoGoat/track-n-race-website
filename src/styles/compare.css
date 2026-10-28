@@ -20,6 +20,11 @@
     table-layout: fixed;
 }
 
+/* The Minimal Recorder's stack per platform, in the plain cell grey beside the green Yes */
+.compare-matrix .compare-stack {
+    color: var(--text-2);
+}
+
 .compare-note {
     margin-top: 1rem;
     font-size: 0.8rem;

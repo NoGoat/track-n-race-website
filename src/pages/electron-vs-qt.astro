@@ -54,8 +54,8 @@ const jsonLd = {
         "@id": "https://track-n-race.com/#software",
         "name": "Track N Race"
       },
-      "name": "Frontends — Track N Race Electron vs Qt",
-      "description": "Compare the Electron and Qt frontends of Track N Race and the Minimal Recorder: platforms, RAM use and features in one table, then every screen side by side, from the overview and lap analysis to standings, tyres and strategy.",
+      "name": "Frontends — Track N Race Electron vs Native",
+      "description": "Compare the Electron and Native frontends of Track N Race and the Minimal Recorder: platforms, RAM use and features in one table, then every screen side by side, from the overview and lap analysis to standings, tyres and strategy.",
       "isPartOf": {
         "@type": "WebSite",
         "@id": "https://track-n-race.com/#website",
@@ -152,9 +152,9 @@ const jsonLd = {
 <Base jsonLd={jsonLd}>
     <Fragment slot="head">
         <!-- Primary Meta Tags -->
-        <title>Frontends — Track N Race Electron vs Qt</title>
+        <title>Frontends — Track N Race Electron vs Native</title>
         <meta name="description"
-            content="Compare the Electron and Qt frontends of Track N Race and the Minimal Recorder: platforms, RAM use and features in one table, then every screen side by side, from the overview and lap analysis to standings, tyres and strategy.">
+            content="Compare the Electron and Native frontends of Track N Race and the Minimal Recorder: platforms, RAM use and features in one table, then every screen side by side, from the overview and lap analysis to standings, tyres and strategy.">
         <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1">
         <meta name="author" content="NoGoat">
         <meta name="application-name" content="Track N Race">
@@ -166,9 +166,9 @@ const jsonLd = {
         <meta property="og:site_name" content="Track N Race">
         <meta property="og:locale" content="en_US">
         <meta property="og:url" content="https://track-n-race.com/electron-vs-qt/">
-        <meta property="og:title" content="Frontends — Track N Race Electron vs Qt">
+        <meta property="og:title" content="Frontends — Track N Race Electron vs Native">
         <meta property="og:description"
-            content="Compare the Electron and Qt frontends of Track N Race and the Minimal Recorder: platforms, RAM use and features in one table, then every screen side by side, from the overview and lap analysis to standings, tyres and strategy.">
+            content="Compare the Electron and Native frontends of Track N Race and the Minimal Recorder: platforms, RAM use and features in one table, then every screen side by side, from the overview and lap analysis to standings, tyres and strategy.">
         <meta property="og:image" content="https://track-n-race.com/assets/og-image.png">
         <meta property="og:image:width" content="1200">
         <meta property="og:image:height" content="630">
@@ -177,9 +177,9 @@ const jsonLd = {
         <!-- Twitter -->
         <meta name="twitter:card" content="summary_large_image">
         <meta name="twitter:url" content="https://track-n-race.com/electron-vs-qt/">
-        <meta name="twitter:title" content="Frontends — Track N Race Electron vs Qt">
+        <meta name="twitter:title" content="Frontends — Track N Race Electron vs Native">
         <meta name="twitter:description"
-            content="Compare the Electron and Qt frontends of Track N Race and the Minimal Recorder: platforms, RAM use and features in one table, then every screen side by side, from the overview and lap analysis to standings, tyres and strategy.">
+            content="Compare the Electron and Native frontends of Track N Race and the Minimal Recorder: platforms, RAM use and features in one table, then every screen side by side, from the overview and lap analysis to standings, tyres and strategy.">
         <meta name="twitter:image" content="https://track-n-race.com/assets/og-image.png">
         <meta name="twitter:image:alt" content="Track N Race overview dashboard showing live speed, RPM and ERS traces with tyre temperatures">
 
@@ -194,7 +194,7 @@ const jsonLd = {
         <section id="compare" class="section compare-section">
             <div class="page-header">
                 <h1 class="main-title">Compare Frontends</h1>
-                <p class="subtitle">Electron, Qt or the Minimal Recorder. Compare them to decide which one you prefer.</p>
+                <p class="subtitle">Electron, Native or the Minimal Recorder. Compare them to decide which one you prefer.</p>
             </div>
 
             <div class="compare-block" id="at-a-glance">
@@ -208,21 +208,21 @@ const jsonLd = {
                         <thead>
                             <tr>
                                 <th scope="col"><span class="visually-hidden">Feature</span></th>
-                                <th scope="col">Electron</th><th scope="col">Qt</th><th scope="col">Minimal Recorder</th>
+                                <th scope="col">Electron</th><th scope="col">Native</th><th scope="col">Minimal Recorder</th>
                             </tr>
                         </thead>
                         <tbody>
                             <tr>
                                 <th scope="row">Windows</th>
-                                <td class="yes">Yes</td><td class="yes">Yes</td><td class="yes">Yes</td>
+                                <td class="yes">Yes</td><td class="yes">Yes</td><td class="yes">Yes <span class="compare-stack">(Win32)</span></td>
                             </tr>
                             <tr>
                                 <th scope="row">macOS</th>
-                                <td class="yes">Yes</td><td class="no">No</td><td class="yes">Yes</td>
+                                <td class="yes">Yes</td><td class="no">No</td><td class="yes">Yes <span class="compare-stack">(Swift)</span></td>
                             </tr>
                             <tr>
                                 <th scope="row">Linux</th>
-                                <td class="yes">Yes</td><td class="yes">Yes</td><td class="yes">Yes</td>
+                                <td class="yes">Yes</td><td class="yes">Yes</td><td class="yes">Yes <span class="compare-stack">(Qt)</span></td>
                             </tr>
                             <tr>
                                 <th scope="row">RAM, idle</th>
@@ -265,12 +265,8 @@ const jsonLd = {
                                 <td class="yes">Yes</td><td class="yes">Yes</td><td class="yes">Yes</td>
                             </tr>
                             <tr>
-                                <th scope="row">New features</th>
-                                <td>First</td><td class="part">Might miss features</td><td class="no">&mdash;</td>
-                            </tr>
-                            <tr>
                                 <th scope="row">Built with</th>
-                                <td>Electron, React</td><td>Qt, QCustomPlot</td><td class="no">&mdash;</td>
+                                <td>Electron, React</td><td>Qt</td><td>See above</td>
                             </tr>
                         </tbody>
                     </table>
@@ -308,19 +304,19 @@ const jsonLd = {
                                 aria-labelledby={`module-tab-${i}`} aria-hidden={i === 0 ? undefined : 'true'}>
                                 <div class="compare" style={`aspect-ratio: ${screen.width} / ${screen.height}`}>
                                     <img class="compare-img" src={`/assets/screenshots/qt/${file}.webp`}
-                                        alt={`Qt frontend: ${screen.name}`} width={screen.width} height={screen.height} loading={loading}>
+                                        alt={`Native frontend: ${screen.name}`} width={screen.width} height={screen.height} loading={loading}>
                                     <div class="compare-top">
                                         <img class="compare-img" src={`/assets/screenshots/${file}.webp`}
                                             alt={`Electron frontend: ${screen.name}`} width={screen.width} height={screen.height} loading={loading}>
                                     </div>
                                     <div class="compare-handle" aria-hidden="true"><span class="compare-knob"></span></div>
                                     <input class="compare-range" type="range" min="0" max="100" step="0.1" value="50"
-                                        aria-label={`${screen.name}: slide between Electron and Qt`}>
+                                        aria-label={`${screen.name}: slide between Electron and Native`}>
                                 </div>
                                 <figcaption class="compare-caption">
                                     <span class="compare-tag">Electron</span>
                                     <h3 class="module-title">{screen.name}</h3>
-                                    <span class="compare-tag">Qt</span>
+                                    <span class="compare-tag">Native</span>
                                 </figcaption>
                             </figure>
                         );

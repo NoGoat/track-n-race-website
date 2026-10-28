@@ -15,7 +15,7 @@ if (libraryItems.length > 0 && libraryReader) {
     const readerLink = libraryReader.querySelector('.reader-link');
     const readerText = libraryReader.querySelector('.reader-text');
     const libraryList = libraryItems[0].closest('.library-list');
-    const stackLabels = { core: 'Core', electron: 'Electron', qt: 'Qt' };
+    const stackLabels = { core: 'Core', electron: 'Electron', qt: 'Native' };
     let readerRequest = 0;
 
     const showInReader = async (item) => {
