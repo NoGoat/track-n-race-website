@@ -28,6 +28,7 @@ const FILES = {
     'minimal/windows': 'Track-N-Race-Minimal-Windows.zip',
     'minimal/macos': 'Track-N-Race-Minimal-MacOS.dmg',
     'minimal/linux': 'Track-N-Race-Minimal-Linux.AppImage',
+    'android/android': 'Track-N-Race-Android.apk',
 };
 
 const EVENTS = new Set(['download_modal_open']);

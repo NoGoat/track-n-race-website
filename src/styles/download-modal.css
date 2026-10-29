@@ -360,13 +360,6 @@ a.download-build-get:hover::before {
     border-width: 0 1px;
 }
 
-/* Disabled, so no hover fill: a plain button reset to the download buttons' look */
-.download-android .download-build-get {
-    background: transparent;
-    font-family: var(--font-sans);
-    cursor: default;
-}
-
 /* Phones stack the builds, so there's no middle column to sit over: Android replaces them */
 @media (max-width: 640px) {
     .download-modal[data-os="android"] .download-build:not(.download-android) {
