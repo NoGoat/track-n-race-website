@@ -1,5 +1,5 @@
-// Gallery: the Electron / Qt switch shows every screen in the picked frontend.
-// The pick is kept in the URL (#qt) so a link can open the gallery on Qt.
+// Gallery: the Electron / Qt / Android switch shows every screen in the picked frontend.
+// The pick is kept in the URL (#qt, #android) so a link can open the gallery on it.
 const gallery = document.querySelector('.gallery-section');
 if (gallery) {
     const switchBtns = Array.from(gallery.querySelectorAll('.gallery-switch-btn'));
@@ -12,7 +12,7 @@ if (gallery) {
             btn.tabIndex = isActive ? 0 : -1;
             if (isActive && focus) btn.focus();
         });
-        history.replaceState(null, '', ui === 'qt' ? '#qt' : location.pathname + location.search);
+        history.replaceState(null, '', ui === 'electron' ? location.pathname + location.search : `#${ui}`);
     };
 
     switchBtns.forEach((btn, i) => {
@@ -25,5 +25,5 @@ if (gallery) {
         });
     });
 
-    if (location.hash === '#qt') pickUi('qt');
+    if (location.hash === '#qt' || location.hash === '#android') pickUi(location.hash.slice(1));
 }

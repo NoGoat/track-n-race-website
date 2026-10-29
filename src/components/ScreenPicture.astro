@@ -1,18 +1,21 @@
 ---
 // One frontend's capture of a screen (src/data/screens.ts): AVIF at each width, WebP as the fallback.
-// data-ui marks the frontend, so the Gallery's switch can show one and hide the other.
-import type { Screen } from '../data/screens';
+// data-ui marks the frontend, so the Gallery's switch can show one and hide the others.
+import { ANDROID_SIZE, type Screen } from '../data/screens';
 
 interface Props {
     screen: Screen;
-    ui: 'electron' | 'qt';
+    ui: 'electron' | 'qt' | 'android';
     sizes: string;
     lazy?: boolean;
 }
 
 const { screen, ui, sizes, lazy = false } = Astro.props;
-const dir = ui === 'qt' ? '/assets/screenshots/qt' : '/assets/screenshots';
-const widths = ui === 'qt' ? screen.qtWidths : screen.widths;
+const dir = { electron: '/assets/screenshots', qt: '/assets/screenshots/qt', android: '/assets/screenshots/android' }[ui];
+const widths = ui === 'android' ? ANDROID_SIZE.widths : ui === 'qt' ? screen.qtWidths : screen.widths;
+const alt = ui === 'android' ? screen.android!.alt : screen.alt;
+const width = ui === 'android' ? ANDROID_SIZE.width : screen.width;
+const height = ui === 'android' ? ANDROID_SIZE.height : screen.height;
 // A single size needs no width descriptors (or sizes) for the browser to pick from
 const srcset = widths.length === 1
     ? `${dir}/${screen.file}-${widths[0]}.avif`
@@ -20,6 +23,6 @@ const srcset = widths.length === 1
 ---
 <picture data-ui={ui}>
     <source type="image/avif" srcset={srcset} sizes={widths.length === 1 ? undefined : sizes}>
-    <img src={`${dir}/${screen.file}.webp`} alt={screen.alt}
-        class="mockup-img" width={screen.width} height={screen.height} loading={lazy ? 'lazy' : undefined}>
+    <img src={`${dir}/${screen.file}.webp`} alt={alt}
+        class="mockup-img" width={width} height={height} loading={lazy ? 'lazy' : undefined}>
 </picture>

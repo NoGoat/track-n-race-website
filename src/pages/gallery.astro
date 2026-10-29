@@ -15,6 +15,9 @@ const groups = [
     { id: "gallery-analysis", title: "Analysis", screens: ["analyze", "trends"] },
 ];
 const numbers = new Map(groups.flatMap(group => group.screens).map((file, i) => [file, i + 1]));
+// The Android tab leaves out screens the app doesn't have, so it numbers and counts its own
+const androidNumbers = new Map(groups.flatMap(group => group.screens).filter(file => screens[file].android).map((file, i) => [file, i + 1]));
+const androidCount = (files: string[]) => files.filter(file => screens[file].android).length;
 const pad = (n: number) => String(n).padStart(2, '0');
 const SIZES = '(max-width: 768px) 100vw, 600px';
 
@@ -48,7 +51,7 @@ const jsonLd = {
         "name": "Track N Race"
       },
       "name": "Gallery — Track N Race",
-      "description": "Every screen of Track N Race in the Electron and Native frontends: overview, inputs, power, damage, tyres, standings, strategy, lap analysis and trends.",
+      "description": "Every screen of Track N Race in the Electron and Native frontends and the Android app: overview, inputs, power, damage, tyres, standings, strategy, lap analysis and trends.",
       "isPartOf": {
         "@type": "WebSite",
         "@id": "https://track-n-race.com/#website",
@@ -65,7 +68,7 @@ const jsonLd = {
         <!-- Primary Meta Tags -->
         <title>Gallery — Track N Race</title>
         <meta name="description"
-            content="Every screen of Track N Race in the Electron and Native frontends: overview, inputs, power, damage, tyres, standings, strategy, lap analysis and trends.">
+            content="Every screen of Track N Race in the Electron and Native frontends and the Android app: overview, inputs, power, damage, tyres, standings, strategy, lap analysis and trends.">
         <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1">
         <meta name="author" content="NoGoat">
         <meta name="application-name" content="Track N Race">
@@ -79,7 +82,7 @@ const jsonLd = {
         <meta property="og:url" content="https://track-n-race.com/gallery/">
         <meta property="og:title" content="Gallery — Track N Race">
         <meta property="og:description"
-            content="Every screen of Track N Race in the Electron and Native frontends: overview, inputs, power, damage, tyres, standings, strategy, lap analysis and trends.">
+            content="Every screen of Track N Race in the Electron and Native frontends and the Android app: overview, inputs, power, damage, tyres, standings, strategy, lap analysis and trends.">
         <meta property="og:image" content="https://track-n-race.com/assets/og-image.png">
         <meta property="og:image:width" content="1200">
         <meta property="og:image:height" content="630">
@@ -90,7 +93,7 @@ const jsonLd = {
         <meta name="twitter:url" content="https://track-n-race.com/gallery/">
         <meta name="twitter:title" content="Gallery — Track N Race">
         <meta name="twitter:description"
-            content="Every screen of Track N Race in the Electron and Native frontends: overview, inputs, power, damage, tyres, standings, strategy, lap analysis and trends.">
+            content="Every screen of Track N Race in the Electron and Native frontends and the Android app: overview, inputs, power, damage, tyres, standings, strategy, lap analysis and trends.">
         <meta name="twitter:image" content="https://track-n-race.com/assets/og-image.png">
         <meta name="twitter:image:alt" content="Track N Race overview dashboard showing live speed, RPM and ERS traces with tyre temperatures">
 
@@ -101,8 +104,9 @@ const jsonLd = {
     </Fragment>
 
     <main id="main" class="gallery-section" data-ui="electron">
-        <!-- Gallery: every screen, grouped by area. The switch shows each one in the Electron or the Qt frontend;
-             both captures sit in the markup, and the hidden frontend's lazy images don't load until it is picked. -->
+        <!-- Gallery: every screen, grouped by area. The switch shows each one in the Electron or the Qt frontend
+             or the Android app; every capture sits in the markup, and a hidden one's lazy images don't load until
+             it is picked. Screens the Android app doesn't have are left out of its tab. -->
 
         <!-- Sticky header. At rest its rule matches the content column; once it sticks under the navbar
              (scripts/sticky-bar.js adds .is-stuck) it runs edge to edge with the navbar's background, border and shadow. -->
@@ -113,6 +117,7 @@ const jsonLd = {
                 <div class="scenario-selector gallery-switch" role="radiogroup" aria-label="Frontend">
                     <button class="scenario-btn gallery-switch-btn active" role="radio" aria-checked="true" data-ui="electron">Electron</button>
                     <button class="scenario-btn gallery-switch-btn" role="radio" aria-checked="false" data-ui="qt" tabindex="-1">Native</button>
+                    <button class="scenario-btn gallery-switch-btn" role="radio" aria-checked="false" data-ui="android" tabindex="-1">Android</button>
                 </div>
             </div>
         </div>
@@ -122,26 +127,32 @@ const jsonLd = {
                 <section class="gallery-group" aria-labelledby={group.id}>
                     <div class="section-header">
                         <h2 class="section-heading" id={group.id}>{group.title}</h2>
-                        <span class="eyebrow">{pad(group.screens.length)} screens</span>
+                        <span class="eyebrow desc-desktop">{pad(group.screens.length)} screens</span>
+                        <span class="eyebrow" data-ui="android">{pad(androidCount(group.screens))} screens</span>
                     </div>
                     <div class="gallery-grid">
                         {group.screens.map(file => {
                             const screen = screens[file];
                             return (
-                                <figure class:list={['shot', { 'shot-trimmed': screen.width === 2492 }]}>
+                                <figure class:list={['shot', { 'shot-trimmed': screen.width === 2492, 'no-android': !screen.android }]}>
                                     <div class="app-window">
                                         <div class="img-zoom-wrapper">
                                             <!-- Only the first group loads straight away; the rest wait until scrolled to -->
                                             <ScreenPicture screen={screen} ui="electron" sizes={SIZES} lazy={g > 0} />
                                             <ScreenPicture screen={screen} ui="qt" sizes={SIZES} lazy />
+                                            {screen.android && <ScreenPicture screen={screen} ui="android" sizes={SIZES} lazy />}
                                             <ZoomBadge />
                                         </div>
                                     </div>
                                     <figcaption class="shot-caption">
-                                        <span class="module-num">{pad(numbers.get(file)!)}</span>
+                                        <span class="module-num desc-desktop">{pad(numbers.get(file)!)}</span>
+                                        {screen.android && <span class="module-num" data-ui="android">{pad(androidNumbers.get(file)!)}</span>}
                                         <div>
-                                            <h3 class="module-title">{screen.name}</h3>
-                                            <p class="module-desc">{screen.desc}</p>
+                                            <!-- The Android tab swaps in the app's own name and caption for the screen -->
+                                            <h3 class:list={['module-title', { 'desc-desktop': screen.android?.name }]}>{screen.name}</h3>
+                                            {screen.android?.name && <h3 class="module-title" data-ui="android">{screen.android.name}</h3>}
+                                            <p class="module-desc desc-desktop">{screen.desc}</p>
+                                            {screen.android && <p class="module-desc" data-ui="android">{screen.android.desc}</p>}
                                         </div>
                                     </figcaption>
                                 </figure>

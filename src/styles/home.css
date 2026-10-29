@@ -2,60 +2,67 @@
    Hero
    ========================================================================== */
 .hero-section {
-    padding-top: calc(var(--nav-h) + 80px);
-    padding-bottom: 48px;
+    padding-top: calc(var(--nav-h) + 48px);
+    padding-bottom: 8px;
 }
 
-/* Centered stack: title, copy, buttons, then the specs as one inline row */
-.hero-content {
-    display: flex;
-    flex-direction: column;
+/* Copy and buttons on the left, the app on the right */
+.hero-main {
+    display: grid;
+    grid-template-columns: minmax(0, 0.75fr) minmax(0, 1.25fr);
+    gap: 3rem;
     align-items: center;
-    text-align: center;
 }
 
 .hero-copy {
     display: flex;
     flex-direction: column;
-    align-items: center;
+    align-items: flex-start;
 }
 
 .hero-copy .main-title {
-    font-size: clamp(2.75rem, 7vw, 5.25rem);
+    font-size: clamp(2.75rem, 5.5vw, 4.25rem);
     line-height: 0.98;
     letter-spacing: -0.05em;
 }
 
 .hero-copy .subtitle {
-    margin-top: 1.5rem;
-    max-width: 700px;
-    text-wrap: balance;
+    margin-top: 1.25rem;
+    max-width: 30rem;
 }
 
 .hero-copy .cta-group {
     margin-top: 2rem;
-    align-self: center;
+    justify-content: flex-start;
 }
 
-/* Specs: label over value, cells split by hairlines */
+.hero-visual {
+    min-width: 0;
+}
+
+/* Specs: label over value in open columns, split by hairlines like the download modal's builds */
 .hero-specs {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-    margin-top: 3rem;
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    margin-top: 2.5rem;
+    border-top: 1px solid var(--line);
+    border-bottom: 1px solid var(--line);
 }
 
 .hero-spec {
     display: flex;
     flex-direction: column;
-    align-items: center;
     gap: 0.3rem;
-    padding: 0 3.5rem;
+    padding: 1rem 1.5rem;
     min-width: 0;
 }
 
+.hero-spec:first-child {
+    padding-left: 0;
+}
+
 .hero-spec + .hero-spec {
-    border-left: 1px solid var(--line-strong);
+    border-left: 1px solid var(--line);
 }
 
 .hero-spec dt {
@@ -64,12 +71,12 @@
     letter-spacing: 0.08em;
     text-transform: uppercase;
     color: var(--text-3);
+    white-space: nowrap;
 }
 
 .hero-spec dd {
     display: flex;
     flex-wrap: wrap;
-    justify-content: center;
     align-items: baseline;
     font-size: 0.92rem;
     font-weight: 500;
@@ -81,65 +88,74 @@
     white-space: nowrap;
 }
 
-.tag + .tag::before {
+/* The slash trails its tag, so a wrapped value never starts a line with one */
+.tag:not(:last-child)::after {
     content: "/";
     margin: 0 0.45rem;
     color: var(--text-3);
     font-weight: 400;
 }
 
-.hero-visual {
-    margin-top: 3.5rem;
+/* One column: copy, then the app, then the specs */
+@media (max-width: 960px) {
+    .hero-main {
+        grid-template-columns: minmax(0, 1fr);
+        gap: 2.5rem;
+    }
+
+    .hero-copy .subtitle {
+        max-width: 36rem;
+    }
 }
 
-/* The screenshot is a 2x capture (2492px). Shown at exactly half size, each source
-   pixel pair maps to one screen pixel and stays sharp; any other width blurs it.
-   Its transparent shadow margin means the visible window is ~1200px, matching the column. */
-@media (min-width: 1300px) {
-    .hero-visual {
-        width: 1246px;
-        margin-left: calc((100% - 1246px) / 2);
+/* Two rows of two: the dividers stay on the second column */
+@media (max-width: 1000px) {
+    .hero-specs {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .hero-spec:nth-child(odd) {
+        padding-left: 0;
+        border-left: 0;
+    }
+
+    /* Padding, not margin, so the divider runs unbroken through both rows */
+    .hero-spec:nth-child(n + 3) {
+        padding-top: 1rem;
     }
 }
 
 @media (max-width: 768px) {
     .hero-section {
-        padding-top: calc(var(--nav-h) + 56px);
-        padding-bottom: 32px;
+        padding-top: calc(var(--nav-h) + 40px);
+        padding-bottom: 24px;
     }
 
-    .hero-visual {
-        margin-top: 2.5rem;
+    .hero-specs {
+        margin-top: 2rem;
     }
 }
 
-/* Four specs don't fit one row below desktop width: two rows of two, one divider each */
-@media (max-width: 1100px) {
-    .hero-specs {
-        display: grid;
-        grid-template-columns: repeat(2, auto);
-        justify-content: center;
-        row-gap: 1.5rem;
+/* Phones: a hairline between the two rows too; the buttons share the row's width,
+   folding onto two full-width lines when they can't */
+@media (max-width: 480px) {
+    .hero-spec {
+        padding: 0.9rem;
     }
 
-    .hero-spec + .hero-spec {
-        border-left: 0;
+    .hero-spec:nth-child(n + 3) {
+        padding-top: 0.9rem;
+        border-top: 1px solid var(--line);
     }
 
-    .hero-spec:nth-child(2n) {
-        border-left: 1px solid var(--line-strong);
-    }
-}
-
-@media (max-width: 600px) {
-    .hero-specs {
-        grid-template-columns: auto;
-        gap: 1.1rem;
-        margin-top: 2.25rem;
+    .hero-copy .cta-group {
+        align-self: stretch;
     }
 
-    .hero-spec:nth-child(2n) {
-        border-left: 0;
+    .hero-copy .cta-group .primary-btn,
+    .hero-copy .cta-group .secondary-btn {
+        flex: 1 1 9.5rem;
+        width: auto;
     }
 }
 
@@ -148,7 +164,7 @@
    The slides' text and layout; the carousel itself is styles/carousel.css
    ========================================================================== */
 #features.section {
-    padding-top: 48px;
+    padding-top: 40px;
     padding-bottom: 48px;
 }
 
@@ -204,11 +220,14 @@
 }
 
 /* List dashes pick up the slide title's accent */
-.feature-text:has(.highlight-blue) { --bullet: #4a8cf2; }
-.feature-text:has(.highlight-yellow) { --bullet: #f9d923; }
-.feature-text:has(.highlight-green) { --bullet: #4cbb4c; }
-.feature-text:has(.highlight-red) { --bullet: var(--accent); }
-.feature-text:has(.highlight-purple) { --bullet: #c065f5; }
+.feature-text:has(.highlight-blue) { --bullet: var(--trace-blue); }
+.feature-text:has(.highlight-yellow) { --bullet: var(--trace-yellow); }
+.feature-text:has(.highlight-green) { --bullet: var(--trace-green); }
+.feature-text:has(.highlight-red) { --bullet: var(--trace-red); }
+.feature-text:has(.highlight-periwinkle) { --bullet: var(--trace-periwinkle); }
+.feature-text:has(.highlight-orange) { --bullet: var(--trace-orange); }
+.feature-text:has(.highlight-teal) { --bullet: var(--trace-teal); }
+.feature-text:has(.highlight-pink) { --bullet: var(--trace-pink); }
 
 .post-script {
     margin-top: 0.85rem;
@@ -223,21 +242,49 @@
 }
 
 /* Carousel title accents, taken from the app's own trace colours
-   (green brightened from the app's #307c28 to stay legible on the page) */
+   (green brightened from the app's #307c28 to stay legible on the page).
+   Highlights uses red, blue, yellow and green; the frontends get four others, so the two carousels never repeat */
+:root {
+    --trace-blue: #4a8cf2;      /* progress bar / tags */
+    --trace-yellow: #f9d923;    /* ERS trace */
+    --trace-green: #4cbb4c;     /* speed trace */
+    --trace-red: var(--accent); /* recording red */
+    --trace-periwinkle: #8c9cf0; /* Android track line / tab indicator */
+    --trace-orange: #f5a623;    /* Android lateral G trace */
+    --trace-teal: #28f6d5;      /* Android team-colour teal */
+    --trace-pink: #f279ae;      /* rose, a deeper take on the Android delta line */
+}
+
 .highlight-blue,
 .highlight-green,
 .highlight-red,
 .highlight-yellow,
-.highlight-purple {
+.highlight-periwinkle,
+.highlight-orange,
+.highlight-teal,
+.highlight-pink {
     color: var(--trace);
     font-weight: inherit;
 }
 
-.highlight-blue { --trace: #4a8cf2; }    /* progress bar / tags */
-.highlight-yellow { --trace: #f9d923; }  /* ERS trace */
-.highlight-green { --trace: #4cbb4c; }   /* speed trace */
-.highlight-red { --trace: var(--accent); }  /* recording red */
-.highlight-purple { --trace: #c065f5; }  /* fastest-sector purple (app --color-fastest) */
+.highlight-blue { --trace: var(--trace-blue); }
+.highlight-yellow { --trace: var(--trace-yellow); }
+.highlight-green { --trace: var(--trace-green); }
+.highlight-red { --trace: var(--trace-red); }
+.highlight-periwinkle { --trace: var(--trace-periwinkle); }
+.highlight-orange { --trace: var(--trace-orange); }
+.highlight-teal { --trace: var(--trace-teal); }
+.highlight-pink { --trace: var(--trace-pink); }
+
+/* The carousel's active dot takes the showing slide's accent (styles/carousel.css reads --slide-accent) */
+.carousel-container:has(.carousel-slide.active .highlight-blue) { --slide-accent: var(--trace-blue); }
+.carousel-container:has(.carousel-slide.active .highlight-yellow) { --slide-accent: var(--trace-yellow); }
+.carousel-container:has(.carousel-slide.active .highlight-green) { --slide-accent: var(--trace-green); }
+.carousel-container:has(.carousel-slide.active .highlight-red) { --slide-accent: var(--trace-red); }
+.carousel-container:has(.carousel-slide.active .highlight-periwinkle) { --slide-accent: var(--trace-periwinkle); }
+.carousel-container:has(.carousel-slide.active .highlight-orange) { --slide-accent: var(--trace-orange); }
+.carousel-container:has(.carousel-slide.active .highlight-teal) { --slide-accent: var(--trace-teal); }
+.carousel-container:has(.carousel-slide.active .highlight-pink) { --slide-accent: var(--trace-pink); }
 
 @media (max-width: 1024px) {
     .feature-container {

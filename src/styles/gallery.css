@@ -45,7 +45,7 @@
 
 /* Setup's tabs, without their page margins. Outranks .scenario-selector (styles/tabs.css). */
 .gallery-head .gallery-switch {
-    flex: 0 0 240px;
+    flex: 0 0 360px;
     margin: 0;
 }
 
@@ -54,9 +54,23 @@
 }
 
 /* Only the picked frontend's screenshots show. A hidden lazy image never loads. */
-.gallery-section[data-ui="electron"] [data-ui="qt"]:not(.gallery-switch-btn),
-.gallery-section[data-ui="qt"] [data-ui="electron"]:not(.gallery-switch-btn) {
+.gallery-section:not([data-ui="electron"]) [data-ui="electron"]:not(.gallery-switch-btn),
+.gallery-section:not([data-ui="qt"]) [data-ui="qt"]:not(.gallery-switch-btn),
+.gallery-section:not([data-ui="android"]) [data-ui="android"]:not(.gallery-switch-btn),
+/* On Android a screen's own name, number and caption replace the desktop ones, and a screen it lacks is left out */
+.gallery-section[data-ui="android"] .desc-desktop,
+.gallery-section[data-ui="android"] .no-android {
     display: none;
+}
+
+/* Android captures have no window shadow to trim: they fill a frame of their own shape */
+.gallery-section[data-ui="android"] .img-zoom-wrapper {
+    aspect-ratio: 2560 / 1488;
+}
+
+.gallery-section[data-ui="android"] .shot .mockup-img {
+    width: 100%;
+    margin: 0;
 }
 
 .gallery-group + .gallery-group {
@@ -94,7 +108,7 @@
     }
 
     .gallery-head .gallery-switch {
-        flex-basis: 180px;
+        flex-basis: 270px;
     }
 
     .gallery-grid {

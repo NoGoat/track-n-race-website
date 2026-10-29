@@ -80,9 +80,10 @@
     background: var(--line-hover);
 }
 
+/* Pages can colour it per slide (styles/home.css sets --slide-accent from the slide title) */
 .dot.active {
     width: 48px;
-    background: var(--accent);
+    background: var(--slide-accent, var(--accent));
 }
 
 .carousel-btn {

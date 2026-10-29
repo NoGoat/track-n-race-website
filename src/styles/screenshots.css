@@ -99,6 +99,16 @@
     margin: -3.122% 0 0 -4.621%;   /* 75 / 2402, 111 / 2402 */
 }
 
+/* Android captures have no window shadow to trim: they fill a frame of their own shape */
+.shot-android .img-zoom-wrapper {
+    aspect-ratio: 2560 / 1488;
+}
+
+.shot-android .mockup-img {
+    width: 100%;
+    margin: 0;
+}
+
 /* The Overview captures are pre-trimmed to 46/10/46/82 shadow margins (2492x1492) */
 .shot-trimmed .mockup-img {
     width: 103.747%;   /* 2492 / 2402 */
