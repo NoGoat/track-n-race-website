@@ -1,5 +1,7 @@
 ---
 import Base from '../layouts/Base.astro';
+import DownloadModal from '../components/DownloadModal.astro';
+import DownloadButton from '../components/DownloadButton.astro';
 import '../styles/pages/setup.css';
 
 const jsonLd = {
@@ -32,16 +34,16 @@ const jsonLd = {
         "name": "Track N Race"
       },
       "name": "How to Setup UDP Telemetry in F1 Games for Track N Race",
-      "description": "Step-by-step instructions to configure UDP broadcast telemetry settings in F1 24, F1 25, and 2026 DLC for real-time data recording and lap analysis with Track N Race.",
+      "description": "Step-by-step instructions to configure UDP telemetry in F1 24, F1 25, and 2026 Season Pack for Track N Race on a PC, a second computer, or an Android phone or tablet.",
       "totalTime": "PT3M",
       "supply": [
         {
           "@type": "HowToSupply",
-          "name": "Track N Race Application"
+          "name": "Track N Race for Windows, macOS, Linux or Android"
         },
         {
           "@type": "HowToSupply",
-          "name": "F1 24, F1 25, or 2026 DLC Game (PC, PlayStation, or Xbox)"
+          "name": "F1 24, F1 25, or 2026 Season Pack Game (PC, PlayStation, or Xbox)"
         }
       ],
       "step": [
@@ -67,19 +69,91 @@ const jsonLd = {
           "@type": "HowToStep",
           "position": 4,
           "name": "Configure UDP IP Address",
-          "text": "For playing on the same PC, enter 127.0.0.1. For playing on a Console (PS5, Xbox) or secondary PC, enter your Track N Race host machine local IP address."
+          "text": "For playing on the same PC, enter 127.0.0.1. For a console or a second computer, enter the local IP address of the computer running Track N Race. For Track N Race on Android in Direct mode, enter the phone's Wi-Fi IP address."
+        },
+        {
+          "@type": "HowToStep",
+          "position": 5,
+          "name": "Pair an Android phone (optional)",
+          "text": "To mirror a desktop onto Android, open Settings -> Paired Devices on the desktop, enable paired mode and select Pair a device, then in the Android app open Settings -> Pair a desktop and scan the QR code or enter the matching code."
         }
       ]
     }
   ]
 };
+
+// Shared icons (Lucide-style strokes; brand marks from Simple Icons, CC0)
+const icon = {
+    monitor: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="3" width="20" height="14" rx="2"></rect><line x1="8" y1="21" x2="16" y2="21"></line><line x1="12" y1="17" x2="12" y2="21"></line></svg>',
+    gamepad: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="6" width="20" height="12" rx="2"></rect><path d="M6 12h4m-2-2v4m7-2h.01m2.99 0h.01"></path></svg>',
+    phone: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="2" width="14" height="20" rx="2"></rect><line x1="12" y1="18" x2="12.01" y2="18"></line></svg>',
+    both: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="1" y="4" width="15" height="11" rx="2"></rect><line x1="5" y1="19" x2="11" y2="19"></line><rect x="16" y="9" width="7" height="12" rx="1.5"></rect></svg>',
+    laptop: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="4" width="16" height="11" rx="1.5"></rect><path d="M2 19h20"></path></svg>',
+    windows: '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M0,0H11.377V11.372H0ZM12.623,0H24V11.372H12.623ZM0,12.623H11.377V24H0Zm12.623,0H24V24H12.623" /></svg>',
+    apple: '<svg class="apple" viewBox="0 0 384 512" fill="currentColor" aria-hidden="true"><path d="M318.7 268.7c-.2-36.7 16.4-64.4 50-84.8-18.8-26.9-47.2-41.7-84.7-44.6-35.5-2.8-74.3 20.7-88.5 20.7-15 0-49.4-19.7-76.4-19.7C63.3 141.2 4 184.8 4 273.5q0 39.3 14.4 81.2c12.8 36.7 59 126.7 107.2 125.2 25.2-.6 43-17.9 75.8-17.9 31.8 0 48.3 17.9 76.4 17.9 48.6-.7 90.4-82.5 102.6-119.3-65.2-30.7-61.7-90-61.7-91.9zm-56.6-164.2c27.3-32.4 24.8-61.9 24-72.5-24.1 1.4-52 16.4-67.9 34.9-17.5 19.8-27.8 44.3-25.6 71.9 26.1 2 49.9-11.4 69.5-34.3z" /></svg>',
+    tux: '<svg class="tux" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12.504 0c-.155 0-.315.008-.48.021-4.226.333-3.105 4.807-3.17 6.298-.076 1.092-.3 1.953-1.05 3.02-.885 1.051-2.127 2.75-2.716 4.521-.278.832-.41 1.684-.287 2.489a.424.424 0 00-.11.135c-.26.268-.45.6-.663.839-.199.199-.485.267-.797.4-.313.136-.658.269-.864.68-.09.189-.136.394-.132.602 0 .199.027.4.055.536.058.399.116.728.04.97-.249.68-.28 1.145-.106 1.484.174.334.535.47.94.601.81.2 1.91.135 2.774.6.926.466 1.866.67 2.616.47.526-.116.97-.464 1.208-.946.587-.003 1.23-.269 2.26-.334.699-.058 1.574.267 2.577.2.025.134.063.198.114.333l.003.003c.391.778 1.113 1.132 1.884 1.071.771-.06 1.592-.536 2.257-1.306.631-.765 1.683-1.084 2.378-1.503.348-.199.629-.469.649-.853.023-.4-.2-.811-.714-1.376v-.097l-.003-.003c-.17-.2-.25-.535-.338-.926-.085-.401-.182-.786-.492-1.046h-.003c-.059-.054-.123-.067-.188-.135a.357.357 0 00-.19-.064c.431-1.278.264-2.55-.173-3.694-.533-1.41-1.465-2.638-2.175-3.483-.796-1.005-1.576-1.957-1.56-3.368.026-2.152.236-6.133-3.544-6.139zm.529 3.405h.013c.213 0 .396.062.584.198.19.135.33.332.438.533.105.259.158.459.166.724 0-.02.006-.04.006-.06v.105a.086.086 0 01-.004-.021l-.004-.024a1.807 1.807 0 01-.15.706.953.953 0 01-.213.335.71.71 0 00-.088-.042c-.104-.045-.198-.064-.284-.133a1.312 1.312 0 00-.22-.066c.05-.06.146-.133.183-.198.053-.128.082-.264.088-.402v-.02a1.21 1.21 0 00-.061-.4c-.045-.134-.101-.2-.183-.333-.084-.066-.167-.132-.267-.132h-.016c-.093 0-.176.03-.262.132a.8.8 0 00-.205.334 1.18 1.18 0 00-.09.4v.019c.002.089.008.179.02.267-.193-.067-.438-.135-.607-.202a1.635 1.635 0 01-.018-.2v-.02a1.772 1.772 0 01.15-.768c.082-.22.232-.406.43-.533a.985.985 0 01.594-.2zm-2.962.059h.036c.142 0 .27.048.399.135.146.129.264.288.344.465.09.199.14.4.153.667v.004c.007.134.006.2-.002.266v.08c-.03.007-.056.018-.083.024-.152.055-.274.135-.393.2.012-.09.013-.18.003-.267v-.015c-.012-.133-.04-.2-.082-.333a.613.613 0 00-.166-.267.248.248 0 00-.183-.064h-.021c-.071.006-.13.04-.186.132a.552.552 0 00-.12.27.944.944 0 00-.023.33v.015c.012.135.037.2.08.334.046.134.098.2.166.268.01.009.02.018.034.024-.07.057-.117.07-.176.136a.304.304 0 01-.131.068 2.62 2.62 0 01-.275-.402 1.772 1.772 0 01-.155-.667 1.759 1.759 0 01.08-.668 1.43 1.43 0 01.283-.535c.128-.133.26-.2.418-.2zm1.37 1.706c.332 0 .733.065 1.216.399.293.2.523.269 1.052.468h.003c.255.136.405.266.478.399v-.131a.571.571 0 01.016.47c-.123.31-.516.643-1.063.842v.002c-.268.135-.501.333-.775.465-.276.135-.588.292-1.012.267a1.139 1.139 0 01-.448-.067 3.566 3.566 0 01-.322-.198c-.195-.135-.363-.332-.612-.465v-.005h-.005c-.4-.246-.616-.512-.686-.71-.07-.268-.005-.47.193-.6.224-.135.38-.271.483-.336.104-.074.143-.102.176-.131h.002v-.003c.169-.202.436-.47.839-.601.139-.036.294-.065.466-.065zm2.8 2.142c.358 1.417 1.196 3.475 1.735 4.473.286.534.855 1.659 1.102 3.024.156-.005.33.018.513.064.646-1.671-.546-3.467-1.089-3.966-.22-.2-.232-.335-.123-.335.59.534 1.365 1.572 1.646 2.757.13.535.16 1.104.021 1.67.067.028.135.06.205.067 1.032.534 1.413.938 1.23 1.537v-.043c-.06-.003-.12 0-.18 0h-.016c.151-.467-.182-.825-1.065-1.224-.915-.4-1.646-.336-1.77.465-.008.043-.013.066-.018.135-.068.023-.139.053-.209.064-.43.268-.662.669-.793 1.187-.13.533-.17 1.156-.205 1.869v.003c-.02.334-.17.838-.319 1.35-1.5 1.072-3.58 1.538-5.348.334a2.645 2.645 0 00-.402-.533 1.45 1.45 0 00-.275-.333c.182 0 .338-.03.465-.067a.615.615 0 00.314-.334c.108-.267 0-.697-.345-1.163-.345-.467-.931-.995-1.788-1.521-.63-.4-.986-.87-1.15-1.396-.165-.534-.143-1.085-.015-1.645.245-1.07.873-2.11 1.274-2.763.107-.065.037.135-.408.974-.396.751-1.14 2.497-.122 3.854a8.123 8.123 0 01.647-2.876c.564-1.278 1.743-3.504 1.836-5.268.048.036.217.135.289.202.218.133.38.333.59.465.21.201.477.335.876.335.039.003.075.006.11.006.412 0 .73-.134.997-.268.29-.134.52-.334.74-.4h.005c.467-.135.835-.402 1.044-.7zm2.185 8.958c.037.6.343 1.245.882 1.377.588.134 1.434-.333 1.791-.765l.211-.01c.315-.007.577.01.847.268l.003.003c.208.199.305.53.391.876.085.4.154.78.409 1.066.486.527.645.906.636 1.14l.003-.007v.018l-.003-.012c-.015.262-.185.396-.498.595-.63.401-1.746.712-2.457 1.57-.618.737-1.37 1.14-2.036 1.191-.664.053-1.237-.2-1.574-.898l-.005-.003c-.21-.4-.12-1.025.056-1.69.176-.668.428-1.344.463-1.897.037-.714.076-1.335.195-1.814.12-.465.308-.797.641-.984l.045-.022zm-10.814.049h.01c.053 0 .105.005.157.014.376.055.706.333 1.023.752l.91 1.664.003.003c.243.533.754 1.064 1.189 1.637.434.598.77 1.131.729 1.57v.006c-.057.744-.48 1.148-1.125 1.294-.645.135-1.52.002-2.395-.464-.968-.536-2.118-.469-2.857-.602-.369-.066-.61-.2-.723-.4-.11-.2-.113-.602.123-1.23v-.004l.002-.003c.117-.334.03-.752-.027-1.118-.055-.401-.083-.71.043-.94.16-.334.396-.4.69-.533.294-.135.64-.202.915-.47h.002v-.002c.256-.268.445-.601.668-.838.19-.201.38-.336.663-.336zm7.159-9.074c-.435.201-.945.535-1.488.535-.542 0-.97-.267-1.28-.466-.154-.134-.28-.268-.373-.335-.164-.134-.144-.333-.074-.333.109.016.129.134.199.2.096.066.215.2.36.333.292.2.68.467 1.167.467.485 0 1.053-.267 1.398-.466.195-.135.445-.334.648-.467.156-.136.149-.267.279-.267.128.016.034.134-.147.332a8.097 8.097 0 01-.69.468zm-1.082-1.583V5.64c-.006-.02.013-.042.029-.05.074-.043.18-.027.26.004.063 0 .16.067.15.135-.006.049-.085.066-.135.066-.055 0-.092-.043-.141-.068-.052-.018-.146-.008-.163-.065zm-.551 0c-.02.058-.113.049-.166.066-.047.025-.086.068-.14.068-.05 0-.13-.02-.136-.068-.01-.066.088-.133.15-.133.08-.031.184-.047.259-.005.019.009.036.03.03.05v.02h.003z" /></svg>',
+    copy: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>',
+    info: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>',
+};
+
+// The questions, in order. data-when (see scripts/setup.js) says which answers a block needs to be shown.
+const questions = [
+    {
+        name: 'platform',
+        title: 'What do you play F1 on?',
+        options: [
+            { value: 'pc', label: 'PC', desc: 'Steam or EA app', icon: icon.monitor },
+            { value: 'console', label: 'PlayStation or Xbox', desc: 'PS5, PS4, Xbox Series X|S or One', icon: icon.gamepad },
+        ],
+    },
+    {
+        name: 'game',
+        title: 'Which game?',
+        when: 'platform=*',
+        options: [
+            { value: 'f124', label: 'F1 24' },
+            { value: 'f125', label: 'F1 25' },
+            { value: 'f126', label: 'F1 25 + 2026 Season Pack' },
+        ],
+    },
+    {
+        name: 'view',
+        title: 'Where do you want to see your telemetry?',
+        when: 'game=*',
+        options: [
+            { value: 'computer', label: 'On a computer', desc: 'Windows, macOS or Linux', icon: icon.laptop },
+            { value: 'android', label: 'On an Android phone or tablet', desc: 'iOS not supported', icon: icon.phone },
+            { value: 'both', label: 'Both Android and PC', desc: 'The phone mirrors the desktop app', icon: icon.both },
+        ],
+    },
+    {
+        name: 'host',
+        title: 'Which computer runs Track N Race?',
+        when: 'platform=pc view=computer,both',
+        options: [
+            { value: 'same', label: 'The PC I play on', desc: 'Second monitor, or alt-tab', icon: icon.monitor },
+            { value: 'other', label: 'A different computer', desc: 'Laptop, Mac or second PC', icon: icon.laptop },
+        ],
+    },
+    {
+        name: 'os',
+        title: 'What does that computer run?',
+        // Consoles always need a separate computer, so they skip the question above
+        when: 'host=other',
+        options: [
+            { value: 'windows', label: 'Windows', icon: icon.windows },
+            { value: 'macos', label: 'macOS', icon: icon.apple },
+            { value: 'linux', label: 'Linux', icon: icon.tux },
+        ],
+    },
+];
 ---
 <Base jsonLd={jsonLd}>
     <Fragment slot="head">
         <!-- Primary Meta Tags -->
         <title>F1 Game telemetry Setup Guide — Configure UDP for Track N Race</title>
         <meta name="description"
-            content="Step-by-step guide to configure UDP Telemetry in F1 24, F1 25, and 2026 DLC for Track N Race. Protocol setup, UDP port 20777, packet rate, and IP discovery for PC, PS5, and Xbox.">
+            content="Answer a few questions to get the exact UDP telemetry settings for F1 24, F1 25 and 2026 Season Pack with Track N Race: same PC, second computer, PS5, Xbox, or Android in Direct or Paired mode.">
         <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1">
         <meta name="author" content="NoGoat">
         <meta name="application-name" content="Track N Race">
@@ -93,7 +167,7 @@ const jsonLd = {
         <meta property="og:url" content="https://track-n-race.com/setup/">
         <meta property="og:title" content="F1 Game telemetry Setup Guide — Configure UDP for Track N Race">
         <meta property="og:description"
-            content="Step-by-step guide to configure UDP Telemetry in F1 24, F1 25, and 2026 DLC for Track N Race. Protocol setup, UDP port 20777, packet rate, and IP discovery for PC, PS5, and Xbox.">
+            content="Answer a few questions to get the exact UDP telemetry settings for F1 24, F1 25 and 2026 Season Pack with Track N Race: same PC, second computer, PS5, Xbox, or Android in Direct or Paired mode.">
         <meta property="og:image" content="https://track-n-race.com/assets/og-image.png">
         <meta property="og:image:width" content="1200">
         <meta property="og:image:height" content="630">
@@ -104,14 +178,12 @@ const jsonLd = {
         <meta name="twitter:url" content="https://track-n-race.com/setup/">
         <meta name="twitter:title" content="F1 Game telemetry Setup Guide — Configure UDP for Track N Race">
         <meta name="twitter:description"
-            content="Step-by-step guide to configure UDP Telemetry in F1 24, F1 25, and 2026 DLC for Track N Race. Protocol setup, UDP port 20777, packet rate, and IP discovery for PC, PS5, and Xbox.">
+            content="Answer a few questions to get the exact UDP telemetry settings for F1 24, F1 25 and 2026 Season Pack with Track N Race: same PC, second computer, PS5, Xbox, or Android in Direct or Paired mode.">
         <meta name="twitter:image" content="https://track-n-race.com/assets/og-image.png">
         <meta name="twitter:image:alt" content="Track N Race overview dashboard showing live speed, RPM and ERS traces with tyre temperatures">
 
         <!-- Canonical URL -->
         <link rel="canonical" href="https://track-n-race.com/setup/">
-
-        <!-- JSON-LD Structured Data -->
     </Fragment>
 
     <main id="main">
@@ -120,246 +192,154 @@ const jsonLd = {
             <div class="page-header">
                 <h1 class="main-title">Telemetry <span class="gradient-text">setup guide</span></h1>
                 <p class="subtitle">
-                    Follow these steps to set up the game to send its telemetry data to Track N Race.
+                    Tell us how you play, and we'll tell you exactly what to set in the game and in Track N Race.
                 </p>
             </div>
 
-            <!-- Progressive Setup Flow -->
-            <div class="setup-flow">
+            <!-- Questionnaire (scripts/setup.js). Without JavaScript every answer's instructions show at once. -->
+            <form class="setup-quiz" id="setupQuiz" aria-label="Your setup">
+                {questions.map((q, i) => (
+                    <fieldset class="quiz-question" data-when={q.when}>
+                        <legend class="quiz-legend">
+                            <span class="quiz-num">{String(i + 1).padStart(2, '0')}</span>
+                            <span class="quiz-title">{q.title}</span>
+                        </legend>
+                        <div class="quiz-options" data-count={q.options.length}>
+                            {q.options.map(o => (
+                                <label class="quiz-option">
+                                    <input type="radio" name={q.name} value={o.value} />
+                                    {o.icon && <span class="quiz-option-icon" set:html={o.icon} />}
+                                    <span class="quiz-option-text">
+                                        <span class="quiz-option-label">{o.label}</span>
+                                        {o.desc && <span class="quiz-option-desc">{o.desc}</span>}
+                                    </span>
+                                </label>
+                            ))}
+                        </div>
+                    </fieldset>
+                ))}
+            </form>
 
-                <!-- Step 1: Turn on Telemetry -->
-                <div class="setup-step-card">
-                    <div class="setup-step-card-header">
-                        <div class="setup-step-title-group">
-                            <div class="setup-step-badge">01</div>
-                            <h2 class="setup-step-title">Turn On Telemetry</h2>
-                        </div>
+            <!-- Your setup: shown once every question that applies is answered -->
+            <section class="setup-result" id="setupResult" data-when="complete=yes" aria-labelledby="resultTitle" tabindex="-1">
+                <div class="result-head">
+                    <div>
+                        <p class="eyebrow">Your setup</p>
+                        <h2 class="result-title" id="resultTitle">
+                            <span data-when="link=desktop">Track N Race on a computer</span>
+                            <span data-when="link=direct">Android, Direct mode</span>
+                            <span data-when="link=paired">Desktop + Android, Paired mode</span>
+                        </h2>
                     </div>
-                    <p class="step-desc">
-                        Launch your game and navigate to <strong>Settings</strong> &rarr; <strong>Telemetry
-                            Settings</strong>. Configure the following broadcast options:
-                    </p>
-                    <div class="config-list">
-                        <div class="config-item">
-                            <div class="config-info">
-                                <span class="config-label">UDP Telemetry</span>
-                            </div>
-                            <div class="config-value-group">
-                                <span class="code-pill green">On</span>
-                            </div>
-                        </div>
-                        <div class="config-item">
-                            <div class="config-info">
-                                <span class="config-label">UDP Send Rate</span>
-                            </div>
-                            <div class="config-value-group">
-                                <span class="code-pill">10Hz</span>
-                                <span class="code-pill">20Hz</span>
-                                <span class="code-pill">30Hz</span>
-                                <span class="code-pill">60Hz</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Step 2: Protocol Selection -->
-                <div class="setup-step-card">
-                    <div class="setup-step-card-header">
-                        <div class="setup-step-title-group">
-                            <div class="setup-step-badge">02</div>
-                            <h2 class="setup-step-title">Set Protocol Format</h2>
-                        </div>
-                    </div>
-                    <p class="step-desc">
-                        Set the UDP format to match what is supported by your game. For the best experience, use the
-                        highest possible version supported by both the game and the app.
-                    </p>
-                    <div class="config-list">
-                        <div class="config-item">
-                            <div class="config-info">
-                                <span class="config-label">F1 25 / 2026 DLC</span>
-                            </div>
-                            <div class="config-value-group">
-                                <span class="code-pill">2026</span>
-                                <span class="code-pill">2025</span>
-                                <span class="code-pill">2024</span>
-                            </div>
-                        </div>
-                        <div class="config-item">
-                            <div class="config-info">
-                                <span class="config-label">F1 24</span>
-                            </div>
-                            <div class="config-value-group">
-                                <span class="code-pill">2024</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Step 3: Set UDP Port -->
-                <div class="setup-step-card">
-                    <div class="setup-step-card-header">
-                        <div class="setup-step-title-group">
-                            <div class="setup-step-badge">03</div>
-                            <h2 class="setup-step-title">Set UDP Port</h2>
-                        </div>
-                    </div>
-                    <p class="step-desc">
-                        In the in-game Telemetry Settings, set the <strong>UDP Port</strong> to match the value
-                        configured in the Track N Race application.
-                    </p>
-                    <div class="config-list">
-                        <div class="config-item">
-                            <div class="config-info">
-                                <span class="config-label">UDP Port</span>
-                                <span class="config-subtext">Track N Race listens on port <code>20777</code> by default.
-                                    If you configured a custom port inside Track N Race settings, enter that exact port
-                                    number in the game.</span>
-                            </div>
-                            <div class="config-value-group">
-                                <span class="code-pill">Match app</span>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="step-callout">
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                            stroke-width="2"
-                            stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                            <circle cx="12" cy="12" r="10"></circle>
-                            <line x1="12" y1="16" x2="12" y2="12"></line>
-                            <line x1="12" y1="8" x2="12.01" y2="8"></line>
-                        </svg>
-                        <span>Make sure no other background software or secondary telemetry recorder is occupying the
-                            same port.</span>
-                    </div>
-                </div>
-
-                <!-- Step 4: Configure Target IP Address -->
-                <div class="setup-step-card">
-                    <div class="setup-step-card-header">
-                        <div class="setup-step-title-group">
-                            <div class="setup-step-badge">04</div>
-                            <h2 class="setup-step-title">Set Target IP Address</h2>
-                        </div>
-                    </div>
-                    <p class="step-desc">
-                        Configure the <strong>UDP IP Address</strong> in game based on whether Track N Race is running
-                        on the same computer or across your local network.
-                    </p>
-
-                    <!-- Scenario Switcher -->
-                    <div class="scenario-selector" role="tablist" aria-label="Setup Scenario Selection">
-                        <button class="scenario-btn active" id="scenarioSingleBtn" type="button" role="tab" aria-selected="true"
-                            aria-controls="scenarioSinglePane">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                                stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                                <rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect>
-                                <line x1="8" y1="21" x2="16" y2="21"></line>
-                                <line x1="12" y1="17" x2="12" y2="21"></line>
-                            </svg>
-                            <span>Single PC (Same System)</span>
+                    <div class="result-actions">
+                        <button class="copy-action-btn" type="button" id="copySetupLink" data-copy="">
+                            <Fragment set:html={icon.copy} />
+                            <span class="copy-label">Copy link</span><span class="visually-hidden"> to this setup</span>
                         </button>
-                        <button class="scenario-btn" id="scenarioDualBtn" type="button" role="tab" aria-selected="false"
-                            aria-controls="scenarioDualPane" tabindex="-1">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                                stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                                <rect x="2" y="6" width="20" height="12" rx="2"></rect>
-                                <path d="M6 12h4m-2-2v4m7-2h.01m2.99 0h.01"></path>
-                            </svg>
-                            <span>Dual System / Console (PC, PS5, Xbox)</span>
-                        </button>
+                        <button class="copy-action-btn" type="button" id="resetSetup">Start over</button>
                     </div>
+                </div>
 
-                    <!-- Scenario 1: Same PC -->
-                    <div class="scenario-pane active" id="scenarioSinglePane" role="tabpanel"
-                        aria-labelledby="scenarioSingleBtn">
-                        <div class="config-list">
-                            <div class="config-item">
-                                <div class="config-info">
-                                    <span class="config-label">Target UDP IP Address</span>
-                                </div>
-                                <div class="config-value-group">
-                                    <span class="code-pill green">127.0.0.1</span>
-                                </div>
+                <!-- Where the data goes -->
+                <ol class="flow-diagram" aria-label="How telemetry travels">
+                    <li class="flow-node">
+                        <span class="flow-icon" set:html={icon.gamepad} />
+                        <span class="flow-name"><span data-fill="game-name">F1</span></span>
+                        <span class="flow-detail">on <span data-fill="platform-name">your device</span></span>
+                    </li>
+                    <li class="flow-link">
+                        <span class="flow-link-label">UDP · 20777</span>
+                        <span class="flow-link-detail" data-when="ip=loopback">inside this PC</span>
+                        <span class="flow-link-detail" data-when="ip=windows,macos,linux,android">over your network</span>
+                    </li>
+                    <li class="flow-node" data-when="link=desktop,paired">
+                        <span class="flow-icon" set:html={icon.laptop} />
+                        <span class="flow-name">Track N Race</span>
+                        <span class="flow-detail">on <span data-fill="host-name">your computer</span></span>
+                    </li>
+                    <li class="flow-link" data-when="link=paired">
+                        <span class="flow-link-label">Paired</span>
+                        <span class="flow-link-detail">encrypted, over Wi-Fi</span>
+                    </li>
+                    <li class="flow-node" data-when="link=direct,paired">
+                        <span class="flow-icon" set:html={icon.phone} />
+                        <span class="flow-name">Track N Race</span>
+                        <span class="flow-detail">
+                            for Android
+                            <span data-when="link=direct">· Direct</span>
+                            <span data-when="link=paired">· Paired</span>
+                        </span>
+                    </li>
+                </ol>
+
+                <p class="mode-explainer" data-when="link=direct">
+                    <strong>Direct mode:</strong> the game sends its telemetry straight to your phone, and the phone
+                    decodes and records it itself. No computer involved.
+                </p>
+                <p class="mode-explainer" data-when="link=paired">
+                    <strong>Paired mode:</strong> the game talks only to your computer. The phone connects to the
+                    desktop app and shows what it shows, live or during playback of a recording, so you never have to
+                    change the game's settings to switch screens.
+                </p>
+                <p class="mode-explainer" data-when="link=direct">
+                    Want a computer in the loop as well? Pick <button class="text-btn" type="button" data-answer="view=both">computer and Android</button> to use Paired mode instead.
+                </p>
+
+                <div class="setup-flow">
+                    <!-- Get the apps -->
+                    <div class="setup-step-card result-step">
+                        <div class="setup-step-card-header">
+                            <div class="setup-step-title-group">
+                                <div class="setup-step-badge">01</div>
+                                <h3 class="setup-step-title">Get Track N Race</h3>
                             </div>
                         </div>
+                        <p class="step-desc">
+                            <span data-when="link=desktop">Install Track N Race on <strong data-fill="host-name">your computer</strong>.</span>
+                            <span data-when="link=direct">Install Track N Race for Android on your phone or tablet. It's an <code>.apk</code>: Android asks you to allow installs from your browser the first time.</span>
+                            <span data-when="link=paired">Install Track N Race on <strong data-fill="host-name">your computer</strong>, and Track N Race for Android on your phone or tablet. Both need the same version for pairing.</span>
+                        </p>
+                        <div class="step-cta">
+                            <DownloadButton />
+                        </div>
+                        <p class="step-callout" data-when="link=desktop,paired">
+                            <Fragment set:html={icon.info} />
+                            <span>Paired mode needs the full desktop app (Electron<span data-when="native=yes"> or Native</span>). The Minimal Recorder can't pair with a phone.</span>
+                        </p>
                     </div>
 
-                    <!-- Scenario 2: Dual System / Console -->
-                    <div class="scenario-pane" id="scenarioDualPane" role="tabpanel" aria-labelledby="scenarioDualBtn">
-                        <div class="config-list">
-                            <div class="config-item">
-                                <div class="config-info">
-                                    <span class="config-label">Target UDP IP Address</span>
-                                </div>
-                                <div class="config-value-group">
-                                    <span class="code-pill">Second System's Local IP</span>
-                                </div>
+                    <!-- Find the receiving device's IP -->
+                    <div class="setup-step-card result-step" data-when="ip=windows,macos,linux,android">
+                        <div class="setup-step-card-header">
+                            <div class="setup-step-title-group">
+                                <div class="setup-step-badge">02</div>
+                                <h3 class="setup-step-title">Find <span data-fill="ip-owner">its</span> IP address</h3>
                             </div>
                         </div>
+                        <p class="step-desc">
+                            The game needs the local network address of <strong data-fill="ip-device">the device</strong>
+                            running Track N Race. It looks like <code>192.168.1.150</code>.
+                        </p>
 
-                        <h3 class="subheading">Find the IP address of your second system</h3>
-
-                        <!-- Platform Tabs (Windows vs macOS vs Linux) -->
-                        <div class="platform-tabs-nav" role="tablist" aria-label="Platform IP Discovery">
-                            <button class="platform-tab-btn active" id="tabWindowsBtn" type="button" role="tab" aria-selected="true"
-                                aria-controls="paneWindows">
-                                <!-- Windows 11 logo (Simple Icons, CC0) -->
-                                <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-                                    <path d="M0,0H11.377V11.372H0ZM12.623,0H24V11.372H12.623ZM0,12.623H11.377V24H0Zm12.623,0H24V24H12.623" />
-                                </svg>
-                                <span>Windows</span>
-                            </button>
-                            <button class="platform-tab-btn" id="tabMacosBtn" type="button" role="tab" aria-selected="false"
-                                aria-controls="paneMacos" tabindex="-1">
-                                <svg class="apple" viewBox="0 0 384 512" fill="currentColor" aria-hidden="true">
-                                    <path
-                                        d="M318.7 268.7c-.2-36.7 16.4-64.4 50-84.8-18.8-26.9-47.2-41.7-84.7-44.6-35.5-2.8-74.3 20.7-88.5 20.7-15 0-49.4-19.7-76.4-19.7C63.3 141.2 4 184.8 4 273.5q0 39.3 14.4 81.2c12.8 36.7 59 126.7 107.2 125.2 25.2-.6 43-17.9 75.8-17.9 31.8 0 48.3 17.9 76.4 17.9 48.6-.7 90.4-82.5 102.6-119.3-65.2-30.7-61.7-90-61.7-91.9zm-56.6-164.2c27.3-32.4 24.8-61.9 24-72.5-24.1 1.4-52 16.4-67.9 34.9-17.5 19.8-27.8 44.3-25.6 71.9 26.1 2 49.9-11.4 69.5-34.3z" />
-                                </svg>
-                                <span>macOS</span>
-                            </button>
-                            <button class="platform-tab-btn" id="tabLinuxBtn" type="button" role="tab" aria-selected="false"
-                                aria-controls="paneLinux" tabindex="-1">
-                                <!-- Tux (Simple Icons, CC0) -->
-                                <svg class="tux" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-                                    <path d="M12.504 0c-.155 0-.315.008-.48.021-4.226.333-3.105 4.807-3.17 6.298-.076 1.092-.3 1.953-1.05 3.02-.885 1.051-2.127 2.75-2.716 4.521-.278.832-.41 1.684-.287 2.489a.424.424 0 00-.11.135c-.26.268-.45.6-.663.839-.199.199-.485.267-.797.4-.313.136-.658.269-.864.68-.09.189-.136.394-.132.602 0 .199.027.4.055.536.058.399.116.728.04.97-.249.68-.28 1.145-.106 1.484.174.334.535.47.94.601.81.2 1.91.135 2.774.6.926.466 1.866.67 2.616.47.526-.116.97-.464 1.208-.946.587-.003 1.23-.269 2.26-.334.699-.058 1.574.267 2.577.2.025.134.063.198.114.333l.003.003c.391.778 1.113 1.132 1.884 1.071.771-.06 1.592-.536 2.257-1.306.631-.765 1.683-1.084 2.378-1.503.348-.199.629-.469.649-.853.023-.4-.2-.811-.714-1.376v-.097l-.003-.003c-.17-.2-.25-.535-.338-.926-.085-.401-.182-.786-.492-1.046h-.003c-.059-.054-.123-.067-.188-.135a.357.357 0 00-.19-.064c.431-1.278.264-2.55-.173-3.694-.533-1.41-1.465-2.638-2.175-3.483-.796-1.005-1.576-1.957-1.56-3.368.026-2.152.236-6.133-3.544-6.139zm.529 3.405h.013c.213 0 .396.062.584.198.19.135.33.332.438.533.105.259.158.459.166.724 0-.02.006-.04.006-.06v.105a.086.086 0 01-.004-.021l-.004-.024a1.807 1.807 0 01-.15.706.953.953 0 01-.213.335.71.71 0 00-.088-.042c-.104-.045-.198-.064-.284-.133a1.312 1.312 0 00-.22-.066c.05-.06.146-.133.183-.198.053-.128.082-.264.088-.402v-.02a1.21 1.21 0 00-.061-.4c-.045-.134-.101-.2-.183-.333-.084-.066-.167-.132-.267-.132h-.016c-.093 0-.176.03-.262.132a.8.8 0 00-.205.334 1.18 1.18 0 00-.09.4v.019c.002.089.008.179.02.267-.193-.067-.438-.135-.607-.202a1.635 1.635 0 01-.018-.2v-.02a1.772 1.772 0 01.15-.768c.082-.22.232-.406.43-.533a.985.985 0 01.594-.2zm-2.962.059h.036c.142 0 .27.048.399.135.146.129.264.288.344.465.09.199.14.4.153.667v.004c.007.134.006.2-.002.266v.08c-.03.007-.056.018-.083.024-.152.055-.274.135-.393.2.012-.09.013-.18.003-.267v-.015c-.012-.133-.04-.2-.082-.333a.613.613 0 00-.166-.267.248.248 0 00-.183-.064h-.021c-.071.006-.13.04-.186.132a.552.552 0 00-.12.27.944.944 0 00-.023.33v.015c.012.135.037.2.08.334.046.134.098.2.166.268.01.009.02.018.034.024-.07.057-.117.07-.176.136a.304.304 0 01-.131.068 2.62 2.62 0 01-.275-.402 1.772 1.772 0 01-.155-.667 1.759 1.759 0 01.08-.668 1.43 1.43 0 01.283-.535c.128-.133.26-.2.418-.2zm1.37 1.706c.332 0 .733.065 1.216.399.293.2.523.269 1.052.468h.003c.255.136.405.266.478.399v-.131a.571.571 0 01.016.47c-.123.31-.516.643-1.063.842v.002c-.268.135-.501.333-.775.465-.276.135-.588.292-1.012.267a1.139 1.139 0 01-.448-.067 3.566 3.566 0 01-.322-.198c-.195-.135-.363-.332-.612-.465v-.005h-.005c-.4-.246-.616-.512-.686-.71-.07-.268-.005-.47.193-.6.224-.135.38-.271.483-.336.104-.074.143-.102.176-.131h.002v-.003c.169-.202.436-.47.839-.601.139-.036.294-.065.466-.065zm2.8 2.142c.358 1.417 1.196 3.475 1.735 4.473.286.534.855 1.659 1.102 3.024.156-.005.33.018.513.064.646-1.671-.546-3.467-1.089-3.966-.22-.2-.232-.335-.123-.335.59.534 1.365 1.572 1.646 2.757.13.535.16 1.104.021 1.67.067.028.135.06.205.067 1.032.534 1.413.938 1.23 1.537v-.043c-.06-.003-.12 0-.18 0h-.016c.151-.467-.182-.825-1.065-1.224-.915-.4-1.646-.336-1.77.465-.008.043-.013.066-.018.135-.068.023-.139.053-.209.064-.43.268-.662.669-.793 1.187-.13.533-.17 1.156-.205 1.869v.003c-.02.334-.17.838-.319 1.35-1.5 1.072-3.58 1.538-5.348.334a2.645 2.645 0 00-.402-.533 1.45 1.45 0 00-.275-.333c.182 0 .338-.03.465-.067a.615.615 0 00.314-.334c.108-.267 0-.697-.345-1.163-.345-.467-.931-.995-1.788-1.521-.63-.4-.986-.87-1.15-1.396-.165-.534-.143-1.085-.015-1.645.245-1.07.873-2.11 1.274-2.763.107-.065.037.135-.408.974-.396.751-1.14 2.497-.122 3.854a8.123 8.123 0 01.647-2.876c.564-1.278 1.743-3.504 1.836-5.268.048.036.217.135.289.202.218.133.38.333.59.465.21.201.477.335.876.335.039.003.075.006.11.006.412 0 .73-.134.997-.268.29-.134.52-.334.74-.4h.005c.467-.135.835-.402 1.044-.7zm2.185 8.958c.037.6.343 1.245.882 1.377.588.134 1.434-.333 1.791-.765l.211-.01c.315-.007.577.01.847.268l.003.003c.208.199.305.53.391.876.085.4.154.78.409 1.066.486.527.645.906.636 1.14l.003-.007v.018l-.003-.012c-.015.262-.185.396-.498.595-.63.401-1.746.712-2.457 1.57-.618.737-1.37 1.14-2.036 1.191-.664.053-1.237-.2-1.574-.898l-.005-.003c-.21-.4-.12-1.025.056-1.69.176-.668.428-1.344.463-1.897.037-.714.076-1.335.195-1.814.12-.465.308-.797.641-.984l.045-.022zm-10.814.049h.01c.053 0 .105.005.157.014.376.055.706.333 1.023.752l.91 1.664.003.003c.243.533.754 1.064 1.189 1.637.434.598.77 1.131.729 1.57v.006c-.057.744-.48 1.148-1.125 1.294-.645.135-1.52.002-2.395-.464-.968-.536-2.118-.469-2.857-.602-.369-.066-.61-.2-.723-.4-.11-.2-.113-.602.123-1.23v-.004l.002-.003c.117-.334.03-.752-.027-1.118-.055-.401-.083-.71.043-.94.16-.334.396-.4.69-.533.294-.135.64-.202.915-.47h.002v-.002c.256-.268.445-.601.668-.838.19-.201.38-.336.663-.336zm7.159-9.074c-.435.201-.945.535-1.488.535-.542 0-.97-.267-1.28-.466-.154-.134-.28-.268-.373-.335-.164-.134-.144-.333-.074-.333.109.016.129.134.199.2.096.066.215.2.36.333.292.2.68.467 1.167.467.485 0 1.053-.267 1.398-.466.195-.135.445-.334.648-.467.156-.136.149-.267.279-.267.128.016.034.134-.147.332a8.097 8.097 0 01-.69.468zm-1.082-1.583V5.64c-.006-.02.013-.042.029-.05.074-.043.18-.027.26.004.063 0 .16.067.15.135-.006.049-.085.066-.135.066-.055 0-.092-.043-.141-.068-.052-.018-.146-.008-.163-.065zm-.551 0c-.02.058-.113.049-.166.066-.047.025-.086.068-.14.068-.05 0-.13-.02-.136-.068-.01-.066.088-.133.15-.133.08-.031.184-.047.259-.005.019.009.036.03.03.05v.02h.003z" />
-                                </svg>
-                                <span>Linux</span>
-                            </button>
-                        </div>
-
-                        <!-- Windows Pane -->
-                        <div class="platform-pane active" id="paneWindows" role="tabpanel"
-                            aria-labelledby="tabWindowsBtn">
+                        <div class="platform-pane" data-when="ip=windows">
                             <div class="platform-method-card">
-                                <div class="platform-method-header">
-                                    <span class="platform-method-badge">Option A &bull; Command Line (Fastest)</span>
-                                </div>
+                                <span class="platform-method-badge">Option A &bull; Command Line (Fastest)</span>
                                 <p class="config-subtext">
-                                    Press <kbd>Win</kbd> + <kbd>R</kbd>, type <code>cmd</code> or open PowerShell, then
-                                    run:
+                                    Press <kbd>Win</kbd> + <kbd>R</kbd>, type <code>cmd</code> or open PowerShell, then run:
                                 </p>
                                 <div class="command-box">
                                     <code>ipconfig</code>
                                     <button class="copy-action-btn" type="button" data-copy="ipconfig">
-                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                                            stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                                            <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
-                                            <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
-                                        </svg>
+                                        <Fragment set:html={icon.copy} />
                                         <span class="copy-label">Copy</span><span class="visually-hidden"> ipconfig</span>
                                     </button>
                                 </div>
                                 <p class="config-subtext">
-                                    Look for <strong>IPv4 Address</strong> under your active connection (e.g.
-                                    <code>192.168.1.150</code>).
+                                    Look for <strong>IPv4 Address</strong> under your active connection.
                                 </p>
                             </div>
-
                             <div class="platform-method-card">
-                                <div class="platform-method-header">
-                                    <span class="platform-method-badge">Option B &bull; Windows Settings</span>
-                                </div>
+                                <span class="platform-method-badge">Option B &bull; Windows Settings</span>
                                 <p class="config-subtext">
                                     Open <strong>Settings</strong> &rarr; <strong>Network &amp; internet</strong> &rarr;
                                     click <strong>Wi-Fi</strong> or <strong>Ethernet</strong> &rarr; scroll down to
@@ -368,41 +348,25 @@ const jsonLd = {
                             </div>
                         </div>
 
-                        <!-- macOS Pane -->
-                        <div class="platform-pane" id="paneMacos" role="tabpanel" aria-labelledby="tabMacosBtn">
+                        <div class="platform-pane" data-when="ip=macos">
                             <div class="platform-method-card">
-                                <div class="platform-method-header">
-                                    <span class="platform-method-badge">Option A &bull; System Settings</span>
-                                </div>
+                                <span class="platform-method-badge">Option A &bull; System Settings</span>
                                 <p class="config-subtext">
-                                    Click the <strong>Apple menu (<svg width="13" height="13" viewBox="0 0 24 24"
-                                            fill="currentColor"
-                                            style="display: inline-block; vertical-align: -0.12em; margin: 0 1px;"
-                                            role="img" aria-label="Apple logo">
-                                            <path
-                                                d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.81-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M15.97 6.37c.62-.75 1.04-1.8 0.92-2.85-.9.04-1.99.6-2.64 1.35-.58.67-1.09 1.74-.95 2.78 1.01.08 2.05-.53 2.67-1.28z" />
-                                        </svg>)</strong> &rarr; <strong>System Settings</strong>
+                                    Open the <strong>Apple menu</strong> &rarr; <strong>System Settings</strong>
                                     &rarr; <strong>Network</strong> &rarr; select your connected network
                                     (<strong>Wi-Fi</strong> or <strong>Ethernet</strong>) &rarr; click
                                     <strong>Details...</strong> to view your <strong>IP Address</strong>.
                                 </p>
                             </div>
-
                             <div class="platform-method-card">
-                                <div class="platform-method-header">
-                                    <span class="platform-method-badge">Option B &bull; Terminal</span>
-                                </div>
+                                <span class="platform-method-badge">Option B &bull; Terminal</span>
                                 <p class="config-subtext">
                                     Open <strong>Terminal</strong> and run the command for your active interface:
                                 </p>
                                 <div class="command-box">
                                     <code>ipconfig getifaddr en0</code>
                                     <button class="copy-action-btn" type="button" data-copy="ipconfig getifaddr en0">
-                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                                            stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                                            <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
-                                            <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
-                                        </svg>
+                                        <Fragment set:html={icon.copy} />
                                         <span class="copy-label">Copy</span><span class="visually-hidden"> ipconfig getifaddr en0</span>
                                     </button>
                                 </div>
@@ -412,23 +376,14 @@ const jsonLd = {
                             </div>
                         </div>
 
-                        <!-- Linux Pane -->
-                        <div class="platform-pane" id="paneLinux" role="tabpanel" aria-labelledby="tabLinuxBtn">
+                        <div class="platform-pane" data-when="ip=linux">
                             <div class="platform-method-card">
-                                <div class="platform-method-header">
-                                    <span class="platform-method-badge">Terminal</span>
-                                </div>
-                                <p class="config-subtext">
-                                    Open your terminal and run:
-                                </p>
+                                <span class="platform-method-badge">Terminal</span>
+                                <p class="config-subtext">Open your terminal and run:</p>
                                 <div class="command-box">
                                     <code>hostname -I</code>
                                     <button class="copy-action-btn" type="button" data-copy="hostname -I">
-                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                                            stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                                            <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
-                                            <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
-                                        </svg>
+                                        <Fragment set:html={icon.copy} />
                                         <span class="copy-label">Copy</span><span class="visually-hidden"> hostname -I</span>
                                     </button>
                                 </div>
@@ -437,37 +392,291 @@ const jsonLd = {
                                 </p>
                             </div>
                         </div>
+
+                        <div class="platform-pane" data-when="ip=android">
+                            <div class="platform-method-card">
+                                <span class="platform-method-badge">Option A &bull; In Track N Race (Easiest)</span>
+                                <p class="config-subtext">
+                                    Open Track N Race and tap the <strong>menu</strong> button in the top bar. The source
+                                    line shows the phone's address, like <code>Direct UDP · 192.168.1.42</code>.
+                                </p>
+                            </div>
+                            <div class="platform-method-card">
+                                <span class="platform-method-badge">Option B &bull; Wi-Fi Settings</span>
+                                <p class="config-subtext">
+                                    Open <strong>Settings</strong> &rarr; <strong>Network &amp; internet</strong> &rarr;
+                                    <strong>Internet</strong> &rarr; tap the gear icon next to your connected
+                                    <strong>Wi-Fi</strong> network to view the <strong>IP address</strong>. On Samsung
+                                    phones, go to <strong>Settings</strong> &rarr; <strong>Connections</strong> &rarr;
+                                    <strong>Wi-Fi</strong> instead. Menu names vary between manufacturers.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- In-game telemetry settings -->
+                    <div class="setup-step-card result-step">
+                        <div class="setup-step-card-header">
+                            <div class="setup-step-title-group">
+                                <div class="setup-step-badge">03</div>
+                                <h3 class="setup-step-title">Set up the game</h3>
+                            </div>
+                        </div>
+                        <p class="step-desc">
+                            In <span data-fill="game-name">the game</span>, open <strong>Settings</strong> &rarr;
+                            <strong>Telemetry Settings</strong> and set:
+                        </p>
+                        <div class="config-list">
+                            <div class="config-item">
+                                <div class="config-info"><span class="config-label">UDP Telemetry</span></div>
+                                <div class="config-value-group"><span class="code-pill green">On</span></div>
+                            </div>
+                            <div class="config-item">
+                                <div class="config-info">
+                                    <span class="config-label">UDP Broadcast Mode</span>
+                                    <span class="config-subtext">Sends to one address instead of the whole network.</span>
+                                </div>
+                                <div class="config-value-group"><span class="code-pill">Off</span></div>
+                            </div>
+                            <div class="config-item">
+                                <div class="config-info">
+                                    <span class="config-label">UDP IP Address</span>
+                                    <span class="config-subtext" data-when="ip=loopback">Means "this same PC".</span>
+                                    <span class="config-subtext" data-when="ip=windows,macos,linux,android">The address from step 02.</span>
+                                </div>
+                                <div class="config-value-group">
+                                    <span class="code-pill green" id="ipPill" data-fill="ip-target">127.0.0.1</span>
+                                </div>
+                            </div>
+                            <div class="config-item">
+                                <div class="config-info">
+                                    <span class="config-label">UDP Port</span>
+                                    <span class="config-subtext" data-when="link=desktop,paired">Track N Race's default. If you changed it in the app's
+                                        <strong>Settings</strong> &rarr; <strong>Network</strong>, use that instead.</span>
+                                    <span class="config-subtext" data-when="link=direct">The Android app always listens on this port.</span>
+                                </div>
+                                <div class="config-value-group"><span class="code-pill">20777</span></div>
+                            </div>
+                            <div class="config-item">
+                                <div class="config-info">
+                                    <span class="config-label">UDP Send Rate</span>
+                                    <span class="config-subtext">Higher is smoother. Drop to 20–30Hz if the
+                                        <span data-when="link=direct">phone</span><span data-when="link=desktop,paired">connection</span> struggles.</span>
+                                </div>
+                                <div class="config-value-group"><span class="code-pill green">60Hz</span></div>
+                            </div>
+                            <div class="config-item">
+                                <div class="config-info">
+                                    <span class="config-label">UDP Format</span>
+                                    <span class="config-subtext" data-when="game=f124">The only format F1 24 offers.</span>
+                                    <span class="config-subtext" data-when="game=f125">The newest format F1 25 offers.</span>
+                                    <span class="config-subtext" data-when="game=f126">The 2026 Season Pack's format. Older formats work too, but miss the newest data.</span>
+                                </div>
+                                <div class="config-value-group"><span class="code-pill green" data-fill="format">2025</span></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Track N Race on a computer, on its own -->
+                    <div class="setup-step-card result-step" data-when="link=desktop">
+                        <div class="setup-step-card-header">
+                            <div class="setup-step-title-group">
+                                <div class="setup-step-badge">04</div>
+                                <h3 class="setup-step-title">Start Track N Race</h3>
+                            </div>
+                        </div>
+                        <ol class="task-list">
+                            <li>Open Track N Race. It starts listening on port <code>20777</code> straight away.</li>
+                            <li data-when="host=other os=windows">If Windows asks whether to allow Track N Race on the network, allow it on <strong>Private networks</strong>.</li>
+                            <li data-when="host=other os=macos">If macOS asks whether Track N Race may accept incoming network connections, choose <strong>Allow</strong>.</li>
+                            <li>Leave the session menu and get on track. The dashboard fills in within a second.</li>
+                        </ol>
+                    </div>
+
+                    <!-- Direct mode -->
+                    <div class="setup-step-card result-step" data-when="link=direct">
+                        <div class="setup-step-card-header">
+                            <div class="setup-step-title-group">
+                                <div class="setup-step-badge">04</div>
+                                <h3 class="setup-step-title">Set the app to Direct mode</h3>
+                            </div>
+                        </div>
+                        <div class="device-steps">
+                            <div class="device-col">
+                                <p class="device-col-title"><Fragment set:html={icon.phone} /> On your phone</p>
+                                <ol class="task-list">
+                                    <li>Open Track N Race. On Android 17 and later, allow <strong>Nearby devices</strong> when asked: without it the app can't hear the game.</li>
+                                    <li>Go to <strong>Settings</strong> &rarr; <strong>Telemetry</strong> &rarr; <strong>Source</strong> and choose <strong>Direct UDP</strong>. It's the default.</li>
+                                    <li>Keep the dashboard open on screen while you drive. Android pauses the listener when the app is in the background.</li>
+                                </ol>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Paired mode -->
+                    <div class="setup-step-card result-step" data-when="link=paired">
+                        <div class="setup-step-card-header">
+                            <div class="setup-step-title-group">
+                                <div class="setup-step-badge">04</div>
+                                <h3 class="setup-step-title">Pair your phone</h3>
+                            </div>
+                        </div>
+                        <p class="step-desc">
+                            You only pair once. After that the phone finds the desktop by itself, even if its IP address changes.
+                        </p>
+                        <div class="device-steps">
+                            <div class="device-col">
+                                <p class="device-col-title"><Fragment set:html={icon.laptop} /> On <span data-fill="host-name">your computer</span></p>
+                                <ol class="task-list">
+                                    <li>Open Track N Race &rarr; <strong>Settings</strong> &rarr; <strong>Paired Devices</strong>.</li>
+                                    <li data-when="os=macos">macOS only: turn on <strong>Allow keychain access</strong> and restart the app. macOS then asks for your login password, because the app isn't signed with an Apple certificate.</li>
+                                    <li>Turn on <strong>Enable paired mode</strong>.</li>
+                                    <li>Click <strong>Pair a device</strong>. A QR code and an 8-character matching code appear for two minutes.</li>
+                                </ol>
+                            </div>
+                            <div class="device-col">
+                                <p class="device-col-title"><Fragment set:html={icon.phone} /> On your phone</p>
+                                <ol class="task-list">
+                                    <li>Open Track N Race &rarr; <strong>Settings</strong> &rarr; <strong>Telemetry</strong> &rarr; <strong>Pair a desktop</strong>. On Android 17 and later, allow <strong>Nearby devices</strong> when asked.</li>
+                                    <li>Tap <strong>Scan desktop QR</strong> and point it at the screen. Or pick your computer under <strong>Nearby desktops</strong> and type the matching code.</li>
+                                </ol>
+                            </div>
+                            <div class="device-col device-col-wide">
+                                <p class="device-col-title"><Fragment set:html={icon.both} /> To finish</p>
+                                <ol class="task-list">
+                                    <li>The desktop asks <strong>Allow &lt;your phone&gt;?</strong> Click <strong>Allow</strong>.</li>
+                                    <li>The phone switches its source to <strong>Paired desktop</strong> and shows whatever the desktop shows, live or in playback. The top bar says which driver it's following.</li>
+                                </ol>
+                            </div>
+                        </div>
+                        <p class="step-callout">
+                            <Fragment set:html={icon.info} />
+                            <span>Recording happens on the desktop in Paired mode. The phone doesn't save a second copy.</span>
+                        </p>
+                    </div>
+
+                    <!-- Recording: on the desktop, or on the phone in Direct mode -->
+                    <div class="setup-step-card result-step">
+                        <div class="setup-step-card-header">
+                            <div class="setup-step-title-group">
+                                <div class="setup-step-badge">05</div>
+                                <h3 class="setup-step-title">Record your sessions</h3>
+                            </div>
+                        </div>
+                        <p class="step-desc">
+                            Recording is off until you turn it on. Each session is saved as a <code>.tnrd</code> file
+                            you can play back and analyse later, lap by lap.
+                            <span data-when="link=paired">In Paired mode the desktop does the recording, so set it up there.</span>
+                        </p>
+
+                        <div class="device-steps" data-when="link=desktop,paired">
+                            <div class="device-col">
+                                <p class="device-col-title"><Fragment set:html={icon.laptop} /> Electron app</p>
+                                <ol class="task-list">
+                                    <li>Open <strong>Settings</strong> &rarr; <strong>Data Storage</strong>.</li>
+                                    <li>Turn on <strong>Record Session Data</strong>.</li>
+                                    <li>Next to <strong>Output Directory</strong>, click <strong>Browse</strong> and choose a folder.</li>
+                                    <li>Under <strong>Practice</strong>, <strong>Qualifying</strong>, <strong>Race</strong> and <strong>Time Trial Sessions</strong>, choose which drivers to save.</li>
+                                </ol>
+                            </div>
+                            <div class="device-col" data-when="native=yes">
+                                <p class="device-col-title"><Fragment set:html={icon.laptop} /> Native app</p>
+                                <ol class="task-list">
+                                    <li>Open <strong>Settings</strong> &rarr; <strong>Recording</strong>.</li>
+                                    <li>Tick <strong>Start recording when a session starts</strong>.</li>
+                                    <li>Next to <strong>Save to</strong>, click <strong>Change…</strong> and choose a folder.</li>
+                                    <li>Under <strong>Drivers to Save</strong>, choose an option for each session type.</li>
+                                </ol>
+                            </div>
+                        </div>
+
+                        <div class="config-list record-scopes" data-when="link=desktop,paired">
+                            <div class="config-item">
+                                <div class="config-info">
+                                    <span class="config-label">All Drivers</span>
+                                    <span class="config-subtext">Every car on track. Lets you compare against anyone afterwards. The default.</span>
+                                </div>
+                            </div>
+                            <div class="config-item">
+                                <div class="config-info">
+                                    <span class="config-label">Driver Only</span>
+                                    <span class="config-subtext">Just your car, so the files are smaller.</span>
+                                </div>
+                            </div>
+                            <div class="config-item">
+                                <div class="config-info">
+                                    <span class="config-label">Both</span>
+                                    <span class="config-subtext">Saves two files per session: one with every car, one with only yours.</span>
+                                </div>
+                            </div>
+                            <div class="config-item">
+                                <div class="config-info">
+                                    <span class="config-label">Ask <span class="config-tag">Electron</span></span>
+                                    <span class="config-subtext">Records both, then asks which to keep when the session ends.</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="device-steps" data-when="link=direct">
+                            <div class="device-col">
+                                <p class="device-col-title"><Fragment set:html={icon.phone} /> On your phone</p>
+                                <ol class="task-list">
+                                    <li>Open <strong>Settings</strong> &rarr; <strong>Recording</strong> and turn on <strong>Record sessions</strong>.</li>
+                                    <li>Recordings go to the app's Documents folder, in <code>Track N Race</code>. To save them somewhere else, tap <strong>Recording folder</strong> and pick one.</li>
+                                    <li>Recording only works in Direct mode. When paired, the desktop records instead.</li>
+                                </ol>
+                            </div>
+                        </div>
+
+                        <h4 class="record-subtitle">Watch a recording back</h4>
+                        <ul class="info-box-checklist">
+                            <li data-when="link=desktop,paired"><strong>Electron:</strong> click the upload icon in the title bar (<strong>Load Session Data File</strong>) and pick a <code>.tnrd</code> file.</li>
+                            <li data-when="link=desktop,paired native=yes"><strong>Native:</strong> click <strong>Open File</strong> in the toolbar. It asks first, because opening a file closes any live session.</li>
+                            <li data-when="link=paired"><strong>On the phone:</strong> start playback on the desktop and the phone follows it, pause, seek and speed included.</li>
+                            <li data-when="link=direct"><strong>On the phone:</strong> tap the <strong>menu</strong> button &rarr; <strong>Open recording</strong> to play a session saved on the phone.</li>
+                        </ul>
+
+                        <p class="step-callout" data-when="link=desktop">
+                            <Fragment set:html={icon.info} />
+                            <span>Only want recordings, with no dashboard? The Minimal Recorder in the download menu records every session automatically once you choose a folder.</span>
+                        </p>
+                    </div>
+
+                    <!-- Troubleshooting, for this setup only -->
+                    <div class="setup-step-card result-step">
+                        <div class="setup-step-card-header">
+                            <div class="setup-step-title-group">
+                                <div class="setup-step-badge">05</div>
+                                <h3 class="setup-step-title">If nothing shows up</h3>
+                            </div>
+                        </div>
+                        <ul class="info-box-checklist">
+                            <li><strong>Be on track.</strong> The game only sends telemetry once you're in a session, not from the main menu.</li>
+                            <li data-when="ip=windows,macos,linux,android"><strong>Same network.</strong> The
+                                <span data-fill="platform-name">game</span> and <span data-fill="ip-device">the device</span>
+                                must share a router. Guest Wi-Fi and some mesh systems block devices from talking to each other.</li>
+                            <li data-when="ip=windows,macos,linux,android"><strong>IP changed?</strong> Routers can hand out a new address after a restart. Check it again, or reserve one for the device in your router's settings.</li>
+                            <li data-when="ip=windows"><strong>Windows Firewall.</strong> Allow inbound UDP on port <code>20777</code> for Track N Race, and make sure your network is set to <strong>Private</strong>, not Public.</li>
+                            <li data-when="ip=macos"><strong>macOS Firewall.</strong> In <strong>System Settings</strong> &rarr; <strong>Network</strong> &rarr; <strong>Firewall</strong> &rarr; <strong>Options</strong>, make sure Track N Race is allowed incoming connections.</li>
+                            <li data-when="ip=linux"><strong>Firewall.</strong> Open UDP <code>20777</code> (for example <code>sudo ufw allow 20777/udp</code>).</li>
+                            <li data-when="link=direct"><strong>"Local network access is off".</strong> Grant <strong>Nearby devices</strong> to Track N Race in Android's app settings.</li>
+                            <li data-when="link=direct"><strong>Wi-Fi, not mobile data.</strong> Turn off any VPN on the phone; it can hide the Wi-Fi address from the game.</li>
+                            <li data-when="link=paired"><strong>Desktop not in Nearby desktops?</strong> Some networks block discovery. Use <strong>Scan desktop QR</strong> instead: the QR carries the address.</li>
+                            <li data-when="link=paired"><strong>Found but won't connect.</strong> Paired mode uses TCP port <code>20779</code> on the computer. Allow Track N Race through its firewall.</li>
+                            <li data-when="link=paired"><strong>"Pairing is not open on the desktop".</strong> The pairing window lasts two minutes. Click <strong>Pair a device</strong> again.</li>
+                            <li data-when="link=paired"><strong>"This is not the desktop this phone paired with".</strong> Track N Race was reinstalled on the computer. Use <strong>Forget paired desktop</strong> on the phone and pair again.</li>
+                            <li data-when="link=desktop,paired"><strong>Port in use.</strong> Only one app can listen on <code>20777</code>. Close other telemetry tools, or change the port in both the game and Track N Race.</li>
+                            <li data-when="link=desktop,paired"><strong>Wrong format.</strong> In Track N Race's <strong>Settings</strong> &rarr; <strong>Protocol</strong>, leave <strong>Protocol Version Override</strong> on <strong>Auto</strong> so it follows the game.</li>
+                        </ul>
                     </div>
                 </div>
-            </div>
-
-            <!-- Network & Firewall Guidance Box -->
-            <div class="info-box">
-                <div class="info-box-icon">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                            stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                        <circle cx="12" cy="12" r="10"></circle>
-                        <line x1="12" y1="16" x2="12" y2="12"></line>
-                        <line x1="12" y1="8" x2="12.01" y2="8"></line>
-                    </svg>
-                </div>
-                <div class="info-box-text">
-                    <strong>Connection &amp; firewall tips</strong>
-                    <ul class="info-box-checklist">
-                        <li><strong>Same Local Subnet:</strong> When using dual systems (e.g. gaming PC / console +
-                            secondary laptop / Mac), ensure both devices are connected to the same local network subnet
-                            (router/Wi-Fi).</li>
-                        <li><strong>Firewall Inbound Rule:</strong> Ensure inbound UDP traffic on port
-                            <code>20777</code> is permitted in your firewall settings on the machine running
-                            Track N Race.
-                        </li>
-                    </ul>
-                </div>
-            </div>
+            </section>
         </div>
         <!-- Copy results, read out by screen readers (scripts/setup.js) -->
         <p class="visually-hidden" id="copyStatus" role="status"></p>
     </main>
+
+    <DownloadModal slot="after-footer" />
 
     <script>
         import '../scripts/setup.js';

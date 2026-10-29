@@ -2,6 +2,427 @@
    Setup
    Driven by scripts/setup.js
    ========================================================================== */
+/* Blocks the questionnaire's answers rule out (data-when), and display rules below must not bring them back */
+.setup-quiz [hidden],
+.setup-result [hidden],
+.setup-result[hidden] {
+    display: none !important;
+}
+
+/* Questionnaire: one question per row, numbered like the steps, each new one fading in under the last */
+.setup-quiz {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 1rem;
+}
+
+.quiz-question {
+    display: grid;
+    grid-template-columns: 220px minmax(0, 1fr);
+    column-gap: 3rem;
+    padding: 1.75rem 0;
+    border: 0;
+    border-bottom: 1px solid var(--line);
+    animation: fadeIn 0.25s ease;
+}
+
+/* A legend can't be a grid item, so it floats into the first column */
+.quiz-legend {
+    float: left;
+    grid-column: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+    padding: 0;
+}
+
+.quiz-num {
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    color: var(--accent);
+}
+
+.quiz-num::before {
+    content: "Q ";
+    color: var(--text-3);
+}
+
+.quiz-title {
+    font-size: 1.1rem;
+    font-weight: 600;
+    line-height: 1.3;
+    letter-spacing: -0.02em;
+}
+
+.quiz-options {
+    grid-column: 2;
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.6rem;
+}
+
+.quiz-options[data-count="2"] {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.quiz-option {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.85rem 1rem;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    cursor: pointer;
+    transition: border-color var(--fast), background var(--fast);
+}
+
+.quiz-option:hover {
+    border-color: var(--line-hover);
+    background: var(--surface-2);
+}
+
+.quiz-option:has(input:checked) {
+    border-color: var(--accent);
+    background: var(--accent-soft);
+}
+
+.quiz-option:has(input:focus-visible) {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+}
+
+/* The radio itself is invisible but stays focusable and in the accessibility tree */
+.quiz-option input {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    margin: 0;
+    cursor: pointer;
+}
+
+.quiz-option-icon {
+    display: inline-flex;
+    flex-shrink: 0;
+    color: var(--text-2);
+}
+
+.quiz-option-icon svg {
+    width: 20px;
+    height: 20px;
+}
+
+.quiz-option-icon svg.apple,
+.quiz-option-icon svg.tux {
+    width: 22px;
+    height: 22px;
+}
+
+.quiz-option:has(input:checked) .quiz-option-icon {
+    color: var(--text);
+}
+
+.quiz-option-text {
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+    min-width: 0;
+}
+
+.quiz-option-label {
+    font-size: 0.9rem;
+    font-weight: 500;
+    line-height: 1.3;
+}
+
+.quiz-option-desc {
+    font-size: 0.78rem;
+    line-height: 1.4;
+    color: var(--text-3);
+}
+
+/* Result: the answer, as a diagram and then the steps */
+.setup-result {
+    padding-top: 3rem;
+    scroll-margin-top: calc(var(--nav-h) + 1rem);
+    animation: fadeIn 0.3s ease;
+}
+
+.setup-result:focus {
+    outline: none;
+}
+
+.result-head {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 1rem;
+    margin-bottom: 1.75rem;
+}
+
+.result-title {
+    margin-top: 0.5rem;
+    font-size: clamp(1.5rem, 3vw, 2rem);
+    font-weight: 600;
+    line-height: 1.15;
+    letter-spacing: -0.03em;
+}
+
+.result-actions {
+    display: flex;
+    gap: 0.5rem;
+}
+
+/* Game -> Track N Race (-> phone): nodes joined by labelled links, stacked on narrow screens */
+.flow-diagram {
+    display: flex;
+    align-items: stretch;
+    list-style: none;
+    margin-bottom: 1.5rem;
+    padding: 1.25rem;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-lg);
+}
+
+.flow-node {
+    flex: 1 1 0;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.2rem;
+    padding: 1rem 0.75rem;
+    text-align: center;
+    background: var(--surface-2);
+    border: 1px solid var(--line-strong);
+    border-radius: var(--radius);
+}
+
+.flow-icon {
+    display: inline-flex;
+    margin-bottom: 0.35rem;
+    color: var(--accent);
+}
+
+.flow-icon svg {
+    width: 22px;
+    height: 22px;
+}
+
+.flow-name {
+    font-size: 0.92rem;
+    font-weight: 600;
+}
+
+.flow-detail {
+    font-size: 0.8rem;
+    color: var(--text-2);
+}
+
+.flow-link {
+    flex: 0 1 9rem;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.25rem;
+    padding: 0 0.75rem;
+    text-align: center;
+}
+
+/* The arrow: a line through the middle, behind the labels, with a head at its end */
+.flow-link::before {
+    content: "";
+    position: absolute;
+    top: 50%;
+    left: 0.25rem;
+    right: 0.25rem;
+    height: 1px;
+    background: linear-gradient(90deg, var(--line-strong), var(--accent));
+}
+
+.flow-link::after {
+    content: "";
+    position: absolute;
+    top: calc(50% - 4px);
+    right: 0.25rem;
+    border: 4px solid transparent;
+    border-left: 6px solid var(--accent);
+    border-right: 0;
+}
+
+.flow-link-label,
+.flow-link-detail {
+    position: relative;
+    padding: 0 0.4rem;
+    background: var(--surface);
+}
+
+.flow-link-label {
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    font-weight: 500;
+    letter-spacing: 0.04em;
+    color: var(--text);
+    transform: translateY(-0.6rem);
+}
+
+.flow-link-detail {
+    font-size: 0.72rem;
+    color: var(--text-3);
+    transform: translateY(0.6rem);
+}
+
+.mode-explainer {
+    max-width: 72ch;
+    margin-bottom: 0.75rem;
+    font-size: 0.92rem;
+    line-height: 1.65;
+    color: var(--text-2);
+}
+
+.mode-explainer strong {
+    color: var(--text);
+    font-weight: 500;
+}
+
+.text-btn {
+    padding: 0;
+    background: none;
+    border: 0;
+    color: var(--text);
+    font: inherit;
+    text-decoration: underline;
+    text-decoration-color: var(--accent);
+    text-underline-offset: 3px;
+    cursor: pointer;
+}
+
+.text-btn:hover {
+    color: #fff;
+}
+
+.step-cta {
+    margin-bottom: 0.25rem;
+}
+
+/* Recording: what each "drivers to save" option keeps, and the playback list under it */
+.record-scopes {
+    margin-top: 0.75rem;
+}
+
+.config-tag {
+    margin-left: 0.4rem;
+    padding: 0.05rem 0.4rem;
+    font-family: var(--font-mono);
+    font-size: 0.65rem;
+    font-weight: 500;
+    letter-spacing: 0.04em;
+    color: var(--text-3);
+    border: 1px solid var(--line-strong);
+    border-radius: 4px;
+    vertical-align: 0.1em;
+}
+
+.record-subtitle {
+    margin: 1.75rem 0 0.85rem;
+    font-size: 0.95rem;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+}
+
+/* What to do on each device, side by side */
+.device-steps {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.75rem;
+}
+
+.device-col {
+    padding: 1rem 1.1rem;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+}
+
+.device-col:only-child,
+.device-col-wide,
+.device-steps:has(> .device-col[hidden]) > .device-col {
+    grid-column: 1 / -1;
+}
+
+.device-col-title {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.75rem;
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text-3);
+}
+
+.device-col-title svg {
+    width: 14px;
+    height: 14px;
+}
+
+.task-list {
+    list-style: none;
+    counter-reset: task;
+    display: flex;
+    flex-direction: column;
+    gap: 0.65rem;
+}
+
+.task-list li {
+    counter-increment: task;
+    position: relative;
+    padding-left: 1.85rem;
+    font-size: 0.9rem;
+    line-height: 1.6;
+    color: var(--text-2);
+}
+
+.task-list li::before {
+    content: counter(task);
+    position: absolute;
+    left: 0;
+    top: 0.15em;
+    width: 1.3rem;
+    height: 1.3rem;
+    display: grid;
+    place-items: center;
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    color: var(--text);
+    background: var(--surface-3);
+    border: 1px solid var(--line-strong);
+    border-radius: 50%;
+}
+
+.task-list strong {
+    color: var(--text);
+    font-weight: 500;
+}
+
+.task-list code {
+    font-size: 0.82em;
+    padding: 0.1rem 0.35rem;
+    background: var(--surface-2);
+    border: 1px solid var(--line);
+    border-radius: 4px;
+    color: var(--text);
+}
+
 .setup-flow {
     display: flex;
     flex-direction: column;
@@ -68,23 +489,13 @@
 
 .step-desc code,
 .config-subtext code,
-.info-box-text code {
+.info-box-checklist code {
     font-size: 0.82em;
     padding: 0.1rem 0.35rem;
     background: var(--surface-2);
     border: 1px solid var(--line);
     border-radius: 4px;
     color: var(--text);
-}
-
-.subheading {
-    margin: 0 0 0.75rem;
-    font-family: var(--font-mono);
-    font-size: 0.75rem;
-    font-weight: 500;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    color: var(--text-3);
 }
 
 /* Settings rows — one bordered table, rows split by hairlines */
@@ -95,11 +506,6 @@
     border-radius: var(--radius);
     background: var(--surface);
     overflow: hidden;
-}
-
-.config-list + .subheading,
-.scenario-pane > .config-list {
-    margin-bottom: 1.75rem;
 }
 
 .config-item {
@@ -212,76 +618,15 @@
     color: var(--text-3);
 }
 
-.scenario-pane,
 .platform-pane {
-    display: none;
-}
-
-.scenario-pane.active {
-    display: block;
-    animation: fadeIn 0.2s ease;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
 }
 
 @keyframes fadeIn {
     from { opacity: 0; transform: translateY(3px); }
     to { opacity: 1; transform: none; }
-}
-
-/* Underline tabs: a faint rule as long as the three tabs (not the column), the
-   active tab's red underline sitting on it, like the Single PC / Dual System bar */
-.platform-tabs-nav {
-    display: inline-flex;
-    flex-wrap: wrap;
-    gap: 0 1.25rem;
-    margin-bottom: 0.5rem;
-    border-bottom: 1px solid var(--line-strong);
-}
-
-.platform-tab-btn {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.45rem;
-    padding: 0.6rem 0;
-    margin-bottom: -1px;
-    background: transparent;
-    border: none;
-    border-bottom: 1px solid transparent;
-    color: var(--text-2);
-    font-family: var(--font-sans);
-    font-size: 0.85rem;
-    font-weight: 500;
-    cursor: pointer;
-    transition: color var(--fast), border-color var(--fast);
-}
-
-.platform-tab-btn:hover {
-    color: var(--text);
-}
-
-.platform-tab-btn.active {
-    color: var(--text);
-    border-bottom-color: var(--accent);
-}
-
-.platform-tab-btn svg {
-    width: 14px;
-    height: 14px;
-    flex-shrink: 0;
-}
-
-/* Tux is mostly outline, and the Apple mark is narrow and tall in its square:
-   both a touch larger so they weigh the same as the Windows squares */
-.platform-tab-btn svg.apple,
-.platform-tab-btn svg.tux {
-    width: 16px;
-    height: 16px;
-}
-
-.platform-pane.active {
-    display: flex;
-    flex-direction: column;
-    gap: 0.75rem;
-    animation: fadeIn 0.2s ease;
 }
 
 .platform-method-card {
@@ -391,7 +736,17 @@ kbd {
 }
 
 @media (max-width: 860px) {
-    .setup-step-card,
+    .quiz-question {
+        grid-template-columns: 1fr;
+    }
+
+    .quiz-legend {
+        float: none;
+        margin-bottom: 1rem;
+    }
+
+    .quiz-options,
+        .setup-step-card,
     .info-box {
         grid-template-columns: 1fr;
         row-gap: 0;
@@ -412,6 +767,51 @@ kbd {
 
     .info-box-text > strong {
         margin-bottom: 1rem;
+    }
+}
+
+@media (max-width: 680px) {
+    .quiz-options,
+    .quiz-options[data-count="2"],
+    .device-steps {
+        grid-template-columns: 1fr;
+    }
+
+    .flow-diagram {
+        flex-direction: column;
+    }
+
+    /* Vertical arrows between stacked nodes */
+    .flow-link {
+        flex: 0 0 auto;
+        flex-direction: row;
+        gap: 0.5rem;
+        min-height: 3.25rem;
+    }
+
+    .flow-link::before {
+        top: 0.25rem;
+        bottom: 0.25rem;
+        left: 50%;
+        right: auto;
+        width: 1px;
+        height: auto;
+        background: linear-gradient(180deg, var(--line-strong), var(--accent));
+    }
+
+    .flow-link::after {
+        top: auto;
+        bottom: 0.25rem;
+        right: auto;
+        left: calc(50% - 4px);
+        border: 4px solid transparent;
+        border-top: 6px solid var(--accent);
+        border-bottom: 0;
+    }
+
+    .flow-link-label,
+    .flow-link-detail {
+        transform: none;
     }
 }
 
