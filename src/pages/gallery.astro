@@ -1,25 +1,13 @@
 ---
 import Base from '../layouts/Base.astro';
+import PageHead from '../components/PageHead.astro';
+import { pages } from '../data/pages';
 import '../styles/pages/gallery.css';
 import Lightbox from '../components/Lightbox.astro';
-import ZoomBadge from '../components/ZoomBadge.astro';
-import ScreenPicture from '../components/ScreenPicture.astro';
-import { screens } from '../data/screens';
+import GalleryShot from '../components/GalleryShot.astro';
+import { groups, androidCount } from '../data/gallery';
+import { pad } from '../data/format';
 
-// The Gallery's screens, grouped by area; they're numbered in this order
-const groups = [
-    { id: "gallery-overview", title: "Overview", screens: ["overview", "overview_table", "other_drivers", "editor"] },
-    { id: "gallery-car", title: "Car", screens: ["inputs", "power", "damage", "misc"] },
-    { id: "gallery-tyres", title: "Tyres", screens: ["tyres", "tyres_charts"] },
-    { id: "gallery-race", title: "Race", screens: ["session", "standings", "previous_lap_times", "strategy"] },
-    { id: "gallery-analysis", title: "Analysis", screens: ["analyze", "trends"] },
-];
-const numbers = new Map(groups.flatMap(group => group.screens).map((file, i) => [file, i + 1]));
-// The Android tab leaves out screens the app doesn't have, so it numbers and counts its own
-const androidNumbers = new Map(groups.flatMap(group => group.screens).filter(file => screens[file].android).map((file, i) => [file, i + 1]));
-const androidCount = (files: string[]) => files.filter(file => screens[file].android).length;
-const pad = (n: number) => String(n).padStart(2, '0');
-const SIZES = '(max-width: 768px) 100vw, 600px';
 
 const jsonLd = {
   "@context": "https://schema.org",
@@ -63,49 +51,12 @@ const jsonLd = {
   ]
 };
 ---
-<Base jsonLd={jsonLd}>
+<Base jsonLd={jsonLd} nojs="/no-js/gallery/">
     <Fragment slot="head">
-        <!-- Primary Meta Tags -->
-        <title>Gallery — Track N Race</title>
-        <meta name="description"
-            content="Every screen of Track N Race in the Electron and Native frontends and the Android app: overview, inputs, power, damage, tyres, standings, strategy, lap analysis and trends.">
-        <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1">
-        <meta name="author" content="NoGoat">
-        <meta name="application-name" content="Track N Race">
-        <meta name="apple-mobile-web-app-title" content="Track N Race">
-        <meta name="theme-color" content="#09090b">
-
-        <!-- Open Graph / Facebook -->
-        <meta property="og:type" content="article">
-        <meta property="og:site_name" content="Track N Race">
-        <meta property="og:locale" content="en_US">
-        <meta property="og:url" content="https://track-n-race.com/gallery/">
-        <meta property="og:title" content="Gallery — Track N Race">
-        <meta property="og:description"
-            content="Every screen of Track N Race in the Electron and Native frontends and the Android app: overview, inputs, power, damage, tyres, standings, strategy, lap analysis and trends.">
-        <meta property="og:image" content="https://track-n-race.com/assets/og-image.png">
-        <meta property="og:image:width" content="1200">
-        <meta property="og:image:height" content="630">
-        <meta property="og:image:alt" content="Track N Race overview dashboard showing live speed, RPM and ERS traces with tyre temperatures">
-
-        <!-- Twitter -->
-        <meta name="twitter:card" content="summary_large_image">
-        <meta name="twitter:url" content="https://track-n-race.com/gallery/">
-        <meta name="twitter:title" content="Gallery — Track N Race">
-        <meta name="twitter:description"
-            content="Every screen of Track N Race in the Electron and Native frontends and the Android app: overview, inputs, power, damage, tyres, standings, strategy, lap analysis and trends.">
-        <meta name="twitter:image" content="https://track-n-race.com/assets/og-image.png">
-        <meta name="twitter:image:alt" content="Track N Race overview dashboard showing live speed, RPM and ERS traces with tyre temperatures">
-
-        <!-- Canonical URL -->
-        <link rel="canonical" href="https://track-n-race.com/gallery/">
-
-        <!-- JSON-LD Structured Data -->
+        <PageHead page={pages.gallery} />
     </Fragment>
 
     <main id="main" class="gallery-section" data-ui="electron">
-        <!-- The no-JavaScript switch's targets (#qt and #android also open the gallery on that frontend with it) -->
-        <span class="gallery-target" id="electron"></span><span class="gallery-target" id="qt"></span><span class="gallery-target" id="android"></span>
         <!-- Gallery: every screen, grouped by area. The switch shows each one in the Electron or the Qt frontend
              or the Android app; every capture sits in the markup, and a hidden one's lazy images don't load until
              it is picked. Screens the Android app doesn't have are left out of its tab. -->
@@ -117,13 +68,9 @@ const jsonLd = {
                 <h1 class="main-title">Gallery</h1>
                 <!-- Same tabs as the Setup page's Single PC / Dual System selector -->
                 <div class="scenario-selector gallery-switch" role="radiogroup" aria-label="Frontend">
-                    <button class="scenario-btn gallery-switch-btn js-only active" role="radio" aria-checked="true" data-ui="electron">Electron</button>
-                    <button class="scenario-btn gallery-switch-btn js-only" role="radio" aria-checked="false" data-ui="qt" tabindex="-1">Native</button>
-                    <button class="scenario-btn gallery-switch-btn js-only" role="radio" aria-checked="false" data-ui="android" tabindex="-1">Android</button>
-                    <!-- Without JavaScript: links to the targets at the top of the page, which gallery.css reads with :target -->
-                    <a class="scenario-btn gallery-switch-link nojs-only" href="#electron">Electron</a>
-                    <a class="scenario-btn gallery-switch-link nojs-only" href="#qt">Native</a>
-                    <a class="scenario-btn gallery-switch-link nojs-only" href="#android">Android</a>
+                    <button class="scenario-btn gallery-switch-btn active" role="radio" aria-checked="true" data-ui="electron">Electron</button>
+                    <button class="scenario-btn gallery-switch-btn" role="radio" aria-checked="false" data-ui="qt" tabindex="-1">Native</button>
+                    <button class="scenario-btn gallery-switch-btn" role="radio" aria-checked="false" data-ui="android" tabindex="-1">Android</button>
                 </div>
             </div>
         </div>
@@ -137,33 +84,7 @@ const jsonLd = {
                         <span class="eyebrow" data-ui="android">{pad(androidCount(group.screens))} screens</span>
                     </div>
                     <div class="gallery-grid">
-                        {group.screens.map(file => {
-                            const screen = screens[file];
-                            return (
-                                <figure class:list={['shot', { 'shot-trimmed': screen.width === 2492, 'no-android': !screen.android }]}>
-                                    <div class="app-window">
-                                        <div class="img-zoom-wrapper">
-                                            <!-- Only the first group loads straight away; the rest wait until scrolled to -->
-                                            <ScreenPicture screen={screen} ui="electron" sizes={SIZES} lazy={g > 0} />
-                                            <ScreenPicture screen={screen} ui="qt" sizes={SIZES} lazy />
-                                            {screen.android && <ScreenPicture screen={screen} ui="android" sizes={SIZES} lazy />}
-                                            <ZoomBadge />
-                                        </div>
-                                    </div>
-                                    <figcaption class="shot-caption">
-                                        <span class="module-num desc-desktop">{pad(numbers.get(file)!)}</span>
-                                        {screen.android && <span class="module-num" data-ui="android">{pad(androidNumbers.get(file)!)}</span>}
-                                        <div>
-                                            <!-- The Android tab swaps in the app's own name and caption for the screen -->
-                                            <h3 class:list={['module-title', { 'desc-desktop': screen.android?.name }]}>{screen.name}</h3>
-                                            {screen.android?.name && <h3 class="module-title" data-ui="android">{screen.android.name}</h3>}
-                                            <p class="module-desc desc-desktop">{screen.desc}</p>
-                                            {screen.android && <p class="module-desc" data-ui="android">{screen.android.desc}</p>}
-                                        </div>
-                                    </figcaption>
-                                </figure>
-                            );
-                        })}
+                        {group.screens.map(file => <GalleryShot file={file} lazy={g > 0} />)}
                     </div>
                 </section>
             ))}

@@ -8,8 +8,6 @@ Disallow: /download/qt/
 Disallow: /download/minimal/
 Disallow: /download/android/
 Disallow: /api/
-# The Download page without JavaScript (pages/download/no-js.astro): the same builds as /download/
-Disallow: /download/no-js
 # Last, so crawlers that take the first matching rule still see the ones above
 Allow: /
 Sitemap: https://track-n-race.com/sitemap.xml

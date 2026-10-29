@@ -1,5 +1,8 @@
 ---
 // The navbar. The current page's link is marked active; scripts/site.js runs the mobile menu.
+// On /no-js/ pages the links go to the other pages' versions without JavaScript (data/nojs.ts).
+import { linkFor, isCurrent } from '../data/nojs';
+
 const links = [
     { href: '/', label: 'Home' },
     { href: '/gallery/', label: 'Gallery' },
@@ -7,11 +10,11 @@ const links = [
     { href: '/setup/', label: 'Setup' },
     { href: '/tnrd/', label: 'TNRD Files' },
 ];
-const current = Astro.url.pathname;
+const path = Astro.url.pathname;
 ---
 <header class="navbar">
     <div class="nav-container">
-        <a href="/" data-astro-prefetch class="brand-link" aria-label="Track N Race Home">
+        <a href={linkFor('/', path)} data-astro-prefetch class="brand-link" aria-label="Track N Race Home">
             <div class="brand">
                 <img src="/assets/icons/icon_transparent-78.webp" alt="Track N Race Logo" class="brand-logo-img"
                     width="78" height="64">
@@ -21,8 +24,8 @@ const current = Astro.url.pathname;
         <nav class="nav-menu" id="navMenu" aria-label="Main">
             {links.map(({ href, label }) => (
                 <Fragment>
-                    <a href={href} data-astro-prefetch class:list={['nav-btn', { active: href === current }]}
-                        aria-current={href === current ? 'page' : undefined}>{label}</a>{'\n'}
+                    <a href={linkFor(href, path)} data-astro-prefetch class:list={['nav-btn', { active: isCurrent(href, path) }]}
+                        aria-current={isCurrent(href, path) ? 'page' : undefined}>{label}</a>{'\n'}
                 </Fragment>
             ))}
         </nav>
@@ -53,13 +56,21 @@ const current = Astro.url.pathname;
                     <line x1="4" y1="18" x2="20" y2="18"></line>
                 </svg>
             </button>
-            <!-- Without JavaScript the menu can't open, so the same icon jumps to the footer's page list -->
-            <a class="mobile-toggle-btn nojs-only" href="#footer-pages" aria-label="Pages">
+            <!-- Without JavaScript: the menu opens as the page's :target (site.css), and while it's open the close icon
+                 takes this one's place. Its link names no element, so closing doesn't scroll the page. -->
+            <a class="mobile-toggle-btn nav-menu-open nojs-only" href="#navMenu" aria-label="Open navigation menu">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
                     stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                     <line x1="4" y1="6" x2="20" y2="6"></line>
                     <line x1="4" y1="12" x2="20" y2="12"></line>
                     <line x1="4" y1="18" x2="20" y2="18"></line>
+                </svg>
+            </a>
+            <a class="mobile-toggle-btn nav-menu-close nojs-only" href="#close-menu" aria-label="Close navigation menu">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                    stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <line x1="18" y1="6" x2="6" y2="18"></line>
+                    <line x1="6" y1="6" x2="18" y2="18"></line>
                 </svg>
             </a>
         </div>

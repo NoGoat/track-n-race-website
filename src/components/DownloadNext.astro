@@ -3,6 +3,7 @@
 // page. Its styles are in download-modal.css. Once a build is clicked, scripts/download-next.js says which one has
 // started downloading. A page can't see the download finish, so it never says more than that.
 import { VERSION } from '../version';
+import { linkFor } from '../data/nojs';
 
 interface Props {
     // h3 inside the modal, h2 on the Download page
@@ -27,7 +28,7 @@ const { heading: Heading = 'h3', class: className } = Astro.props;
             <a href={`https://github.com/NoGoat/Track-N-Race/releases/tag/${VERSION}`} target="_blank" rel="noopener">GitHub</a>.
         </p>
     </div>
-    <a class="primary-btn download-next-setup" data-next-setup href="/setup/">
+    <a class="primary-btn download-next-setup" data-next-setup href={linkFor('/setup/', Astro.url.pathname)}>
         <span>Set up telemetry</span>
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
     </a>

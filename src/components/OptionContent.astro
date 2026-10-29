@@ -1,0 +1,15 @@
+---
+// The inside of an answer card (styles/quiz.css): its icon, label and description. The card itself is a radio's
+// <label> on the Setup and Download pages, and a link on their versions without JavaScript.
+interface Props {
+    label: string;
+    desc?: string;
+    icon?: string;
+}
+const { label, desc, icon } = Astro.props;
+---
+{icon && <span class="quiz-option-icon" set:html={icon} />}
+<span class="quiz-option-text">
+    <span class="quiz-option-label">{label}</span>
+    {desc && <span class="quiz-option-desc">{desc}</span>}
+</span>

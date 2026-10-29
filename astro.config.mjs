@@ -1,6 +1,7 @@
 // Builds the site into dist/ as plain static files, which wrangler.jsonc serves as Cloudflare static assets.
 // No server rendering: only /download/* and /api/* reach the Worker (worker/index.js).
 import { defineConfig } from 'astro/config';
+import stripOmitted from './integrations/strip-omitted.mjs';
 
 export default defineConfig({
     site: 'https://track-n-race.com',
@@ -17,4 +18,6 @@ export default defineConfig({
     prefetch: {
         defaultStrategy: 'hover',
     },
+    // Trims the Setup page's versions without JavaScript to their own steps once they're built
+    integrations: [stripOmitted()],
 });

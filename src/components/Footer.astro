@@ -1,5 +1,8 @@
 ---
 // The footer. The GPL link opens the license pop-up (scripts/site.js); without JavaScript it opens the text file.
+// On /no-js/ pages the links go to the other pages' versions without JavaScript (data/nojs.ts).
+import { linkFor, isCurrent } from '../data/nojs';
+
 const pages = [
     { href: '/', label: 'Home' },
     { href: '/gallery/', label: 'Gallery' },
@@ -10,7 +13,7 @@ const pages = [
     { href: '/credits/', label: 'Credits' },
     { href: '/privacy/', label: 'Privacy Policy' },
 ];
-const current = Astro.url.pathname;
+const path = Astro.url.pathname;
 ---
 <footer class="site-footer">
     <div class="footer-container">
@@ -26,10 +29,9 @@ const current = Astro.url.pathname;
                 the FIA, the drivers or the teams participating in Formula One.
             </p>
         </div>
-        <!-- Also where the navbar's menu icon leads without JavaScript (components/Header.astro) -->
-        <ul class="footer-links" id="footer-pages">
+        <ul class="footer-links">
             {pages.map(({ href, label }) => (
-                <li><a href={href} data-astro-prefetch aria-current={href === current ? 'page' : undefined}>{label}</a></li>
+                <li><a href={linkFor(href, path)} data-astro-prefetch aria-current={isCurrent(href, path) ? 'page' : undefined}>{label}</a></li>
             ))}
             <li><a href="https://github.com/NoGoat/Track-N-Race" target="_blank" rel="noopener">GitHub</a></li>
             <!-- Discord invite link: replace the href below (and in Header.astro) -->

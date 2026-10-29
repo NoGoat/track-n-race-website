@@ -44,28 +44,6 @@
     grid-template-columns: repeat(4, minmax(0, 1fr));
 }
 
-/* The no-JavaScript version (pages/download/no-js.astro): the platform cards are links down to each section */
-a.quiz-option.dl-jump {
-    color: inherit;
-    text-decoration: none;
-}
-
-a.quiz-option.dl-jump:focus-visible {
-    outline: 2px solid var(--accent);
-    outline-offset: 2px;
-}
-
-/* Its sections are titled by platform, with the platform's icon */
-.dl-platform-title {
-    display: flex;
-    align-items: center;
-    gap: 0.6rem;
-}
-
-.dl-dive[id] {
-    scroll-margin-top: calc(var(--nav-h) + 1rem);
-}
-
 /* Step 02 */
 .dl-dive {
     scroll-margin-top: calc(var(--nav-h) + 1rem);

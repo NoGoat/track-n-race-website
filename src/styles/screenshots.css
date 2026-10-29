@@ -50,11 +50,6 @@
     cursor: zoom-in;
 }
 
-/* The lightbox needs JavaScript; without it the screenshot just stays in the page */
-.no-js .zoom-btn {
-    display: none;
-}
-
 .zoom-btn:focus-visible {
     outline-offset: -2px;
 }

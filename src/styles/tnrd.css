@@ -100,7 +100,10 @@
     transition: background var(--fast), box-shadow var(--fast), border-color var(--fast);
 }
 
-.fmt-rail.is-stuck {
+/* Without JavaScript (html.no-js) nothing can tell when it's stuck, so it always has the stuck background: at rest
+   it matches the page, and stuck it keeps the text it slides over from showing through */
+.fmt-rail.is-stuck,
+.no-js .fmt-rail {
     background: var(--header-bg);
     border-bottom-color: var(--line);
     box-shadow: var(--header-shadow);
@@ -115,7 +118,8 @@
     border-bottom: 1px solid var(--line);
 }
 
-.fmt-rail.is-stuck .fmt-rail-list {
+.fmt-rail.is-stuck .fmt-rail-list,
+.no-js .fmt-rail .fmt-rail-list {
     border-color: transparent;
 }
 
@@ -174,6 +178,39 @@
 }
 
 .fmt-rail-link.active .fmt-rail-v {
+    color: var(--accent);
+}
+
+/* Without JavaScript (html.no-js, layouts/Base.astro) scripts/tnrd.js can't follow the scrolling, so the rail marks
+   the version last jumped to instead: its section is the :target. Kept apart from the rules above, so a browser
+   without :has() drops only these. */
+.no-js:has(#v1:target) .fmt-rail-link[href="#v1"],
+.no-js:has(#v2:target) .fmt-rail-link[href="#v2"],
+.no-js:has(#v3:target) .fmt-rail-link[href="#v3"],
+.no-js:has(#v4:target) .fmt-rail-link[href="#v4"],
+.no-js:has(#v5:target) .fmt-rail-link[href="#v5"],
+.no-js:has(#v6:target) .fmt-rail-link[href="#v6"],
+.no-js:has(#compare:target) .fmt-rail-link[href="#compare"] {
+    color: var(--text);
+}
+
+.no-js:has(#v1:target) .fmt-rail-link[href="#v1"]::after,
+.no-js:has(#v2:target) .fmt-rail-link[href="#v2"]::after,
+.no-js:has(#v3:target) .fmt-rail-link[href="#v3"]::after,
+.no-js:has(#v4:target) .fmt-rail-link[href="#v4"]::after,
+.no-js:has(#v5:target) .fmt-rail-link[href="#v5"]::after,
+.no-js:has(#v6:target) .fmt-rail-link[href="#v6"]::after,
+.no-js:has(#compare:target) .fmt-rail-link[href="#compare"]::after {
+    transform: scaleX(1);
+}
+
+.no-js:has(#v1:target) .fmt-rail-link[href="#v1"] .fmt-rail-v,
+.no-js:has(#v2:target) .fmt-rail-link[href="#v2"] .fmt-rail-v,
+.no-js:has(#v3:target) .fmt-rail-link[href="#v3"] .fmt-rail-v,
+.no-js:has(#v4:target) .fmt-rail-link[href="#v4"] .fmt-rail-v,
+.no-js:has(#v5:target) .fmt-rail-link[href="#v5"] .fmt-rail-v,
+.no-js:has(#v6:target) .fmt-rail-link[href="#v6"] .fmt-rail-v,
+.no-js:has(#compare:target) .fmt-rail-link[href="#compare"] .fmt-rail-v {
     color: var(--accent);
 }
 

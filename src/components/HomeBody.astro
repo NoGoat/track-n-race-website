@@ -1,0 +1,482 @@
+---
+// The home page's content, also on its version for no JavaScript (pages/no-js/index.astro). With nojs, both
+// carousels list every slide (.carousel-static, styles/carousel.css) without their controls, the screenshots have no
+// lightbox to open, and the links go to the other pages' versions without JavaScript (data/nojs.ts).
+import DownloadButton from './DownloadButton.astro';
+import ZoomBadge from './ZoomBadge.astro';
+import { linkFor } from '../data/nojs';
+
+interface Props {
+    nojs?: boolean;
+}
+const { nojs = false } = Astro.props;
+const link = (href: string) => nojs ? linkFor(href, '/no-js/') : href;
+---
+<main id="main">
+    <!-- Hero Section -->
+    <section id="hero" class="section hero-section">
+        <div class="hero-main">
+            <div class="hero-copy">
+                <h1 class="main-title">
+                    Extract every<br>
+                    <span class="gradient-text">last tenth.</span>
+                </h1>
+                <p class="subtitle">
+                    Track N Race is a telemetry recording and analysis tool designed for the F1 games.
+                    Analyze and find out where you lose that extra tenth over your competitors.
+                </p>
+                <div class="cta-group">
+                    <!-- Goes to the Download page, which walks through the builds for each platform -->
+                    <DownloadButton page />
+                    <a class="secondary-btn" href={link('/setup/')} data-astro-prefetch>
+                        <span>Setup guide</span>
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <path d="M5 12h14"></path>
+                            <path d="m12 5 7 7-7 7"></path>
+                        </svg>
+                    </a>
+                </div>
+            </div>
+
+            <div class="hero-visual">
+                <div class="app-window">
+                    <div class="hero-img">
+                        <picture>
+                            <source type="image/avif"
+                                srcset="/assets/screenshots/overview-1280.avif 1280w, /assets/screenshots/overview-1920.avif 1920w, /assets/screenshots/overview-2492.avif 2492w"
+                                sizes="(min-width: 1248px) 760px, (min-width: 960px) 62vw, 100vw">
+                            <img src="/assets/screenshots/overview.webp"
+                                alt="Track N Race overview screen with speed, RPM and ERS traces from a lap of São Paulo, plus live tyre temperatures and damage readouts"
+                                class="mockup-img" width="2492" height="1492" fetchpriority="high">
+                        </picture>
+                        {!nojs && <ZoomBadge />}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <dl class="hero-specs">
+            <div class="hero-spec">
+                <dt>Games</dt>
+                <dd><span class="tag">F1 24</span><span class="tag">F1 25</span><span class="tag">2026 Season Pack</span></dd>
+            </div>
+            <div class="hero-spec">
+                <dt>Platforms</dt>
+                <dd><span class="tag">Windows</span><span class="tag">macOS</span><span class="tag">Linux</span></dd>
+            </div>
+            <div class="hero-spec">
+                <dt>Native version</dt>
+                <dd><span class="tag">Windows</span><span class="tag">Linux</span></dd>
+            </div>
+            <div class="hero-spec">
+                <dt>License</dt>
+                <dd><span class="tag">GPL-3.0</span><span class="tag">Open source</span></dd>
+            </div>
+        </dl>
+    </section>
+
+    <!-- Features Showcase Section -->
+    <section id="features" class="section feature-section">
+        <div class="section-header">
+            <h2 class="section-heading">Highlights</h2>
+            <a class="eyebrow section-link" href={link('/gallery/')} data-astro-prefetch>
+                <span>See every screen</span>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                    stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <path d="M5 12h14"></path>
+                    <path d="m12 5 7 7-7 7"></path>
+                </svg>
+            </a>
+        </div>
+
+        <!-- Feature Carousel -->
+        <div class:list={['carousel-container', { 'carousel-static': nojs }]} role="region" aria-roledescription={nojs ? undefined : 'carousel'} aria-label="Highlights">
+            <div class="carousel-card">
+                <div class="carousel-viewport">
+                    <div class="carousel-track">
+                        <!-- Slide 1: Session files (TNRD) -->
+                        <div class="carousel-slide active">
+                            <div class="feature-container">
+                                <div class="feature-text">
+                                    <h3 class="feature-title">Session <span class="highlight-red">Files</span>
+                                    </h3>
+                                    <p class="section-desc">
+                                        Every session is saved as one .tnrd file, split by driver, by lap and by data type. Charts read only the blocks they need instead of the whole recording.
+                                    </p>
+                                    <ul class="feature-list">
+                                        <li>One file per session, every driver and every lap</li>
+                                        <li>Each driver, lap and data type is its own compressed block</li>
+                                        <li>Charts load only the blocks they need</li>
+                                        <li>Share it and compare laps against a friend's file in Analyze</li>
+                                    </ul>
+                                    <a class="eyebrow section-link feature-cta" href={link('/tnrd/')} data-astro-prefetch>
+                                        <span>View the history of .tnrd files</span>
+                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                            stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                            <path d="M5 12h14"></path>
+                                            <path d="m12 5 7 7-7 7"></path>
+                                        </svg>
+                                    </a>
+                                </div>
+                                <div class="feature-visual">
+                                    <div class="tnrd-frame" data-src="/assets/tnrd-anim.svg" data-fallback="/assets/tnrd-static.svg">
+                                        <noscript><img class="tnrd-static" src="/assets/tnrd-static.svg" alt="Alonso's slice of a .tnrd file as a table of laps and data types, with lap 5's speed, RPM and ERS blocks drawn as traces alongside" width="1600" height="1000"></noscript>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Slide 2: Analyze -->
+                        <div class="carousel-slide">
+                            <div class="feature-container">
+                                <div class="feature-text">
+                                    <h3 class="feature-title">Deep <span class="highlight-blue">Analysis</span>
+                                    </h3>
+                                    <p class="section-desc">
+                                        Dive deep into your race data. Compare any data of your choosing either your own laps or against rivals or laps from an older session to find out what's costing you time.
+                                    </p>
+                                    <ul class="feature-list">
+                                        <li>Trace charts for almost any data</li>
+                                        <li>Compare against other drivers</li>
+                                        <li>Lap overlay comparisons</li>
+                                        <li>Customizable colors and chart hierarchy</li>
+                                        <li>Visualize your position on the map</li>
+                                    </ul>
+                                </div>
+                                <div class="feature-visual">
+                                    <div class="app-window">
+                                        <div class="img-zoom-wrapper">
+                                            <picture>
+                                                <source type="image/avif" srcset="/assets/screenshots/analyze-1280.avif 1280w, /assets/screenshots/analyze-1920.avif 1920w, /assets/screenshots/analyze-2624.avif 2624w"
+                                                    sizes="(max-width: 860px) 100vw, (max-width: 1200px) 58vw, 700px">
+                                                <img src="/assets/screenshots/analyze.webp"
+                                                    alt="Analysis view overlaying throttle, speed, RPM, gear and MGU-K power traces for two laps"
+                                                    class="mockup-img" width="2624" height="1624" loading="lazy">
+                                            </picture>
+                                            {!nojs && <ZoomBadge />}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Slide 3: Driver Selector -->
+                        <div class="carousel-slide">
+                            <div class="feature-container">
+                                <div class="feature-text">
+                                    <h3 class="feature-title">Driver <span class="highlight-yellow">Selector</span>
+                                    </h3>
+                                    <p class="section-desc">
+                                        View every other driver's data and compare almost* every data channel to your own.
+                                    </p>
+                                    <ul class="feature-list">
+                                        <li>Select any driver in the session</li>
+                                        <li>Compare their data^ against your own</li>
+                                    </ul>
+                                    <p class="post-script">*The game does not expose ride height data for other drivers. Ride height will be unavailable for other drivers.</p>
+                                    <p class="post-script">^Some data channels will be unavailable if the other driver has set their telemetry to restricted during online play.</p>
+                                </div>
+                                <div class="feature-visual">
+                                    <div class="app-window">
+                                        <div class="img-zoom-wrapper">
+                                            <picture>
+                                                <source type="image/avif" srcset="/assets/screenshots/driver_switcher-944.avif 944w"
+                                                    sizes="(max-width: 860px) 100vw, (max-width: 1200px) 58vw, 700px">
+                                                <img src="/assets/screenshots/driver_switcher.webp"
+                                                    alt="Driver switcher dropdown in the top bar listing the drivers in the session with their teams, Antonelli selected"
+                                                    class="mockup-img fit-contain" width="944" height="830" loading="lazy">
+                                            </picture>
+                                            {!nojs && <ZoomBadge />}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Slide 4: Session -->
+                        <div class="carousel-slide">
+                            <div class="feature-container">
+                                <div class="feature-text">
+                                    <h3 class="feature-title">Track almost <span
+                                            class="highlight-green">Everything</span></h3>
+                                    <p class="section-desc">
+                                        Track N Race tries to track as much information as possible from the apps.
+                                        Everything from tyres to ride heights can be tracked.
+                                    </p>
+                                    <ul class="feature-list">
+                                        <li>Record everything for future analysis</li>
+                                        <li>Replay recordings like a video</li>
+                                        <li>Includes track maps for almost* every circuit</li>
+                                    </ul>
+                                    <p class="post-script">*I do not own F1 24. So I couldn't get maps for
+                                        any tracks exclusive to F1 24.</p>
+                                </div>
+                                <div class="feature-visual">
+                                    <div class="app-window">
+                                        <div class="img-zoom-wrapper">
+                                            <picture>
+                                                <source type="image/avif" srcset="/assets/screenshots/session-1280.avif 1280w, /assets/screenshots/session-1920.avif 1920w, /assets/screenshots/session-2624.avif 2624w"
+                                                    sizes="(max-width: 860px) 100vw, (max-width: 1200px) 58vw, 700px">
+                                                <img src="/assets/screenshots/session.webp"
+                                                    alt="Session view with a live map of São Paulo showing every car's position, race details and an events feed"
+                                                    class="mockup-img" width="2624" height="1624" loading="lazy">
+                                            </picture>
+                                            {!nojs && <ZoomBadge />}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {!nojs && (
+                <div class="carousel-controls">
+                    <button class="carousel-btn carousel-pause" type="button" aria-label="Pause slideshow" aria-pressed="false">
+                        <svg class="icon-pause" width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                            <rect x="6" y="5" width="4" height="14" rx="1" />
+                            <rect x="14" y="5" width="4" height="14" rx="1" />
+                        </svg>
+                        <svg class="icon-play" width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                            <path d="M8 5.5v13a1 1 0 0 0 1.5.86l10.5-6.5a1 1 0 0 0 0-1.72L9.5 4.64A1 1 0 0 0 8 5.5z" />
+                        </svg>
+                    </button>
+                    <button class="carousel-btn prev" type="button" aria-label="Previous slide">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <path d="m15 18-6-6 6-6" />
+                        </svg>
+                    </button>
+                    <!-- Mouse shortcuts only: Previous and Next do the same from the keyboard -->
+                    <div class="carousel-indicators" aria-hidden="true">
+                        <span class="dot active" data-slide="0"></span>
+                        <span class="dot" data-slide="1"></span>
+                        <span class="dot" data-slide="2"></span>
+                        <span class="dot" data-slide="3"></span>
+                    </div>
+                    <button class="carousel-btn next" type="button" aria-label="Next slide">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <path d="m9 18 6-6-6-6" />
+                        </svg>
+                    </button>
+                </div>
+            )}
+        </div>
+
+    </section>
+
+    <!-- Meet the frontends: one slide per build, each with what it is best at -->
+    <section id="frontends" class="section alt-frontend-section">
+        <div class="section-header">
+            <h2 class="section-heading">Meet the frontends</h2>
+            <a class="eyebrow section-link" href={link('/electron-vs-qt/')} data-astro-prefetch>
+                <span>Compare Frontends</span>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                    stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <path d="M5 12h14"></path>
+                    <path d="m12 5 7 7-7 7"></path>
+                </svg>
+            </a>
+        </div>
+
+        <div class:list={['carousel-container', { 'carousel-static': nojs }]} role="region" aria-roledescription={nojs ? undefined : 'carousel'} aria-label="Frontends">
+            <div class="carousel-card">
+                <div class="carousel-viewport">
+                    <div class="carousel-track">
+                        <!-- Slide 1: Electron -->
+                        <div class="carousel-slide active">
+                            <div class="feature-container">
+                                <div class="feature-text">
+                                    <h3 class="feature-title">Electron <span class="highlight-orange">Frontend</span>
+                                    </h3>
+                                    <p class="section-desc">
+                                        The full app on every desktop, and the only full one on macOS.
+                                    </p>
+                                    <ul class="feature-list">
+                                        <li>Windows, macOS and Linux</li>
+                                        <li>Live telemetry, lap analysis and the layout editor</li>
+                                        <li>Records sessions and plays them back</li>
+                                        <li>Forwards UDP to other apps</li>
+                                    </ul>
+                                    <a class="eyebrow section-link feature-cta" href={link('/electron-vs-qt/')} data-astro-prefetch>
+                                        <span>Compare the desktop builds</span>
+                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                            stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                            <path d="M5 12h14"></path>
+                                            <path d="m12 5 7 7-7 7"></path>
+                                        </svg>
+                                    </a>
+                                </div>
+                                <div class="feature-visual">
+                                    <div class="app-window">
+                                        <div class="img-zoom-wrapper">
+                                            <picture>
+                                                <source type="image/avif" srcset="/assets/screenshots/overview-1280.avif 1280w, /assets/screenshots/overview-1920.avif 1920w, /assets/screenshots/overview-2492.avif 2492w"
+                                                    sizes="(max-width: 860px) 100vw, (max-width: 1200px) 58vw, 700px">
+                                                <img src="/assets/screenshots/overview.webp"
+                                                    alt="Electron frontend: Overview screen with speed, RPM and ERS traces, tyre temperatures and damage readouts"
+                                                    class="mockup-img" width="2492" height="1492" loading="lazy">
+                                            </picture>
+                                            {!nojs && <ZoomBadge />}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Slide 2: Native -->
+                        <div class="carousel-slide">
+                            <div class="feature-container">
+                                <div class="feature-text">
+                                    <h3 class="feature-title">Native <span class="highlight-teal">Frontend</span>
+                                    </h3>
+                                    <p class="section-desc">
+                                        Every screen Electron has, built with Qt, in a good deal less memory.
+                                    </p>
+                                    <ul class="feature-list">
+                                        <li>Windows and Linux</li>
+                                        <li>1:1 parity with Electron</li>
+                                        <li>444 MB at the end of a live race, against 714 MB</li>
+                                        <li>Records sessions and plays them back</li>
+                                    </ul>
+                                    <a class="eyebrow section-link feature-cta" href={link('/electron-vs-qt/')} data-astro-prefetch>
+                                        <span>Compare the desktop builds</span>
+                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                            stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                            <path d="M5 12h14"></path>
+                                            <path d="m12 5 7 7-7 7"></path>
+                                        </svg>
+                                    </a>
+                                </div>
+                                <div class="feature-visual">
+                                    <div class="app-window">
+                                        <div class="img-zoom-wrapper">
+                                            <picture>
+                                                <source type="image/avif" srcset="/assets/screenshots/qt/session-1280.avif 1280w, /assets/screenshots/qt/session-1920.avif 1920w, /assets/screenshots/qt/session-2624.avif 2624w"
+                                                    sizes="(max-width: 860px) 100vw, (max-width: 1200px) 58vw, 700px">
+                                                <img src="/assets/screenshots/qt/session.webp"
+                                                    alt="Native frontend: Session screen with a live map of São Paulo, race details and an events feed"
+                                                    class="mockup-img" width="2624" height="1624" loading="lazy">
+                                            </picture>
+                                            {!nojs && <ZoomBadge />}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Slide 3: Minimal Recorder -->
+                        <div class="carousel-slide">
+                            <div class="feature-container">
+                                <div class="feature-text">
+                                    <h3 class="feature-title">Minimal <span class="highlight-periwinkle">Recorder</span>
+                                    </h3>
+                                    <p class="section-desc">
+                                        Worried about performance penalties from running the app while playing the
+                                        game?
+                                        You can instead run the minimal recording and view your stats later in the
+                                        main app.
+                                    </p>
+                                    <ul class="feature-list">
+                                        <li>Full data logging</li>
+                                        <li>Supports UDP forwarding</li>
+                                        <li>Minimal performance overhead</li>
+                                    </ul>
+                                </div>
+                                <div class="feature-visual">
+                                    <div class="app-window">
+                                        <div class="img-zoom-wrapper">
+                                            <picture>
+                                                <source type="image/avif" srcset="/assets/screenshots/minimal_recorder-1464.avif 1464w"
+                                                    sizes="(max-width: 860px) 100vw, (max-width: 1200px) 58vw, 700px">
+                                                <img src="/assets/screenshots/minimal_recorder.webp"
+                                                    alt="Track N Race Minimal Recorder window showing the recording folder, UDP port and recording status"
+                                                    class="mockup-img" width="1464" height="932" loading="lazy">
+                                            </picture>
+                                            {!nojs && <ZoomBadge />}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Slide 4: Android -->
+                        <div class="carousel-slide">
+                            <div class="feature-container">
+                                <div class="feature-text">
+                                    <h3 class="feature-title">Android <span class="highlight-pink">App</span>
+                                    </h3>
+                                    <p class="section-desc">
+                                        Track N Race on an Android phone or tablet, propped up beside the wheel.
+                                    </p>
+                                    <ul class="feature-list">
+                                        <li>Telemetry straight from the game over your network</li>
+                                        <li>Or paired with the desktop app</li>
+                                        <li>Records sessions and plays them back</li>
+                                        <li>A landscape wheel display that hides the bars until you tap</li>
+                                    </ul>
+                                    <a class="eyebrow section-link feature-cta" href={nojs ? '/no-js/gallery/android/' : '/gallery/#android'} data-astro-prefetch>
+                                        <span>See every Android screen</span>
+                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                            stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                            <path d="M5 12h14"></path>
+                                            <path d="m12 5 7 7-7 7"></path>
+                                        </svg>
+                                    </a>
+                                </div>
+                                <div class="feature-visual">
+                                    <div class="shot-android app-window">
+                                        <div class="img-zoom-wrapper">
+                                            <picture>
+                                                <source type="image/avif" srcset="/assets/screenshots/android/overview-1280.avif 1280w, /assets/screenshots/android/overview-1920.avif 1920w, /assets/screenshots/android/overview-2560.avif 2560w"
+                                                    sizes="(max-width: 860px) 100vw, (max-width: 1200px) 58vw, 700px">
+                                                <img src="/assets/screenshots/android/overview.webp"
+                                                    alt="Android app on a tablet: Drive tab with lap time, delta, gear, speed, ERS, fuel, gaps and tyre wear"
+                                                    class="mockup-img" width="2560" height="1488" loading="lazy">
+                                            </picture>
+                                            {!nojs && <ZoomBadge />}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {!nojs && (
+                <div class="carousel-controls">
+                    <button class="carousel-btn carousel-pause" type="button" aria-label="Pause slideshow" aria-pressed="false">
+                        <svg class="icon-pause" width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                            <rect x="6" y="5" width="4" height="14" rx="1" />
+                            <rect x="14" y="5" width="4" height="14" rx="1" />
+                        </svg>
+                        <svg class="icon-play" width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                            <path d="M8 5.5v13a1 1 0 0 0 1.5.86l10.5-6.5a1 1 0 0 0 0-1.72L9.5 4.64A1 1 0 0 0 8 5.5z" />
+                        </svg>
+                    </button>
+                    <button class="carousel-btn prev" type="button" aria-label="Previous slide">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <path d="m15 18-6-6 6-6" />
+                        </svg>
+                    </button>
+                    <!-- Mouse shortcuts only: Previous and Next do the same from the keyboard -->
+                    <div class="carousel-indicators" aria-hidden="true">
+                        <span class="dot active" data-slide="0"></span>
+                        <span class="dot" data-slide="1"></span>
+                        <span class="dot" data-slide="2"></span>
+                        <span class="dot" data-slide="3"></span>
+                    </div>
+                    <button class="carousel-btn next" type="button" aria-label="Next slide">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <path d="m9 18 6-6-6-6" />
+                        </svg>
+                    </button>
+                </div>
+            )}
+        </div>
+    </section>
+</main>

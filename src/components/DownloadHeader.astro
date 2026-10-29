@@ -1,0 +1,12 @@
+---
+// The Download page's header, also on its versions without JavaScript, whose link goes to the Frontends page's
+// version without JavaScript (data/nojs.ts)
+import { linkFor } from '../data/nojs';
+---
+<div class="page-header">
+    <h1 class="main-title">Download Track N Race</h1>
+    <p class="subtitle">
+        Free and open source. Pick your platform for a short guide to its builds, or
+        <a href={linkFor('/electron-vs-qt/', Astro.url.pathname)} data-astro-prefetch>compare the frontends</a> screen by screen.
+    </p>
+</div>

@@ -1,0 +1,63 @@
+---
+// The Download page without JavaScript (data/nojs.ts): /download/ sends browsers here from a noscript refresh. The
+// same two steps, as a page per platform: step 01's cards are links to them, and each shows its platform's guide
+// (components/DiveBody.astro) with real download links. /no-js/download/ itself is step 01 alone. Not indexed:
+// /download/ is the page.
+import Base from '../../../layouts/Base.astro';
+import PageHead from '../../../components/PageHead.astro';
+import DownloadHeader from '../../../components/DownloadHeader.astro';
+import OptionContent from '../../../components/OptionContent.astro';
+import DiveBody from '../../../components/DiveBody.astro';
+import DownloadNext from '../../../components/DownloadNext.astro';
+import { pages } from '../../../data/pages';
+import { platforms, platformQuestion, dives } from '../../../data/downloads';
+import '../../../styles/pages/download.css';
+
+export function getStaticPaths() {
+    return [{ params: { os: undefined } }, ...platforms.map(p => ({ params: { os: p.os } }))];
+}
+
+const picked = Astro.params.os;
+const dive = picked ? dives.find(d => d.for.includes(picked)) : undefined;
+---
+<Base>
+    <Fragment slot="head">
+        <PageHead page={pages.download} nojs />
+    </Fragment>
+
+    <main id="main">
+        <section id="download" class="section download-section">
+            <DownloadHeader />
+
+            <div class="dl-flow">
+                <section class="quiz-question" aria-labelledby="platform-title">
+                    <div class="quiz-legend">
+                        <span class="quiz-num">01</span>
+                        <h2 class="quiz-title" id="platform-title">{platformQuestion}</h2>
+                    </div>
+                    <!-- Each platform is the page with its guide, scrolled to it; the picked one is marked -->
+                    <div class="quiz-options" data-count="4">
+                        {platforms.map(p => (
+                            <a class:list={['quiz-option', { 'is-selected': p.os === picked }]} href={`/no-js/download/${p.os}/#guide`}
+                                aria-current={p.os === picked ? 'true' : undefined}>
+                                <OptionContent label={p.label} desc={p.desc} icon={p.icon} />
+                            </a>
+                        ))}
+                    </div>
+                </section>
+
+                {dive && picked && (
+                    <section class="quiz-question dl-dive" id="guide" aria-labelledby="guide-title">
+                        <div class="quiz-legend">
+                            <span class="quiz-num">02</span>
+                            <h2 class="quiz-title" id="guide-title">{dive.title}</h2>
+                        </div>
+                        <DiveBody dive={dive} oses={[picked]} staticLinks />
+                    </section>
+                )}
+            </div>
+
+            <DownloadNext heading="h2" class="dl-next" />
+        </section>
+    </main>
+</Base>

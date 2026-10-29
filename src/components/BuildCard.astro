@@ -1,11 +1,11 @@
 ---
 // One build's card in a Download page guide (pages/download.astro) and on its no-JavaScript version
-// (pages/download/no-js.astro). Styles in styles/download.css and download-modal.css.
+// (pages/no-js/download/). Styles in styles/download.css and download-modal.css.
 //
 // For more than one OS (Windows and Linux share a guide), every per-OS value and link is rendered, marked data-os-only,
 // and the page's CSS shows the chosen platform's; for one OS, the values are picked here.
 // The links carry only a data-build slug, which scripts/platform.js turns into an href, so scrapers reading the HTML
-// find no download URLs. With staticLinks (the no-JavaScript page, one OS per card) they are real hrefs instead.
+// find no download URLs. With staticLinks (the versions without JavaScript, one OS per card) they are real hrefs instead.
 import type { Build, PerOs } from '../data/downloads';
 import { osLabels } from '../data/downloads';
 

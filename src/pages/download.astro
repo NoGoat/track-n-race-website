@@ -1,9 +1,13 @@
 ---
 import Base from '../layouts/Base.astro';
+import PageHead from '../components/PageHead.astro';
+import { pages } from '../data/pages';
 import '../styles/pages/download.css';
 import DownloadNext from '../components/DownloadNext.astro';
-import BuildCard from '../components/BuildCard.astro';
-import { platforms, dives } from '../data/downloads';
+import DiveBody from '../components/DiveBody.astro';
+import DownloadHeader from '../components/DownloadHeader.astro';
+import { platforms, platformQuestion, dives } from '../data/downloads';
+import OptionContent from '../components/OptionContent.astro';
 
 const jsonLd = {
   "@context": "https://schema.org",
@@ -47,78 +51,30 @@ const jsonLd = {
   ]
 };
 ---
-<Base jsonLd={jsonLd}>
+<Base jsonLd={jsonLd} nojs="/no-js/download/">
     <Fragment slot="head">
-        <!-- Primary Meta Tags -->
-        <title>Download Track N Race — Electron, Native or Minimal Recorder</title>
-        <meta name="description"
-            content="Download Track N Race for Windows, macOS, Linux or Android. Pick your platform for a short guide to the Electron, Native and Minimal Recorder builds, then download the one that suits your setup.">
-        <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1">
-        <meta name="author" content="NoGoat">
-        <meta name="application-name" content="Track N Race">
-        <meta name="apple-mobile-web-app-title" content="Track N Race">
-        <meta name="theme-color" content="#09090b">
-
-        <!-- Open Graph / Facebook -->
-        <meta property="og:type" content="article">
-        <meta property="og:site_name" content="Track N Race">
-        <meta property="og:locale" content="en_US">
-        <meta property="og:url" content="https://track-n-race.com/download/">
-        <meta property="og:title" content="Download Track N Race — Electron, Native or Minimal Recorder">
-        <meta property="og:description"
-            content="Download Track N Race for Windows, macOS, Linux or Android. Pick your platform for a short guide to the Electron, Native and Minimal Recorder builds, then download the one that suits your setup.">
-        <meta property="og:image" content="https://track-n-race.com/assets/og-image.png">
-        <meta property="og:image:width" content="1200">
-        <meta property="og:image:height" content="630">
-        <meta property="og:image:alt" content="Track N Race overview dashboard showing live speed, RPM and ERS traces with tyre temperatures">
-
-        <!-- Twitter -->
-        <meta name="twitter:card" content="summary_large_image">
-        <meta name="twitter:url" content="https://track-n-race.com/download/">
-        <meta name="twitter:title" content="Download Track N Race — Electron, Native or Minimal Recorder">
-        <meta name="twitter:description"
-            content="Download Track N Race for Windows, macOS, Linux or Android. Pick your platform for a short guide to the Electron, Native and Minimal Recorder builds, then download the one that suits your setup.">
-        <meta name="twitter:image" content="https://track-n-race.com/assets/og-image.png">
-        <meta name="twitter:image:alt" content="Track N Race overview dashboard showing live speed, RPM and ERS traces with tyre temperatures">
-
-        <!-- Canonical URL -->
-        <link rel="canonical" href="https://track-n-race.com/download/">
-
-        <!-- Without JavaScript the guide can't run: go straight to the version that lists every build -->
-        <noscript><meta http-equiv="refresh" content="0; url=/download/no-js/"></noscript>
-
-        <!-- JSON-LD Structured Data -->
+        <PageHead page={pages.download} />
     </Fragment>
 
     <main id="main">
         <!-- Download: pick a platform, read a short guide to its builds and download one, then the Setup link.
              The full comparison (table and screen by screen) is the Frontends page, /electron-vs-qt/. -->
         <section id="download" class="section download-section">
-            <div class="page-header">
-                <h1 class="main-title">Download Track N Race</h1>
-                <p class="subtitle">
-                    Free and open source. Pick your platform for a short guide to its builds, or
-                    <a href="/electron-vs-qt/" data-astro-prefetch>compare the frontends</a> screen by screen.
-                </p>
-            </div>
+            <DownloadHeader />
 
-            <!-- scripts/download-page.js. Without JavaScript the head's noscript refresh opens /download/no-js/; the
+            <!-- scripts/download-page.js. Without JavaScript the layout's noscript refresh opens /no-js/download/; the
                  note below links there too, for browsers that block refreshes. -->
             <div class="dl-flow" id="downloadFlow">
                 <fieldset class="quiz-question">
                     <legend class="quiz-legend">
                         <span class="quiz-num">01</span>
-                        <span class="quiz-title">What are you downloading for?</span>
+                        <span class="quiz-title">{platformQuestion}</span>
                     </legend>
                     <div class="quiz-options" data-count="4">
                         {platforms.map(p => (
                             <label class="quiz-option" data-os={p.os}>
                                 <input type="radio" name="platform" value={p.os} />
-                                <span class="quiz-option-icon" set:html={p.icon} />
-                                <span class="quiz-option-text">
-                                    <span class="quiz-option-label">{p.label}</span>
-                                    <span class="quiz-option-desc">{p.desc}</span>
-                                </span>
+                                <OptionContent label={p.label} desc={p.desc} icon={p.icon} />
                             </label>
                         ))}
                     </div>
@@ -130,19 +86,7 @@ const jsonLd = {
                             <span class="quiz-num">02</span>
                             <h2 class="quiz-title">{dive.title}</h2>
                         </div>
-                        <div class="dl-dive-body">
-                            <p class="dl-intro">{dive.intro}</p>
-                            <div class="dl-builds" data-count={dive.builds.length}>
-                                {dive.builds.map(build => <BuildCard build={build} oses={dive.for} />)}
-                            </div>
-                            {dive.advice && <p class="dl-advice">{dive.advice}</p>}
-                            {dive.ramNote && (
-                                <p class="dl-note">
-                                    RAM measured on Windows 11 over a 92-minute race. How, and every figure, on the
-                                    <a href="/electron-vs-qt/#at-a-glance" data-astro-prefetch>Frontends page</a>.
-                                </p>
-                            )}
-                        </div>
+                        <DiveBody dive={dive} oses={dive.for} />
                     </section>
                 ))}
             </div>
@@ -150,7 +94,7 @@ const jsonLd = {
             <!-- The end of the flow: always shown, and says which download started once one is clicked -->
             <noscript>
                 <p class="dl-note">
-                    The guide needs JavaScript. <a href="/download/no-js/">See every build on one page</a> instead.
+                    The guide needs JavaScript. <a href="/no-js/download/">Use the version without it</a> instead.
                 </p>
             </noscript>
 

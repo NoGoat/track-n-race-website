@@ -1,0 +1,59 @@
+---
+// The Credits page without JavaScript (data/nojs.ts): /credits/ sends browsers here from a noscript refresh. The
+// library browser loads each license as it's picked; this lists every project instead, its license text read at
+// build time into a <details> that opens without a script. Not indexed: /credits/ is the page.
+import fs from 'node:fs';
+import path from 'node:path';
+import Base from '../../layouts/Base.astro';
+import PageHead from '../../components/PageHead.astro';
+import { pages } from '../../data/pages';
+import '../../styles/pages/credits.css';
+import { libraries } from '../../data/libraries';
+import { pad } from '../../data/format';
+
+const LICENSES = path.join(process.cwd(), 'public/assets/licenses');
+const licenseText = (file: string) => fs.readFileSync(path.join(LICENSES, file), 'utf8');
+---
+<Base>
+    <Fragment slot="head">
+        <PageHead page={pages.credits} nojs />
+    </Fragment>
+
+    <main id="main">
+        <section id="attributions" class="section attributions-section">
+            <div class="attributions-container">
+                <div class="page-header">
+                    <h1 class="main-title">{pages.credits.heading}</h1>
+                    <p class="section-desc">{pages.credits.intro}</p>
+                </div>
+
+                <!-- Every project by stack; each opens to its license -->
+                <div class="library-static">
+                    {libraries.map(group => (
+                        <section class="library-static-group" data-stack={group.stack}>
+                            <h2 class="library-group-title">{group.title} <span class="library-count">{pad(group.items.length)}</span></h2>
+                            <ul class="library-static-items">
+                                {group.items.map(item => (
+                                    <li>
+                                        <details class="library-static-entry">
+                                            <summary>
+                                                <span class="library-name">{item.name}</span>
+                                                <span class="library-spdx">{item.spdx}</span>
+                                            </summary>
+                                            <div class="library-static-body">
+                                                <a class="library-static-site" href={item.href} target="_blank" rel="noopener">
+                                                    {item.name} website
+                                                </a>
+                                                <pre class="library-static-text" tabindex="0" aria-label={`${item.name} license`}>{licenseText(item.file)}</pre>
+                                            </div>
+                                        </details>
+                                    </li>
+                                ))}
+                            </ul>
+                        </section>
+                    ))}
+                </div>
+            </div>
+        </section>
+    </main>
+</Base>

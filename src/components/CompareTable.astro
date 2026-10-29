@@ -1,0 +1,85 @@
+---
+// The Frontends page's summary table and how its RAM was measured, also on its version for no JavaScript
+// (pages/no-js/electron-vs-qt.astro). Styles in styles/matrix.css and compare.css.
+---
+<div class="compare-block" id="at-a-glance">
+    <div class="section-header">
+        <h2 class="section-heading">At a glance</h2>
+        <span class="eyebrow">03 builds</span>
+    </div>
+
+    <div class="fmt-matrix-scroll">
+        <table class="fmt-matrix compare-matrix">
+            <thead>
+                <tr>
+                    <th scope="col"><span class="visually-hidden">Feature</span></th>
+                    <th scope="col">Electron</th><th scope="col">Native</th><th scope="col">Minimal Recorder</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <th scope="row">Windows</th>
+                    <td class="yes">Yes</td><td class="yes">Yes</td><td class="yes">Yes <span class="compare-stack">(Win32)</span></td>
+                </tr>
+                <tr>
+                    <th scope="row">macOS</th>
+                    <td class="yes">Yes</td><td class="no">No</td><td class="yes">Yes <span class="compare-stack">(Swift)</span></td>
+                </tr>
+                <tr>
+                    <th scope="row">Linux</th>
+                    <td class="yes">Yes</td><td class="yes">Yes</td><td class="yes">Yes <span class="compare-stack">(Qt)</span></td>
+                </tr>
+                <tr>
+                    <th scope="row">RAM, idle</th>
+                    <td>282 MB</td><td>187 MB</td><td>7 MB</td>
+                </tr>
+                <tr>
+                    <th scope="row">RAM, end of a live race</th>
+                    <td>714 MB</td><td>444 MB</td><td>84 MB</td>
+                </tr>
+                <tr>
+                    <th scope="row">RAM, peak during a live race</th>
+                    <td>748 MB</td><td>463 MB</td><td>85 MB</td>
+                </tr>
+                <tr>
+                    <th scope="row">RAM, reviewing a race (All Laps)</th>
+                    <td>752 MB</td><td>570 MB</td><td class="no">&mdash;</td>
+                </tr>
+                <tr>
+                    <th scope="row">RAM, peak while reviewing</th>
+                    <td>1,115 MB</td><td>712 MB</td><td class="no">&mdash;</td>
+                </tr>
+                <tr>
+                    <th scope="row">Records sessions</th>
+                    <td class="yes">Yes</td><td class="yes">Yes</td><td class="yes">Yes</td>
+                </tr>
+                <tr>
+                    <th scope="row">Live telemetry while driving</th>
+                    <td class="yes">Yes</td><td class="yes">Yes</td><td class="no">No</td>
+                </tr>
+                <tr>
+                    <th scope="row">Lap analysis</th>
+                    <td class="yes">Yes</td><td class="yes">Yes</td><td class="no">No</td>
+                </tr>
+                <tr>
+                    <th scope="row">Layout editor</th>
+                    <td class="yes">Yes</td><td class="yes">Yes</td><td class="no">No</td>
+                </tr>
+                <tr>
+                    <th scope="row">UDP forwarding</th>
+                    <td class="yes">Yes</td><td class="yes">Yes</td><td class="yes">Yes</td>
+                </tr>
+                <tr>
+                    <th scope="row">Built with</th>
+                    <td>Electron, React</td><td>Qt</td><td>See above</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+    <p class="compare-note">
+        RAM is private memory on Windows 11, measured with the 92-minute S&atilde;o Paulo Grand Prix: its UDP
+        data was recorded once, then played back into each app at real speed by a script. Live figures are on
+        Overview with Current Lap, while recording to a file. Reviewing is the recording opened near the end of
+        the race with All Laps on every page. The Minimal Recorder doesn't play recordings back.
+    </p>
+</div>

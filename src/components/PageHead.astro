@@ -1,0 +1,51 @@
+---
+// A page's <head> tags, from its entry in data/pages.ts: title, description, robots, link previews (Open Graph,
+// Twitter) and canonical address. With nojs (the version without JavaScript, under /no-js/), the same title and
+// description, not indexed, and the page itself as the canonical address, so search engines only ever list the page.
+// Goes in the layout's "head" slot; anything a page adds (verification tags) follows it there.
+import type { PageMeta } from '../data/pages';
+
+interface Props {
+    page: PageMeta;
+    nojs?: boolean;
+}
+const { page, nojs = false } = Astro.props;
+const SITE = 'https://track-n-race.com';
+const url = `${SITE}${page.path}`;
+const social = page.socialDescription ?? page.description;
+const OG_IMAGE = `${SITE}/assets/og-image.png`;
+const OG_ALT = 'Track N Race overview dashboard showing live speed, RPM and ERS traces with tyre temperatures';
+---
+<title>{page.title}</title>
+<meta name="description" content={page.description}>
+<meta name="robots" content={nojs ? 'noindex, follow' : page.robots ?? 'index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1'}>
+<meta name="author" content="NoGoat">
+<meta name="application-name" content="Track N Race">
+<meta name="apple-mobile-web-app-title" content="Track N Race">
+<meta name="theme-color" content="#09090b">
+
+{!nojs && (
+    <Fragment>
+        <!-- Open Graph / Facebook -->
+        <meta property="og:type" content={page.type ?? 'article'}>
+        <meta property="og:site_name" content="Track N Race">
+        <meta property="og:locale" content="en_US">
+        <meta property="og:url" content={url}>
+        <meta property="og:title" content={page.title}>
+        <meta property="og:description" content={social}>
+        <meta property="og:image" content={OG_IMAGE}>
+        <meta property="og:image:width" content="1200">
+        <meta property="og:image:height" content="630">
+        <meta property="og:image:alt" content={OG_ALT}>
+
+        <!-- Twitter -->
+        <meta name="twitter:card" content="summary_large_image">
+        <meta name="twitter:url" content={url}>
+        <meta name="twitter:title" content={page.title}>
+        <meta name="twitter:description" content={social}>
+        <meta name="twitter:image" content={OG_IMAGE}>
+        <meta name="twitter:image:alt" content={OG_ALT}>
+    </Fragment>
+)}
+
+<link rel="canonical" href={url}>

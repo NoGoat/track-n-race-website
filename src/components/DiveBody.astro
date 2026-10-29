@@ -1,0 +1,27 @@
+---
+// One platform's guide on the Download page and its version without JavaScript: the intro, the build cards, the
+// advice and where the RAM figures come from. oses are the platforms its cards carry links for (BuildCard).
+import BuildCard from './BuildCard.astro';
+import type { Dive } from '../data/downloads';
+import { linkFor } from '../data/nojs';
+
+interface Props {
+    dive: Dive;
+    oses: string[];
+    staticLinks?: boolean;
+}
+const { dive, oses, staticLinks = false } = Astro.props;
+---
+<div class="dl-dive-body">
+    <p class="dl-intro">{dive.intro}</p>
+    <div class="dl-builds" data-count={dive.builds.length}>
+        {dive.builds.map(build => <BuildCard build={build} oses={oses} staticLinks={staticLinks} />)}
+    </div>
+    {dive.advice && <p class="dl-advice">{dive.advice}</p>}
+    {dive.ramNote && (
+        <p class="dl-note">
+            RAM measured on Windows 11 over a 92-minute race. How, and every figure, on the
+            <a href={`${linkFor('/electron-vs-qt/', Astro.url.pathname)}#at-a-glance`} data-astro-prefetch>Frontends page</a>.
+        </p>
+    )}
+</div>

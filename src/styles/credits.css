@@ -380,19 +380,13 @@ body.page-fit main {
 }
 
 /* ==========================================================================
-   Without JavaScript (html.no-js, layouts/Base.astro)
-   The reader can't load a license, so the browser gives way to a plain list of every project: its name links to
-   the license text, then its license and its website
+   Without JavaScript (pages/no-js/credits.astro)
+   Every project by stack, one per row, each a <details> that opens to its license text
    ========================================================================== */
-.no-js .library {
-    display: none;
-}
-
 .library-static {
-    display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 2rem 2.5rem;
-    align-items: start;
+    display: flex;
+    flex-direction: column;
+    gap: 2.5rem;
     margin-top: 1.5rem;
 }
 
@@ -401,36 +395,90 @@ body.page-fit main {
     border-top: 1px solid var(--line);
 }
 
-.library-static-items li {
-    display: flex;
-    align-items: baseline;
-    gap: 0.75rem;
-    padding: 0.55rem 0;
+.library-static-items > li {
     border-bottom: 1px solid var(--line);
-    font-size: 0.9rem;
 }
 
-.library-static-items .library-name {
-    flex: 1 1 auto;
+/* The row: the stack's colour bar, the name, then the license, like the browser's list */
+.library-static-entry summary {
+    position: relative;
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 0.7rem 0 0.7rem 1rem;
+    cursor: pointer;
+    list-style: none;
+    font-size: 0.95rem;
+    color: var(--text-2);
+    transition: color var(--fast);
+}
+
+.library-static-entry summary::-webkit-details-marker {
+    display: none;
+}
+
+.library-static-entry summary::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 50%;
+    width: 2px;
+    height: 0;
+    background: var(--stack);
+    transform: translateY(-50%);
+    transition: height 0.2s var(--ease);
+}
+
+.library-static-entry summary:hover,
+.library-static-entry[open] summary {
     color: var(--text);
+}
+
+.library-static-entry[open] summary::before {
+    height: 60%;
+}
+
+.library-static-entry summary:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: -2px;
+}
+
+.library-static-body {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.75rem;
+    padding: 0 0 1.25rem 1rem;
+}
+
+.library-static-site {
+    font-size: 0.85rem;
+    color: var(--text-2);
     text-decoration: underline;
     text-decoration-color: var(--line-hover);
     text-underline-offset: 3px;
 }
 
-.library-static-site {
-    flex-shrink: 0;
-    font-size: 0.8rem;
-    color: var(--text-2);
-}
-
-.library-static-site:hover,
-.library-static-items .library-name:hover {
+.library-static-site:hover {
     color: var(--text);
 }
 
-@media (max-width: 860px) {
-    .library-static {
-        grid-template-columns: minmax(0, 1fr);
-    }
+/* The reader's text style, in a box that scrolls past 28rem */
+.library-static-text {
+    width: 100%;
+    max-height: 28rem;
+    overflow-y: auto;
+    margin: 0;
+    padding: 1.1rem 1.4rem 1.4rem;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    white-space: pre-wrap;
+    font-family: var(--font-mono);
+    font-size: 0.78rem;
+    line-height: 1.75;
+    color: var(--text-2);
+    scrollbar-width: thin;
+    scrollbar-color: var(--surface-3) transparent;
 }

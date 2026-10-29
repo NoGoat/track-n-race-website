@@ -189,10 +189,24 @@
         transition: opacity var(--fast), transform var(--fast), visibility var(--fast);
     }
 
-    .nav-menu.mobile-active {
+    .nav-menu.mobile-active,
+    .no-js .nav-menu:target {
         opacity: 1;
         visibility: visible;
         transform: none;
+    }
+
+    /* Without JavaScript (components/Header.astro): the open link while the menu is shut, the close link while it's
+       the page's :target. The close link takes the open button's pressed look. */
+    .no-js .nav-menu-close,
+    .nav-menu:target ~ .nav-actions .nav-menu-open {
+        display: none;
+    }
+
+    .nav-menu:target ~ .nav-actions .nav-menu-close {
+        display: inline-flex;
+        background: var(--surface-2);
+        border-color: var(--line-hover);
     }
 
     .nav-menu .nav-btn {

@@ -3,9 +3,10 @@
 // own stylesheet bundle (styles/pages/), which starts with base.css and site.css.
 // A page passes its own <title> and meta tags in the "head" slot, and anything that sits after the footer
 // (the download modal, the lightbox) in the "after-footer" slot.
-// <html> starts as .no-js, and the first script in the head swaps that for .js before anything is drawn. Stylesheets
-// use .no-js for what a page shows without JavaScript (every slide, every screen, links in place of buttons), and
-// .nojs-only / .js-only (base.css) for elements meant for just one of the two.
+// A page with a version built for no JavaScript (data/nojs.ts) passes it as nojs: a noscript refresh opens it.
+// <html> starts as .no-js, and the first script in the head swaps that for .js before anything is drawn, for the
+// little every page needs either way: .nojs-only / .js-only (base.css) mark elements for just one of the two, like
+// the header's menu button.
 import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
 import LicenseModal from '../components/LicenseModal.astro';
@@ -14,9 +15,11 @@ interface Props {
     /** Structured data for search engines, written out as JSON-LD */
     jsonLd?: object;
     bodyClass?: string;
+    /** This page's version without JavaScript, under /no-js/ */
+    nojs?: string;
 }
 
-const { jsonLd, bodyClass } = Astro.props;
+const { jsonLd, bodyClass, nojs } = Astro.props;
 ---
 <!DOCTYPE html>
 <html lang="en" data-theme="dark" class="no-js">
@@ -24,6 +27,7 @@ const { jsonLd, bodyClass } = Astro.props;
 <head>
     <meta charset="UTF-8">
     <script is:inline>document.documentElement.classList.replace('no-js', 'js');</script>
+    {nojs && <noscript><meta http-equiv="refresh" content={`0; url=${nojs}`}></noscript>}
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
     <slot name="head" />

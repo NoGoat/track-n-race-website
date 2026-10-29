@@ -11,6 +11,8 @@
     border: 0;
     border-bottom: 1px solid var(--line);
     animation: fadeIn 0.25s ease;
+    /* The no-JavaScript Setup links straight to the next question */
+    scroll-margin-top: calc(var(--nav-h) + 1rem);
 }
 
 /* A legend can't be a grid item, so it floats into the first column */
@@ -80,6 +82,27 @@
 .quiz-option:has(input:focus-visible) {
     outline: 2px solid var(--accent);
     outline-offset: 2px;
+}
+
+/* Cards that are links instead of radios: the answers on the no-JavaScript Setup (pages/no-js/setup/), where the
+   picked one is .is-selected, and the no-JavaScript Download's platform links */
+a.quiz-option {
+    color: inherit;
+    text-decoration: none;
+}
+
+a.quiz-option:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+}
+
+.quiz-option.is-selected {
+    border-color: var(--accent);
+    background: var(--accent-soft);
+}
+
+.quiz-option.is-selected .quiz-option-icon {
+    color: var(--text);
 }
 
 /* The radio itself is invisible but stays focusable and in the accessibility tree */
