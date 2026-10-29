@@ -43,9 +43,95 @@
 }
 
 .download-close {
-    position: absolute;
-    top: 1rem;
-    right: 1rem;
+    flex-shrink: 0;
+}
+
+/* Top bar: the Electron app's dialog header (55px, hairline under it), kept in view while the builds scroll.
+   It reaches the modal's edges by cancelling the content padding (1.75rem, 1.25rem on phones). */
+.download-bar {
+    position: sticky;
+    top: -1.75rem;
+    z-index: 3;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    /* The content is a flex column: without this the bar is squeezed when the modal scrolls */
+    flex-shrink: 0;
+    height: 55px;
+    margin: -1.75rem -1.75rem 1.5rem;
+    padding: 0 1.25rem 0 1.75rem;
+    background: #0d0d10;
+    border-bottom: 1px solid var(--line);
+}
+
+.download-bar-meta {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    min-width: 0;
+    font-size: 0.75rem;
+    white-space: nowrap;
+}
+
+/* "Download started": replaces the head, tabs and builds once a build is clicked */
+.download-next {
+    display: none;
+}
+
+.download-modal[data-step="next"] .download-modal-content > :not(.download-bar, .download-next) {
+    display: none;
+}
+
+.download-modal[data-step="next"] .download-next {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.85rem;
+    max-width: 34rem;
+    padding: 0.5rem 0.25rem 0.25rem;
+    outline: none;
+}
+
+.download-next h3 {
+    font-size: 1.5rem;
+    font-weight: 600;
+    line-height: 1.2;
+    letter-spacing: -0.03em;
+}
+
+.download-next-text {
+    font-size: 0.95rem;
+    line-height: 1.6;
+    color: var(--text-2);
+}
+
+.download-next-text strong {
+    color: var(--text);
+    font-weight: 500;
+}
+
+.download-next-actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.75rem;
+    margin-top: 0.5rem;
+}
+
+.download-next-note {
+    font-size: 0.8rem;
+    color: var(--text-3);
+}
+
+.download-next-note a {
+    color: var(--text-2);
+    text-decoration: underline;
+    text-underline-offset: 2px;
+}
+
+.download-next-note a:hover {
+    color: var(--text);
 }
 
 /* Only the active platform's file type, link and "not available" note show. Android keeps the Windows ones in
@@ -58,16 +144,7 @@
 }
 
 .download-head {
-    display: flex;
-    flex-direction: column;
-    gap: 0.5rem;
-    padding-right: 2.5rem;
     margin-bottom: 1.25rem;
-}
-
-.download-head .eyebrow {
-    gap: 0.5rem;
-    font-size: 0.7rem;
 }
 
 .download-head-sep {
@@ -304,6 +381,12 @@ a.download-build-get:hover::before {
         max-height: calc(100vh - 2rem);
         max-height: calc(100dvh - 2rem);
         padding: 1.25rem;
+    }
+
+    .download-bar {
+        top: -1.25rem;
+        margin: -1.25rem -1.25rem 1.25rem;
+        padding: 0 0.85rem 0 1.25rem;
     }
 
     .download-os-tabs {

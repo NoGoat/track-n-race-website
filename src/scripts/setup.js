@@ -27,8 +27,8 @@ const derive = (a) => {
     if (s.view !== 'android') {
         // A console can't run Track N Race, so it always sends to another computer
         s.host = s.platform === 'pc' ? a.host : 'other';
-        if (s.host === 'other') s.os = a.os;
-        if (!s.host || (s.host === 'other' && !s.os)) return s;
+        s.os = a.os;
+        if (!s.host || !s.os) return s;
     }
     s.link = { computer: 'desktop', android: 'direct', both: 'paired' }[s.view];
     // The Native (Qt) app is built for Windows and Linux only; a Mac runs the Electron app
@@ -57,7 +57,7 @@ const render = () => {
         'game-name': GAME_NAMES[state.game] ?? 'the game',
         'platform-name': PLATFORM_NAMES[state.platform] ?? 'your device',
         'format': FORMATS[state.game] ?? '',
-        'host-name': state.host === 'same' ? 'this PC' : OS_NAMES[state.os] ?? 'your computer',
+        'host-name': state.host === 'same' ? (state.os === 'macos' ? 'this Mac' : 'this PC') : OS_NAMES[state.os] ?? 'your computer',
         'ip-device': IP_DEVICES[state.ip] ?? 'the device',
         'ip-owner': IP_OWNERS[state.ip] ?? 'its',
         'ip-target': state.ip === 'loopback' ? '127.0.0.1' : IP_PLACEHOLDERS[state.ip] ?? '',

@@ -662,6 +662,9 @@
 .command-box code {
     font-size: 0.85rem;
     color: var(--text);
+    /* Long commands (the macOS quarantine one) wrap instead of widening the page */
+    min-width: 0;
+    overflow-wrap: anywhere;
 }
 
 .command-box code::before {
@@ -740,13 +743,16 @@ kbd {
         grid-template-columns: 1fr;
     }
 
+    /* Still floated: a non-floated legend sits in the fieldset's top border and pushes its padding below it */
     .quiz-legend {
-        float: none;
         margin-bottom: 1rem;
     }
 
-    .quiz-options,
-        .setup-step-card,
+    .quiz-options {
+        grid-column: 1;
+    }
+
+    .setup-step-card,
     .info-box {
         grid-template-columns: 1fr;
         row-gap: 0;

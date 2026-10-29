@@ -6,23 +6,25 @@ import { VERSION } from '../version';
 ---
 <dialog class="download-modal" id="downloadModal" data-os="windows" aria-labelledby="downloadModalTitle">
     <div class="modal-content download-modal-content">
-        <button class="modal-close download-close" id="closeDownloadModal" type="button" aria-label="Close downloads">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"
-                stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                <line x1="18" y1="6" x2="6" y2="18"></line>
-                <line x1="6" y1="6" x2="18" y2="18"></line>
-            </svg>
-        </button>
-
-        <div class="download-head">
-            <p class="eyebrow">
+        <!-- Stays at the top while the modal scrolls, like the Electron app's dialog headers -->
+        <div class="download-bar">
+            <p class="eyebrow download-bar-meta">
                 <span>v{VERSION}</span><span class="download-head-sep" aria-hidden="true">/</span>
-                <span id="downloadDetectedNote">Free and open source</span><span class="download-head-sep" aria-hidden="true">/</span>
                 <a class="download-head-link" href={`https://github.com/NoGoat/Track-N-Race/releases/tag/${VERSION}`} target="_blank" rel="noopener">
                     All releases
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
                 </a>
             </p>
+            <button class="modal-close download-close" id="closeDownloadModal" type="button" aria-label="Close downloads">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"
+                    stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <line x1="18" y1="6" x2="6" y2="18"></line>
+                    <line x1="6" y1="6" x2="18" y2="18"></line>
+                </svg>
+            </button>
+        </div>
+
+        <div class="download-head">
             <h3 id="downloadModalTitle">Download Track N Race</h3>
         </div>
 
@@ -148,6 +150,28 @@ import { VERSION } from '../version';
                     <span>Download<span class="visually-hidden"> for Android</span></span>
                 </a>
             </section>
+        </div>
+
+        <!-- Shown in place of everything above once a build is clicked (scripts/download-modal.js). A page
+             can't see the download finish, so this says it has started and points to the Setup page. -->
+        <div class="download-next" id="downloadNext" tabindex="-1" aria-labelledby="downloadNextTitle">
+            <p class="eyebrow">Download started</p>
+            <h3 id="downloadNextTitle">Next, connect it to the game</h3>
+            <p class="download-next-text">
+                Your browser is downloading <strong id="downloadNextName">Track N Race</strong>. While it finishes,
+                answer a few questions on the Setup page to get the exact telemetry settings for your setup.
+            </p>
+            <div class="download-next-actions">
+                <a class="primary-btn" id="downloadNextSetup" href="/setup/">
+                    <span>Set up telemetry</span>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+                </a>
+                <button class="secondary-btn" id="downloadNextBack" type="button">Back to downloads</button>
+            </div>
+            <p class="download-next-note">
+                Download didn't start? <a id="downloadNextRetry" href="#">Try again</a>, or get it from
+                <a href={`https://github.com/NoGoat/Track-N-Race/releases/tag/${VERSION}`} target="_blank" rel="noopener">GitHub</a>.
+            </p>
         </div>
     </div>
 </dialog>

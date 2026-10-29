@@ -52,18 +52,55 @@ const setupDownloadModal = (downloadModal) => {
         });
     };
 
+    // After a build is clicked, the modal swaps to "Download started" with a link to the Setup page
+    const nextPanel = downloadModal.querySelector('#downloadNext');
+    const nextName = downloadModal.querySelector('#downloadNextName');
+    const nextSetup = downloadModal.querySelector('#downloadNextSetup');
+    const nextRetry = downloadModal.querySelector('#downloadNextRetry');
+    const buildNames = { electron: 'Track N Race', qt: 'Track N Race Native', minimal: 'the Minimal Recorder' };
+
+    const showNext = (link) => {
+        const [app, os] = link.dataset.build.split('/');
+        if (nextName) nextName.textContent = app === 'android'
+            ? 'Track N Race for Android'
+            : `${buildNames[app] ?? 'Track N Race'} for ${osLabels[os] ?? os}`;
+        // A desktop build says which OS that computer runs. The APK doesn't say whether the phone works alone
+        // or paired with a computer, so that's left for the user to answer.
+        if (nextSetup) nextSetup.href = app === 'android' ? '/setup/' : `/setup/?os=${os}`;
+        if (nextRetry) nextRetry.href = link.href;
+        downloadModal.dataset.step = 'next';
+        nextPanel?.focus();
+    };
+
+    const showBuilds = () => {
+        delete downloadModal.dataset.step;
+    };
+
+    // The link's own default action starts the download; this only changes what the modal shows
+    downloadModal.querySelectorAll('a.download-build-get[data-build]').forEach(link => {
+        link.addEventListener('click', () => showNext(link));
+    });
+
+    downloadModal.querySelector('#downloadNextBack')?.addEventListener('click', () => {
+        showBuilds();
+        downloadModal.querySelector('.download-os-tab.active')?.focus();
+    });
+
+    // Already on the Setup page: reloading it would wipe the answers given so far, so just close the modal
+    nextSetup?.addEventListener('click', (e) => {
+        if (currentPath !== '/setup') return;
+        e.preventDefault();
+        downloadDialog.close();
+    });
+
     const openDownloadModal = (trigger) => {
         lastTrigger = trigger;
+        showBuilds();
         fillBuildLinks();
         // Counted by worker/index.js; the downloads themselves are counted by their /download/ redirects
         navigator.sendBeacon?.(`/api/event?name=download_modal_open&os=${detectedOS || ''}`);
         // Unsupported platforms (phones, tablets, ...) fall back to the Windows builds
         switchOsTab(detectedOS || 'windows');
-
-        const noteEl = downloadModal.querySelector('#downloadDetectedNote');
-        if (noteEl) noteEl.textContent = detectedOS
-            ? `${osLabels[detectedOS]} detected`
-            : 'Desktop only';
 
         downloadDialog.open();
         closeDownloadModal?.focus();

@@ -138,8 +138,9 @@ const questions = [
     {
         name: 'os',
         title: 'What does that computer run?',
-        // Consoles always need a separate computer, so they skip the question above
-        when: 'host=other',
+        // Asked for the gaming PC too: it can be a Mac or Linux box running the game through CrossOver or Proton.
+        // Consoles always need a separate computer, so they skip the question above and land here.
+        when: 'host=*',
         options: [
             { value: 'windows', label: 'Windows', icon: icon.windows },
             { value: 'macos', label: 'macOS', icon: icon.apple },
@@ -306,6 +307,45 @@ const questions = [
                             <Fragment set:html={icon.info} />
                             <span>Paired mode needs the full desktop app (Electron<span data-when="native=yes"> or Native</span>). The Minimal Recorder can't pair with a phone.</span>
                         </p>
+
+                        <!-- Track N Race isn't signed or notarised with an Apple Developer certificate, so Gatekeeper stops the first launch -->
+                        <div class="gatekeeper" data-when="os=macos">
+                            <h4 class="record-subtitle">Opening it on macOS</h4>
+                            <p class="step-desc">
+                                Track N Race isn't signed with an Apple Developer certificate, so the first time you
+                                open it macOS blocks it with <strong>"Track N Race" Not Opened</strong> (or "cannot be
+                                opened because Apple cannot check it for malicious software"). That's expected. To let it run:
+                            </p>
+                            <div class="platform-pane">
+                                <div class="platform-method-card">
+                                    <span class="platform-method-badge">Option A &bull; System Settings</span>
+                                    <ol class="task-list">
+                                        <li>Open the <code>.dmg</code> and drag <strong>Track N Race</strong> into <strong>Applications</strong>.</li>
+                                        <li>Open it once. When macOS blocks it, click <strong>Done</strong> (not <strong>Move to Trash</strong>).</li>
+                                        <li>Go to <strong>System Settings</strong> &rarr; <strong>Privacy &amp; Security</strong>, scroll down to <strong>Security</strong>, and click <strong>Open Anyway</strong> next to the Track N Race message.</li>
+                                        <li>Open Track N Race again and click <strong>Open Anyway</strong>, then enter your password if asked. macOS remembers this, so you only do it once per version.</li>
+                                    </ol>
+                                </div>
+                                <div class="platform-method-card">
+                                    <span class="platform-method-badge">Option B &bull; Terminal, if it says the app "is damaged"</span>
+                                    <p class="config-subtext">
+                                        A damaged message means macOS has quarantined the download. After copying the
+                                        app to Applications, clear the quarantine flag:
+                                    </p>
+                                    <div class="command-box">
+                                        <code>xattr -dr com.apple.quarantine "/Applications/Track N Race.app"</code>
+                                        <button class="copy-action-btn" type="button" data-copy='xattr -dr com.apple.quarantine "/Applications/Track N Race.app"'>
+                                            <Fragment set:html={icon.copy} />
+                                            <span class="copy-label">Copy</span><span class="visually-hidden"> the xattr command</span>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                            <p class="step-callout">
+                                <Fragment set:html={icon.info} />
+                                <span>The Minimal Recorder is unsigned too: use the same steps, with its own app name in the command.<span data-when="link=paired"> This is separate from the keychain password prompt in step 04.</span></span>
+                            </p>
+                        </div>
                     </div>
 
                     <!-- Find the receiving device's IP -->
