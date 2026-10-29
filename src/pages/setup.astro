@@ -100,8 +100,8 @@ const jsonLd = {
                 <p class="subtitle">{pages.setup.intro}</p>
             </div>
 
-            <!-- Questionnaire (scripts/setup.js). Without JavaScript the layout's noscript refresh opens /no-js/setup/, which
-                 has a page per set of answers. -->
+            <!-- Questionnaire (scripts/setup.js). Without JavaScript the layout's noscript refresh opens /no-js/setup/, a
+                 single page with the settings for every setup. -->
             <form class="setup-quiz" id="setupQuiz" aria-label="Your setup">
                 {questions.map((q, i) => (
                     <fieldset class="quiz-question" data-when={q.when}>

@@ -1,4 +1,4 @@
-// The Setup page's questions and icons, shared with its versions for no JavaScript (pages/no-js/setup/)
+// The Setup page's questions and icons, the icons shared with its version for no JavaScript (pages/no-js/setup.astro)
 import { platformIcons } from './icons';
 
 // Shared icons (Lucide-style strokes; brand marks from Simple Icons, CC0)

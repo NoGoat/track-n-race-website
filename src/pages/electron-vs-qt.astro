@@ -2,6 +2,7 @@
 import Base from '../layouts/Base.astro';
 import PageHead from '../components/PageHead.astro';
 import { pages } from '../data/pages';
+import { NOJS_HOME } from '../data/nojs';
 import '../styles/pages/compare.css';
 import CompareDownload from '../components/CompareDownload.astro';
 import CompareTable from '../components/CompareTable.astro';
@@ -134,7 +135,7 @@ const jsonLd = {
   ]
 };
 ---
-<Base jsonLd={jsonLd} nojs="/no-js/electron-vs-qt/">
+<Base jsonLd={jsonLd} nojs={NOJS_HOME}>
     <Fragment slot="head">
         <PageHead page={pages.compare} />
     </Fragment>

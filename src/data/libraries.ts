@@ -1,4 +1,4 @@
-// The Credits page's projects, by stack, shared with its version for no JavaScript (pages/no-js/credits.astro).
+// The Credits page's projects, by stack.
 // file is the license text in public/assets/licenses/.
 export const libraries = [
     {

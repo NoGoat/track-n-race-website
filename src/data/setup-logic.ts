@@ -1,5 +1,4 @@
-// The Setup questionnaire's logic, shared by scripts/setup.js (in the browser) and the pages built for no
-// JavaScript (pages/no-js/setup/), so both show the same setup for the same answers.
+// The Setup questionnaire's logic, for scripts/setup.js.
 // The answers, and what they add up to (derive), decide which blocks show. A block's data-when lists the conditions
 // it needs, all of them: "view=computer,both platform=pc" shows when view is computer or both and platform is pc;
 // "game=*" when game is answered. data-fill elements take their text from the answers (fillsFor).

@@ -1,16 +1,18 @@
 ---
 // The home page's content, also on its version for no JavaScript (pages/no-js/index.astro). With nojs, both
 // carousels list every slide (.carousel-static, styles/carousel.css) without their controls, the screenshots have no
-// lightbox to open, and the links go to the other pages' versions without JavaScript (data/nojs.ts).
+// lightbox to open, and the links go to the other pages' versions without JavaScript, leaving out the pages that
+// need it (data/nojs.ts).
 import DownloadButton from './DownloadButton.astro';
 import ZoomBadge from './ZoomBadge.astro';
-import { linkFor } from '../data/nojs';
+import { linkFor, jsOnlyPages } from '../data/nojs';
 
 interface Props {
     nojs?: boolean;
 }
 const { nojs = false } = Astro.props;
 const link = (href: string) => nojs ? linkFor(href, '/no-js/') : href;
+const shows = (href: string) => !nojs || !jsOnlyPages.has(href);
 ---
 <main id="main">
     <!-- Hero Section -->
@@ -80,14 +82,16 @@ const link = (href: string) => nojs ? linkFor(href, '/no-js/') : href;
     <section id="features" class="section feature-section">
         <div class="section-header">
             <h2 class="section-heading">Highlights</h2>
-            <a class="eyebrow section-link" href={link('/gallery/')} data-astro-prefetch>
-                <span>See every screen</span>
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                    stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                    <path d="M5 12h14"></path>
-                    <path d="m12 5 7 7-7 7"></path>
-                </svg>
-            </a>
+            {shows('/gallery/') && (
+                <a class="eyebrow section-link" href={link('/gallery/')} data-astro-prefetch>
+                    <span>See every screen</span>
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <path d="M5 12h14"></path>
+                        <path d="m12 5 7 7-7 7"></path>
+                    </svg>
+                </a>
+            )}
         </div>
 
         <!-- Feature Carousel -->
@@ -110,14 +114,16 @@ const link = (href: string) => nojs ? linkFor(href, '/no-js/') : href;
                                         <li>Charts load only the blocks they need</li>
                                         <li>Share it and compare laps against a friend's file in Analyze</li>
                                     </ul>
-                                    <a class="eyebrow section-link feature-cta" href={link('/tnrd/')} data-astro-prefetch>
-                                        <span>View the history of .tnrd files</span>
-                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                                            stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                                            <path d="M5 12h14"></path>
-                                            <path d="m12 5 7 7-7 7"></path>
-                                        </svg>
-                                    </a>
+                                    {shows('/tnrd/') && (
+                                        <a class="eyebrow section-link feature-cta" href={link('/tnrd/')} data-astro-prefetch>
+                                            <span>View the history of .tnrd files</span>
+                                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                                stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                                <path d="M5 12h14"></path>
+                                                <path d="m12 5 7 7-7 7"></path>
+                                            </svg>
+                                        </a>
+                                    )}
                                 </div>
                                 <div class="feature-visual">
                                     <div class="tnrd-frame" data-src="/assets/tnrd-anim.svg" data-fallback="/assets/tnrd-static.svg">
@@ -272,14 +278,16 @@ const link = (href: string) => nojs ? linkFor(href, '/no-js/') : href;
     <section id="frontends" class="section alt-frontend-section">
         <div class="section-header">
             <h2 class="section-heading">Meet the frontends</h2>
-            <a class="eyebrow section-link" href={link('/electron-vs-qt/')} data-astro-prefetch>
-                <span>Compare Frontends</span>
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                    stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                    <path d="M5 12h14"></path>
-                    <path d="m12 5 7 7-7 7"></path>
-                </svg>
-            </a>
+            {shows('/electron-vs-qt/') && (
+                <a class="eyebrow section-link" href={link('/electron-vs-qt/')} data-astro-prefetch>
+                    <span>Compare Frontends</span>
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <path d="M5 12h14"></path>
+                        <path d="m12 5 7 7-7 7"></path>
+                    </svg>
+                </a>
+            )}
         </div>
 
         <div class:list={['carousel-container', { 'carousel-static': nojs }]} role="region" aria-roledescription={nojs ? undefined : 'carousel'} aria-label="Frontends">
@@ -301,14 +309,16 @@ const link = (href: string) => nojs ? linkFor(href, '/no-js/') : href;
                                         <li>Records sessions and plays them back</li>
                                         <li>Forwards UDP to other apps</li>
                                     </ul>
-                                    <a class="eyebrow section-link feature-cta" href={link('/electron-vs-qt/')} data-astro-prefetch>
-                                        <span>Compare the desktop builds</span>
-                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                                            stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                                            <path d="M5 12h14"></path>
-                                            <path d="m12 5 7 7-7 7"></path>
-                                        </svg>
-                                    </a>
+                                    {shows('/electron-vs-qt/') && (
+                                        <a class="eyebrow section-link feature-cta" href={link('/electron-vs-qt/')} data-astro-prefetch>
+                                            <span>Compare the desktop builds</span>
+                                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                                stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                                <path d="M5 12h14"></path>
+                                                <path d="m12 5 7 7-7 7"></path>
+                                            </svg>
+                                        </a>
+                                    )}
                                 </div>
                                 <div class="feature-visual">
                                     <div class="app-window">
@@ -341,14 +351,16 @@ const link = (href: string) => nojs ? linkFor(href, '/no-js/') : href;
                                         <li>444 MB at the end of a live race, against 714 MB</li>
                                         <li>Records sessions and plays them back</li>
                                     </ul>
-                                    <a class="eyebrow section-link feature-cta" href={link('/electron-vs-qt/')} data-astro-prefetch>
-                                        <span>Compare the desktop builds</span>
-                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                                            stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                                            <path d="M5 12h14"></path>
-                                            <path d="m12 5 7 7-7 7"></path>
-                                        </svg>
-                                    </a>
+                                    {shows('/electron-vs-qt/') && (
+                                        <a class="eyebrow section-link feature-cta" href={link('/electron-vs-qt/')} data-astro-prefetch>
+                                            <span>Compare the desktop builds</span>
+                                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                                stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                                <path d="M5 12h14"></path>
+                                                <path d="m12 5 7 7-7 7"></path>
+                                            </svg>
+                                        </a>
+                                    )}
                                 </div>
                                 <div class="feature-visual">
                                     <div class="app-window">
@@ -416,14 +428,16 @@ const link = (href: string) => nojs ? linkFor(href, '/no-js/') : href;
                                         <li>Records sessions and plays them back</li>
                                         <li>A landscape wheel display that hides the bars until you tap</li>
                                     </ul>
-                                    <a class="eyebrow section-link feature-cta" href={nojs ? '/no-js/gallery/android/' : '/gallery/#android'} data-astro-prefetch>
-                                        <span>See every Android screen</span>
-                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                                            stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                                            <path d="M5 12h14"></path>
-                                            <path d="m12 5 7 7-7 7"></path>
-                                        </svg>
-                                    </a>
+                                    {shows('/gallery/') && (
+                                        <a class="eyebrow section-link feature-cta" href={`${link('/gallery/')}#android`} data-astro-prefetch>
+                                            <span>See every Android screen</span>
+                                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                                stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                                <path d="M5 12h14"></path>
+                                                <path d="m12 5 7 7-7 7"></path>
+                                            </svg>
+                                        </a>
+                                    )}
                                 </div>
                                 <div class="feature-visual">
                                     <div class="shot-android app-window">

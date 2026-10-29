@@ -1,4 +1,3 @@
-// The Gallery's screens, shared with its versions for no JavaScript (pages/no-js/gallery/)
 import { screens } from './screens';
 
 // The Gallery's screens, grouped by area; they're numbered in this order

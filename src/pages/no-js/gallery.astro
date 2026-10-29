@@ -1,0 +1,64 @@
+---
+// The Gallery without JavaScript (data/nojs.ts): /gallery/ sends browsers here from a noscript refresh. No switch:
+// every frontend one after another, Electron, Native then Android, each a .gallery-section that shows its own
+// captures and captions (styles/gallery.css), with links down to them in the header. Not indexed: /gallery/ is the page.
+import Base from '../../layouts/Base.astro';
+import PageHead from '../../components/PageHead.astro';
+import { pages } from '../../data/pages';
+import '../../styles/pages/gallery.css';
+import GalleryShot from '../../components/GalleryShot.astro';
+import { screens } from '../../data/screens';
+import { groups, androidCount } from '../../data/gallery';
+import { pad } from '../../data/format';
+
+const UIS = [
+    { ui: 'electron', id: 'electron', label: 'Electron' },
+    { ui: 'qt', id: 'native', label: 'Native' },
+    { ui: 'android', id: 'android', label: 'Android' },
+];
+---
+<Base>
+    <Fragment slot="head">
+        <PageHead page={pages.gallery} nojs />
+    </Fragment>
+
+    <main id="main" class="gallery-all">
+        <div class="gallery-head">
+            <div class="gallery-head-inner">
+                <h1 class="main-title">Gallery</h1>
+                <nav class="scenario-selector gallery-switch" aria-label="Frontend">
+                    {UIS.map(u => <a class="scenario-btn gallery-switch-btn" href={`#${u.id}`}>{u.label}</a>)}
+                </nav>
+            </div>
+        </div>
+
+        {UIS.map((u, f) => {
+            const android = u.ui === 'android';
+            const files = (list: string[]) => android ? list.filter(file => screens[file].android) : list;
+            return (
+                <section class="gallery-section" id={u.id} data-ui={u.ui} aria-labelledby={`${u.id}-title`}>
+                    <div class="gallery-head">
+                        <div class="gallery-head-inner">
+                            <h2 class="main-title" id={`${u.id}-title`}>{u.label}</h2>
+                            <span class="eyebrow">{pad(groups.reduce((n, g) => n + files(g.screens).length, 0))} screens</span>
+                        </div>
+                    </div>
+                    <div class="section gallery-body">
+                        {groups.map((group, g) => (
+                            <section class="gallery-group" aria-labelledby={`${u.id}-${group.id}`}>
+                                <div class="section-header">
+                                    <h3 class="section-heading" id={`${u.id}-${group.id}`}>{group.title}</h3>
+                                    <span class="eyebrow">{pad(android ? androidCount(group.screens) : group.screens.length)} screens</span>
+                                </div>
+                                <div class="gallery-grid">
+                                    <!-- Only Electron's first group loads straight away -->
+                                    {files(group.screens).map(file => <GalleryShot file={file} lazy={f > 0 || g > 0} zoom={false} />)}
+                                </div>
+                            </section>
+                        ))}
+                    </div>
+                </section>
+            );
+        })}
+    </main>
+</Base>

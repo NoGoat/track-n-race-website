@@ -84,8 +84,8 @@
     outline-offset: 2px;
 }
 
-/* Cards that are links instead of radios: the answers on the no-JavaScript Setup (pages/no-js/setup/), where the
-   picked one is .is-selected, and the no-JavaScript Download's platform links */
+/* Cards that are links instead of radios: the no-JavaScript Download's platform links, where the picked one is
+   .is-selected */
 a.quiz-option {
     color: inherit;
     text-decoration: none;

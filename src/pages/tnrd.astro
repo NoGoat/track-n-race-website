@@ -2,6 +2,7 @@
 import Base from '../layouts/Base.astro';
 import PageHead from '../components/PageHead.astro';
 import { pages } from '../data/pages';
+import { NOJS_HOME } from '../data/nojs';
 import '../styles/pages/tnrd.css';
 
 const jsonLd = {
@@ -28,7 +29,7 @@ const jsonLd = {
   ]
 };
 ---
-<Base jsonLd={jsonLd}>
+<Base jsonLd={jsonLd} nojs={NOJS_HOME}>
     <Fragment slot="head">
         <PageHead page={pages.tnrd} />
     </Fragment>

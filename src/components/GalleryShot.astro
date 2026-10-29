@@ -1,9 +1,7 @@
 ---
-// One screen on the Gallery: its screenshot and caption. Two ways to render it:
-// - On the Gallery (no ui): every frontend's capture, marked data-ui, and the Android tab's own name, number and
-//   caption beside the desktop ones; styles/gallery.css shows the picked frontend's.
-// - On a version without JavaScript (pages/no-js/gallery/), with ui: that frontend's capture and caption only,
-//   and no lightbox to open.
+// One screen on the Gallery: its screenshot and caption. Every frontend's capture, marked data-ui, and the Android
+// tab's own name, number and caption beside the desktop ones; styles/gallery.css shows the picked frontend's.
+// Without zoom (the version without JavaScript, pages/no-js/gallery.astro) there's no lightbox button.
 import ScreenPicture from './ScreenPicture.astro';
 import ZoomBadge from './ZoomBadge.astro';
 import { screens } from '../data/screens';
@@ -14,49 +12,31 @@ interface Props {
     file: string;
     /** Whether the screenshot waits until scrolled to (every group but the first) */
     lazy: boolean;
-    ui?: 'electron' | 'qt' | 'android';
+    zoom?: boolean;
 }
-const { file, lazy, ui } = Astro.props;
+const { file, lazy, zoom = true } = Astro.props;
 const screen = screens[file];
 const SIZES = '(max-width: 768px) 100vw, 600px';
-const android = ui === 'android';
 ---
-{ui ? (
-    <figure class:list={['shot', { 'shot-trimmed': screen.width === 2492 }]}>
-        <div class="app-window">
-            <div class="img-zoom-wrapper">
-                <ScreenPicture screen={screen} ui={ui} sizes={SIZES} lazy={lazy} />
-            </div>
+<figure class:list={['shot', { 'shot-trimmed': screen.width === 2492, 'no-android': !screen.android }]}>
+    <div class="app-window">
+        <div class="img-zoom-wrapper">
+            <!-- Only the first group loads straight away; the rest wait until scrolled to -->
+            <ScreenPicture screen={screen} ui="electron" sizes={SIZES} lazy={lazy} />
+            <ScreenPicture screen={screen} ui="qt" sizes={SIZES} lazy />
+            {screen.android && <ScreenPicture screen={screen} ui="android" sizes={SIZES} lazy />}
+            {zoom && <ZoomBadge />}
         </div>
-        <figcaption class="shot-caption">
-            <span class="module-num">{pad((android ? androidNumbers : numbers).get(file)!)}</span>
-            <div>
-                <h3 class="module-title">{android ? screen.android?.name ?? screen.name : screen.name}</h3>
-                <p class="module-desc">{android ? screen.android!.desc : screen.desc}</p>
-            </div>
-        </figcaption>
-    </figure>
-) : (
-    <figure class:list={['shot', { 'shot-trimmed': screen.width === 2492, 'no-android': !screen.android }]}>
-        <div class="app-window">
-            <div class="img-zoom-wrapper">
-                <!-- Only the first group loads straight away; the rest wait until scrolled to -->
-                <ScreenPicture screen={screen} ui="electron" sizes={SIZES} lazy={lazy} />
-                <ScreenPicture screen={screen} ui="qt" sizes={SIZES} lazy />
-                {screen.android && <ScreenPicture screen={screen} ui="android" sizes={SIZES} lazy />}
-                <ZoomBadge />
-            </div>
+    </div>
+    <figcaption class="shot-caption">
+        <span class="module-num desc-desktop">{pad(numbers.get(file)!)}</span>
+        {screen.android && <span class="module-num" data-ui="android">{pad(androidNumbers.get(file)!)}</span>}
+        <div>
+            <!-- The Android tab swaps in the app's own name and caption for the screen -->
+            <h3 class:list={['module-title', { 'desc-desktop': screen.android?.name }]}>{screen.name}</h3>
+            {screen.android?.name && <h3 class="module-title" data-ui="android">{screen.android.name}</h3>}
+            <p class="module-desc desc-desktop">{screen.desc}</p>
+            {screen.android && <p class="module-desc" data-ui="android">{screen.android.desc}</p>}
         </div>
-        <figcaption class="shot-caption">
-            <span class="module-num desc-desktop">{pad(numbers.get(file)!)}</span>
-            {screen.android && <span class="module-num" data-ui="android">{pad(androidNumbers.get(file)!)}</span>}
-            <div>
-                <!-- The Android tab swaps in the app's own name and caption for the screen -->
-                <h3 class:list={['module-title', { 'desc-desktop': screen.android?.name }]}>{screen.name}</h3>
-                {screen.android?.name && <h3 class="module-title" data-ui="android">{screen.android.name}</h3>}
-                <p class="module-desc desc-desktop">{screen.desc}</p>
-                {screen.android && <p class="module-desc" data-ui="android">{screen.android.desc}</p>}
-            </div>
-        </figcaption>
-    </figure>
-)}
+    </figcaption>
+</figure>

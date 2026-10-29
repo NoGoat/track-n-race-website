@@ -1,66 +1,25 @@
 ---
-// The Setup page's result: the steps for the answers given. Two ways to render it:
-// - On the Setup page (no props): every block, marked data-when / data-fill, and scripts/setup.js shows the ones
-//   that apply and fills in the names as the answers change.
-// - On a page built for no JavaScript (pages/no-js/setup/), with state: only that setup. Blocks that don't apply are
-//   left out, names filled in, steps numbered, and the copy buttons (which need JavaScript) left out too.
-// Both read data/setup-logic.ts, so they show the same setup for the same answers.
+// The Setup page's result: the steps for the answers given. Every block is marked data-when / data-fill, and
+// scripts/setup.js shows the ones that apply, numbers the steps and fills in the names as the answers change.
 import { icon } from '../data/setup';
-import { matches, fillsFor, type SetupState } from '../data/setup-logic';
-import { pad } from '../data/format';
-
-interface Props {
-    state?: SetupState;
-    /** No JavaScript: the link that sets an answer (the "computer and Android" link) */
-    answerHref?: (name: string, value: string) => string;
-    /** No JavaScript: the link that clears the answers */
-    restartHref?: string;
-}
-const { state, answerHref, restartHref } = Astro.props;
-const isStatic = !!state;
-const fills = state ? fillsFor(state) : {};
-
-// A block that doesn't apply is hidden, and data-omit has the build remove it outright (integrations/strip-omitted.mjs)
-const when = (cond: string) => state ? (matches(cond, state) ? {} : { hidden: true, 'data-omit': '' }) : { 'data-when': cond };
-const fillAttr = (key: string) => state ? {} : { 'data-fill': key };
-const fill = (key: string, fallback: string) => state ? fills[key] : fallback;
-
-// The steps in order, by the condition each one shows on. With state they're numbered here, counting only the ones
-// that show; on the Setup page, setup.js numbers them, and the markup keeps its numbers for when every one shows.
-const STEPS = ['os=macos', 'ip=windows,macos,linux,android', '', 'link=desktop', 'link=direct', 'link=paired', '', ''];
-const STEP_KEYS: Record<string, number> = { ip: 1, pair: 5 };
-const numbers: string[] = [];
-let shown = 0;
-STEPS.forEach((cond, i) => {
-    if (!state || !cond || matches(cond, state)) shown += 1;
-    numbers[i] = pad(shown);
-});
-const badge = (i: number, fallback: string) => state ? numbers[i] : fallback;
-const stepRef = (key: string, fallback: string) => state ? numbers[STEP_KEYS[key]] : fallback;
 ---
 <!-- Your setup: shown once every question that applies is answered -->
-<section class="setup-result" id="setupResult" {...when('complete=yes')} aria-labelledby="resultTitle" tabindex="-1">
+<section class="setup-result" id="setupResult" data-when="complete=yes" aria-labelledby="resultTitle" tabindex="-1">
     <div class="result-head">
         <div>
             <p class="eyebrow">Your setup</p>
             <h2 class="result-title" id="resultTitle">
-                <span {...when('link=desktop')}>Track N Race on a computer</span>
-                <span {...when('link=direct')}>Android, Direct mode</span>
-                <span {...when('link=paired')}>Desktop + Android, Paired mode</span>
+                <span data-when="link=desktop">Track N Race on a computer</span>
+                <span data-when="link=direct">Android, Direct mode</span>
+                <span data-when="link=paired">Desktop + Android, Paired mode</span>
             </h2>
         </div>
         <div class="result-actions">
-            {isStatic ? (
-                <a class="copy-action-btn" href={restartHref}>Start over</a>
-            ) : (
-                <Fragment>
-                    <button class="copy-action-btn" type="button" id="copySetupLink" data-copy="">
-                        <Fragment set:html={icon.copy} />
-                        <span class="copy-label">Copy link</span><span class="visually-hidden"> to this setup</span>
-                    </button>
-                    <button class="copy-action-btn" type="button" id="resetSetup">Start over</button>
-                </Fragment>
-            )}
+            <button class="copy-action-btn" type="button" id="copySetupLink" data-copy="">
+                <Fragment set:html={icon.copy} />
+                <span class="copy-label">Copy link</span><span class="visually-hidden"> to this setup</span>
+            </button>
+            <button class="copy-action-btn" type="button" id="resetSetup">Start over</button>
         </div>
     </div>
 
@@ -68,54 +27,54 @@ const stepRef = (key: string, fallback: string) => state ? numbers[STEP_KEYS[key
     <ol class="flow-diagram" aria-label="How telemetry travels">
         <li class="flow-node">
             <span class="flow-icon" set:html={icon.gamepad} />
-            <span class="flow-name"><span {...fillAttr('game-name')}>{fill('game-name', 'F1')}</span></span>
-            <span class="flow-detail">on <span {...fillAttr('platform-name')}>{fill('platform-name', 'your device')}</span></span>
+            <span class="flow-name"><span data-fill="game-name">F1</span></span>
+            <span class="flow-detail">on <span data-fill="platform-name">your device</span></span>
         </li>
         <li class="flow-link">
             <span class="flow-link-label">UDP · 20777</span>
-            <span class="flow-link-detail" {...when('ip=loopback')}>inside this PC</span>
-            <span class="flow-link-detail" {...when('ip=windows,macos,linux,android')}>over your network</span>
+            <span class="flow-link-detail" data-when="ip=loopback">inside this PC</span>
+            <span class="flow-link-detail" data-when="ip=windows,macos,linux,android">over your network</span>
         </li>
-        <li class="flow-node" {...when('link=desktop,paired')}>
+        <li class="flow-node" data-when="link=desktop,paired">
             <span class="flow-icon" set:html={icon.laptop} />
             <span class="flow-name">Track N Race</span>
-            <span class="flow-detail">on <span {...fillAttr('host-name')}>{fill('host-name', 'your computer')}</span></span>
+            <span class="flow-detail">on <span data-fill="host-name">your computer</span></span>
         </li>
-        <li class="flow-link" {...when('link=paired')}>
+        <li class="flow-link" data-when="link=paired">
             <span class="flow-link-label">Paired</span>
             <span class="flow-link-detail">encrypted, over Wi-Fi</span>
         </li>
-        <li class="flow-node" {...when('link=direct,paired')}>
+        <li class="flow-node" data-when="link=direct,paired">
             <span class="flow-icon" set:html={icon.phone} />
             <span class="flow-name">Track N Race</span>
             <span class="flow-detail">
                 for Android
-                <span {...when('link=direct')}>· Direct</span>
-                <span {...when('link=paired')}>· Paired</span>
+                <span data-when="link=direct">· Direct</span>
+                <span data-when="link=paired">· Paired</span>
             </span>
         </li>
     </ol>
 
-    <p class="mode-explainer" {...when('link=direct')}>
+    <p class="mode-explainer" data-when="link=direct">
         <strong>Direct mode:</strong> the game sends its telemetry straight to your phone, and the phone
         decodes and records it itself. No computer involved.
     </p>
-    <p class="mode-explainer" {...when('link=paired')}>
+    <p class="mode-explainer" data-when="link=paired">
         <strong>Paired mode:</strong> the game talks only to your computer. The phone connects to the
         desktop app and shows what it shows, live or during playback of a recording, so you never have to
         change the game's settings to switch screens.
     </p>
-    <p class="mode-explainer" {...when('link=direct')}>
-        Want a computer in the loop as well? Pick {isStatic ? <a class="text-btn" href={answerHref?.('view', 'both')}>computer and Android</a> : <button class="text-btn" type="button" data-answer="view=both">computer and Android</button>} to use Paired mode instead.
+    <p class="mode-explainer" data-when="link=direct">
+        Want a computer in the loop as well? Pick <button class="text-btn" type="button" data-answer="view=both">computer and Android</button> to use Paired mode instead.
     </p>
 
     <div class="setup-flow">
         <!-- Opening it on macOS. Track N Race isn't signed or notarised with an Apple Developer certificate, so
              Gatekeeper stops the first launch. -->
-        <div class="setup-step-card result-step" {...when('os=macos')}>
+        <div class="setup-step-card result-step" data-when="os=macos">
             <div class="setup-step-card-header">
                 <div class="setup-step-title-group">
-                    <div class="setup-step-badge">{badge(0, '01')}</div>
+                    <div class="setup-step-badge">01</div>
                     <h3 class="setup-step-title">Open it on macOS</h3>
                 </div>
             </div>
@@ -143,36 +102,34 @@ const stepRef = (key: string, fallback: string) => state ? numbers[STEP_KEYS[key
                         </p>
                         <div class="command-box">
                             <code>xattr -dr com.apple.quarantine "/Applications/Track N Race.app"</code>
-                            {!isStatic && (
-                                <button class="copy-action-btn" type="button" data-copy='xattr -dr com.apple.quarantine "/Applications/Track N Race.app"'>
-                                    <Fragment set:html={icon.copy} />
-                                    <span class="copy-label">Copy</span><span class="visually-hidden"> the xattr command</span>
-                                </button>
-                            )}
+                            <button class="copy-action-btn" type="button" data-copy='xattr -dr com.apple.quarantine "/Applications/Track N Race.app"'>
+                                <Fragment set:html={icon.copy} />
+                                <span class="copy-label">Copy</span><span class="visually-hidden"> the xattr command</span>
+                            </button>
                         </div>
                     </div>
                 </div>
                 <p class="step-callout">
                     <Fragment set:html={icon.info} />
-                    <span>The Minimal Recorder is unsigned too: use the same steps, with its own app name in the command.<span {...when('link=paired')}> This is separate from the keychain password prompt in step <span data-step-ref="pair">{stepRef('pair', '04')}</span>.</span></span>
+                    <span>The Minimal Recorder is unsigned too: use the same steps, with its own app name in the command.<span data-when="link=paired"> This is separate from the keychain password prompt in step <span data-step-ref="pair">04</span>.</span></span>
                 </p>
             </div>
         </div>
 
         <!-- Find the receiving device's IP -->
-        <div class="setup-step-card result-step" data-step="ip" {...when('ip=windows,macos,linux,android')}>
+        <div class="setup-step-card result-step" data-step="ip" data-when="ip=windows,macos,linux,android">
             <div class="setup-step-card-header">
                 <div class="setup-step-title-group">
-                    <div class="setup-step-badge">{badge(1, '02')}</div>
-                    <h3 class="setup-step-title">Find <span {...fillAttr('ip-owner')}>{fill('ip-owner', 'its')}</span> IP address</h3>
+                    <div class="setup-step-badge">02</div>
+                    <h3 class="setup-step-title">Find <span data-fill="ip-owner">its</span> IP address</h3>
                 </div>
             </div>
             <p class="step-desc">
-                The game needs the local network address of <strong {...fillAttr('ip-device')}>{fill('ip-device', 'the device')}</strong>
+                The game needs the local network address of <strong data-fill="ip-device">the device</strong>
                 running Track N Race. It looks like <code>192.168.1.150</code>.
             </p>
 
-            <div class="platform-pane" {...when('ip=windows')}>
+            <div class="platform-pane" data-when="ip=windows">
                 <div class="platform-method-card">
                     <span class="platform-method-badge">Option A &bull; Command Line (Fastest)</span>
                     <p class="config-subtext">
@@ -180,12 +137,10 @@ const stepRef = (key: string, fallback: string) => state ? numbers[STEP_KEYS[key
                     </p>
                     <div class="command-box">
                         <code>ipconfig</code>
-                        {!isStatic && (
-                            <button class="copy-action-btn" type="button" data-copy="ipconfig">
-                                <Fragment set:html={icon.copy} />
-                                <span class="copy-label">Copy</span><span class="visually-hidden"> ipconfig</span>
-                            </button>
-                        )}
+                        <button class="copy-action-btn" type="button" data-copy="ipconfig">
+                            <Fragment set:html={icon.copy} />
+                            <span class="copy-label">Copy</span><span class="visually-hidden"> ipconfig</span>
+                        </button>
                     </div>
                     <p class="config-subtext">
                         Look for <strong>IPv4 Address</strong> under your active connection.
@@ -201,7 +156,7 @@ const stepRef = (key: string, fallback: string) => state ? numbers[STEP_KEYS[key
                 </div>
             </div>
 
-            <div class="platform-pane" {...when('ip=macos')}>
+            <div class="platform-pane" data-when="ip=macos">
                 <div class="platform-method-card">
                     <span class="platform-method-badge">Option A &bull; System Settings</span>
                     <p class="config-subtext">
@@ -218,12 +173,10 @@ const stepRef = (key: string, fallback: string) => state ? numbers[STEP_KEYS[key
                     </p>
                     <div class="command-box">
                         <code>ipconfig getifaddr en0</code>
-                        {!isStatic && (
-                            <button class="copy-action-btn" type="button" data-copy="ipconfig getifaddr en0">
-                                <Fragment set:html={icon.copy} />
-                                <span class="copy-label">Copy</span><span class="visually-hidden"> ipconfig getifaddr en0</span>
-                            </button>
-                        )}
+                        <button class="copy-action-btn" type="button" data-copy="ipconfig getifaddr en0">
+                            <Fragment set:html={icon.copy} />
+                            <span class="copy-label">Copy</span><span class="visually-hidden"> ipconfig getifaddr en0</span>
+                        </button>
                     </div>
                     <p class="config-subtext">
                         Use <code>en0</code> for Wi-Fi or <code>en1</code> for Ethernet.
@@ -231,18 +184,16 @@ const stepRef = (key: string, fallback: string) => state ? numbers[STEP_KEYS[key
                 </div>
             </div>
 
-            <div class="platform-pane" {...when('ip=linux')}>
+            <div class="platform-pane" data-when="ip=linux">
                 <div class="platform-method-card">
                     <span class="platform-method-badge">Terminal</span>
                     <p class="config-subtext">Open your terminal and run:</p>
                     <div class="command-box">
                         <code>hostname -I</code>
-                        {!isStatic && (
-                            <button class="copy-action-btn" type="button" data-copy="hostname -I">
-                                <Fragment set:html={icon.copy} />
-                                <span class="copy-label">Copy</span><span class="visually-hidden"> hostname -I</span>
-                            </button>
-                        )}
+                        <button class="copy-action-btn" type="button" data-copy="hostname -I">
+                            <Fragment set:html={icon.copy} />
+                            <span class="copy-label">Copy</span><span class="visually-hidden"> hostname -I</span>
+                        </button>
                     </div>
                     <p class="config-subtext">
                         On second thought, why am I even telling you this. You are on Linux. You either know how to do this, or know how to Google how to do this.
@@ -250,7 +201,7 @@ const stepRef = (key: string, fallback: string) => state ? numbers[STEP_KEYS[key
                 </div>
             </div>
 
-            <div class="platform-pane" {...when('ip=android')}>
+            <div class="platform-pane" data-when="ip=android">
                 <div class="platform-method-card">
                     <span class="platform-method-badge">Option A &bull; In Track N Race (Easiest)</span>
                     <p class="config-subtext">
@@ -275,12 +226,12 @@ const stepRef = (key: string, fallback: string) => state ? numbers[STEP_KEYS[key
         <div class="setup-step-card result-step">
             <div class="setup-step-card-header">
                 <div class="setup-step-title-group">
-                    <div class="setup-step-badge">{badge(2, '03')}</div>
+                    <div class="setup-step-badge">03</div>
                     <h3 class="setup-step-title">Set up the game</h3>
                 </div>
             </div>
             <p class="step-desc">
-                In <span {...fillAttr('game-name')}>{fill('game-name', 'the game')}</span>, open <strong>Settings</strong> &rarr;
+                In <span data-fill="game-name">the game</span>, open <strong>Settings</strong> &rarr;
                 <strong>Telemetry Settings</strong> and set:
             </p>
             <div class="config-list">
@@ -298,19 +249,19 @@ const stepRef = (key: string, fallback: string) => state ? numbers[STEP_KEYS[key
                 <div class="config-item">
                     <div class="config-info">
                         <span class="config-label">UDP IP Address</span>
-                        <span class="config-subtext" {...when('ip=loopback')}>Means "this same PC".</span>
-                        <span class="config-subtext" {...when('ip=windows,macos,linux,android')}>The address from step <span data-step-ref="ip">{stepRef('ip', '02')}</span>.</span>
+                        <span class="config-subtext" data-when="ip=loopback">Means "this same PC".</span>
+                        <span class="config-subtext" data-when="ip=windows,macos,linux,android">The address from step <span data-step-ref="ip">02</span>.</span>
                     </div>
                     <div class="config-value-group">
-                        <span class:list={['code-pill', { green: !isStatic || state?.ip === 'loopback' }]} id="ipPill" {...fillAttr('ip-target')}>{fill('ip-target', '127.0.0.1')}</span>
+                        <span class="code-pill green" id="ipPill" data-fill="ip-target">127.0.0.1</span>
                     </div>
                 </div>
                 <div class="config-item">
                     <div class="config-info">
                         <span class="config-label">UDP Port</span>
-                        <span class="config-subtext" {...when('link=desktop,paired')}>Track N Race's default. If you changed it in the app's
+                        <span class="config-subtext" data-when="link=desktop,paired">Track N Race's default. If you changed it in the app's
                             <strong>Settings</strong> &rarr; <strong>Network</strong>, use that instead.</span>
-                        <span class="config-subtext" {...when('link=direct')}>The Android app always listens on this port.</span>
+                        <span class="config-subtext" data-when="link=direct">The Android app always listens on this port.</span>
                     </div>
                     <div class="config-value-group"><span class="code-pill">20777</span></div>
                 </div>
@@ -318,43 +269,43 @@ const stepRef = (key: string, fallback: string) => state ? numbers[STEP_KEYS[key
                     <div class="config-info">
                         <span class="config-label">UDP Send Rate</span>
                         <span class="config-subtext">Higher is smoother. Drop to 20–30Hz if the
-                            <span {...when('link=direct')}>phone</span><span {...when('link=desktop,paired')}>connection</span> struggles.</span>
+                            <span data-when="link=direct">phone</span><span data-when="link=desktop,paired">connection</span> struggles.</span>
                     </div>
                     <div class="config-value-group"><span class="code-pill green">60Hz</span></div>
                 </div>
                 <div class="config-item">
                     <div class="config-info">
                         <span class="config-label">UDP Format</span>
-                        <span class="config-subtext" {...when('game=f124')}>The only format F1 24 offers.</span>
-                        <span class="config-subtext" {...when('game=f125')}>The newest format F1 25 offers.</span>
-                        <span class="config-subtext" {...when('game=f126')}>The 2026 Season Pack's format. Older formats work too, but miss the newest data.</span>
+                        <span class="config-subtext" data-when="game=f124">The only format F1 24 offers.</span>
+                        <span class="config-subtext" data-when="game=f125">The newest format F1 25 offers.</span>
+                        <span class="config-subtext" data-when="game=f126">The 2026 Season Pack's format. Older formats work too, but miss the newest data.</span>
                     </div>
-                    <div class="config-value-group"><span class="code-pill green" {...fillAttr('format')}>{fill('format', '2025')}</span></div>
+                    <div class="config-value-group"><span class="code-pill green" data-fill="format">2025</span></div>
                 </div>
             </div>
         </div>
 
         <!-- Track N Race on a computer, on its own -->
-        <div class="setup-step-card result-step" {...when('link=desktop')}>
+        <div class="setup-step-card result-step" data-when="link=desktop">
             <div class="setup-step-card-header">
                 <div class="setup-step-title-group">
-                    <div class="setup-step-badge">{badge(3, '04')}</div>
+                    <div class="setup-step-badge">04</div>
                     <h3 class="setup-step-title">Start Track N Race</h3>
                 </div>
             </div>
             <ol class="task-list">
                 <li>Open Track N Race. It starts listening on port <code>20777</code> straight away.</li>
-                <li {...when('host=other os=windows')}>If Windows asks whether to allow Track N Race on the network, allow it on <strong>Private networks</strong>.</li>
-                <li {...when('host=other os=macos')}>If macOS asks whether Track N Race may accept incoming network connections, choose <strong>Allow</strong>.</li>
+                <li data-when="host=other os=windows">If Windows asks whether to allow Track N Race on the network, allow it on <strong>Private networks</strong>.</li>
+                <li data-when="host=other os=macos">If macOS asks whether Track N Race may accept incoming network connections, choose <strong>Allow</strong>.</li>
                 <li>Leave the session menu and get on track. The dashboard fills in within a second.</li>
             </ol>
         </div>
 
         <!-- Direct mode -->
-        <div class="setup-step-card result-step" {...when('link=direct')}>
+        <div class="setup-step-card result-step" data-when="link=direct">
             <div class="setup-step-card-header">
                 <div class="setup-step-title-group">
-                    <div class="setup-step-badge">{badge(4, '04')}</div>
+                    <div class="setup-step-badge">04</div>
                     <h3 class="setup-step-title">Set the app to Direct mode</h3>
                 </div>
             </div>
@@ -371,10 +322,10 @@ const stepRef = (key: string, fallback: string) => state ? numbers[STEP_KEYS[key
         </div>
 
         <!-- Paired mode -->
-        <div class="setup-step-card result-step" data-step="pair" {...when('link=paired')}>
+        <div class="setup-step-card result-step" data-step="pair" data-when="link=paired">
             <div class="setup-step-card-header">
                 <div class="setup-step-title-group">
-                    <div class="setup-step-badge">{badge(5, '04')}</div>
+                    <div class="setup-step-badge">04</div>
                     <h3 class="setup-step-title">Pair your phone</h3>
                 </div>
             </div>
@@ -383,10 +334,10 @@ const stepRef = (key: string, fallback: string) => state ? numbers[STEP_KEYS[key
             </p>
             <div class="device-steps">
                 <div class="device-col">
-                    <p class="device-col-title"><Fragment set:html={icon.laptop} /> On <span {...fillAttr('host-name')}>{fill('host-name', 'your computer')}</span></p>
+                    <p class="device-col-title"><Fragment set:html={icon.laptop} /> On <span data-fill="host-name">your computer</span></p>
                     <ol class="task-list">
                         <li>Open Track N Race &rarr; <strong>Settings</strong> &rarr; <strong>Paired Devices</strong>.</li>
-                        <li {...when('os=macos')}>macOS only: turn on <strong>Allow keychain access</strong> and restart the app. macOS then asks for your login password, because the app isn't signed with an Apple certificate.</li>
+                        <li data-when="os=macos">macOS only: turn on <strong>Allow keychain access</strong> and restart the app. macOS then asks for your login password, because the app isn't signed with an Apple certificate.</li>
                         <li>Turn on <strong>Enable paired mode</strong>.</li>
                         <li>Click <strong>Pair a device</strong>. A QR code and an 8-character matching code appear for two minutes.</li>
                     </ol>
@@ -416,17 +367,17 @@ const stepRef = (key: string, fallback: string) => state ? numbers[STEP_KEYS[key
         <div class="setup-step-card result-step">
             <div class="setup-step-card-header">
                 <div class="setup-step-title-group">
-                    <div class="setup-step-badge">{badge(6, '05')}</div>
+                    <div class="setup-step-badge">05</div>
                     <h3 class="setup-step-title">Record your sessions</h3>
                 </div>
             </div>
             <p class="step-desc">
                 Recording is off until you turn it on. Each session is saved as a <code>.tnrd</code> file
                 you can play back and analyse later, lap by lap.
-                <span {...when('link=paired')}>In Paired mode the desktop does the recording, so set it up there.</span>
+                <span data-when="link=paired">In Paired mode the desktop does the recording, so set it up there.</span>
             </p>
 
-            <div class="device-steps" {...when('link=desktop,paired')}>
+            <div class="device-steps" data-when="link=desktop,paired">
                 <div class="device-col">
                     <p class="device-col-title"><Fragment set:html={icon.laptop} /> Electron app</p>
                     <ol class="task-list">
@@ -436,7 +387,7 @@ const stepRef = (key: string, fallback: string) => state ? numbers[STEP_KEYS[key
                         <li>Under <strong>Practice</strong>, <strong>Qualifying</strong>, <strong>Race</strong> and <strong>Time Trial Sessions</strong>, choose which drivers to save.</li>
                     </ol>
                 </div>
-                <div class="device-col" {...when('native=yes')}>
+                <div class="device-col" data-when="native=yes">
                     <p class="device-col-title"><Fragment set:html={icon.laptop} /> Native app</p>
                     <ol class="task-list">
                         <li>Open <strong>Settings</strong> &rarr; <strong>Recording</strong>.</li>
@@ -447,7 +398,7 @@ const stepRef = (key: string, fallback: string) => state ? numbers[STEP_KEYS[key
                 </div>
             </div>
 
-            <div class="config-list record-scopes" {...when('link=desktop,paired')}>
+            <div class="config-list record-scopes" data-when="link=desktop,paired">
                 <div class="config-item">
                     <div class="config-info">
                         <span class="config-label">All Drivers</span>
@@ -474,7 +425,7 @@ const stepRef = (key: string, fallback: string) => state ? numbers[STEP_KEYS[key
                 </div>
             </div>
 
-            <div class="device-steps" {...when('link=direct')}>
+            <div class="device-steps" data-when="link=direct">
                 <div class="device-col">
                     <p class="device-col-title"><Fragment set:html={icon.phone} /> On your phone</p>
                     <ol class="task-list">
@@ -487,13 +438,13 @@ const stepRef = (key: string, fallback: string) => state ? numbers[STEP_KEYS[key
 
             <h4 class="record-subtitle">Watch a recording back</h4>
             <ul class="info-box-checklist">
-                <li {...when('link=desktop,paired')}><strong>Electron:</strong> click the upload icon in the title bar (<strong>Load Session Data File</strong>) and pick a <code>.tnrd</code> file.</li>
-                <li {...when('link=desktop,paired native=yes')}><strong>Native:</strong> click <strong>Open File</strong> in the toolbar. It asks first, because opening a file closes any live session.</li>
-                <li {...when('link=paired')}><strong>On the phone:</strong> start playback on the desktop and the phone follows it, pause, seek and speed included.</li>
-                <li {...when('link=direct')}><strong>On the phone:</strong> tap the <strong>menu</strong> button &rarr; <strong>Open recording</strong> to play a session saved on the phone.</li>
+                <li data-when="link=desktop,paired"><strong>Electron:</strong> click the upload icon in the title bar (<strong>Load Session Data File</strong>) and pick a <code>.tnrd</code> file.</li>
+                <li data-when="link=desktop,paired native=yes"><strong>Native:</strong> click <strong>Open File</strong> in the toolbar. It asks first, because opening a file closes any live session.</li>
+                <li data-when="link=paired"><strong>On the phone:</strong> start playback on the desktop and the phone follows it, pause, seek and speed included.</li>
+                <li data-when="link=direct"><strong>On the phone:</strong> tap the <strong>menu</strong> button &rarr; <strong>Open recording</strong> to play a session saved on the phone.</li>
             </ul>
 
-            <p class="step-callout" {...when('link=desktop')}>
+            <p class="step-callout" data-when="link=desktop">
                 <Fragment set:html={icon.info} />
                 <span>Only want recordings, with no dashboard? The Minimal Recorder in the download menu records every session automatically once you choose a folder.</span>
             </p>
@@ -503,27 +454,27 @@ const stepRef = (key: string, fallback: string) => state ? numbers[STEP_KEYS[key
         <div class="setup-step-card result-step">
             <div class="setup-step-card-header">
                 <div class="setup-step-title-group">
-                    <div class="setup-step-badge">{badge(7, '05')}</div>
+                    <div class="setup-step-badge">05</div>
                     <h3 class="setup-step-title">If nothing shows up</h3>
                 </div>
             </div>
             <ul class="info-box-checklist">
                 <li><strong>Be on track.</strong> The game only sends telemetry once you're in a session, not from the main menu.</li>
-                <li {...when('ip=windows,macos,linux,android')}><strong>Same network.</strong> The
-                    <span {...fillAttr('platform-name')}>{fill('platform-name', 'game')}</span> and <span {...fillAttr('ip-device')}>{fill('ip-device', 'the device')}</span>
+                <li data-when="ip=windows,macos,linux,android"><strong>Same network.</strong> The
+                    <span data-fill="platform-name">game</span> and <span data-fill="ip-device">the device</span>
                     must share a router. Guest Wi-Fi and some mesh systems block devices from talking to each other.</li>
-                <li {...when('ip=windows,macos,linux,android')}><strong>IP changed?</strong> Routers can hand out a new address after a restart. Check it again, or reserve one for the device in your router's settings.</li>
-                <li {...when('ip=windows')}><strong>Windows Firewall.</strong> Allow inbound UDP on port <code>20777</code> for Track N Race, and make sure your network is set to <strong>Private</strong>, not Public.</li>
-                <li {...when('ip=macos')}><strong>macOS Firewall.</strong> In <strong>System Settings</strong> &rarr; <strong>Network</strong> &rarr; <strong>Firewall</strong> &rarr; <strong>Options</strong>, make sure Track N Race is allowed incoming connections.</li>
-                <li {...when('ip=linux')}><strong>Firewall.</strong> Open UDP <code>20777</code> (for example <code>sudo ufw allow 20777/udp</code>).</li>
-                <li {...when('link=direct')}><strong>"Local network access is off".</strong> Grant <strong>Nearby devices</strong> to Track N Race in Android's app settings.</li>
-                <li {...when('link=direct')}><strong>Wi-Fi, not mobile data.</strong> Turn off any VPN on the phone; it can hide the Wi-Fi address from the game.</li>
-                <li {...when('link=paired')}><strong>Desktop not in Nearby desktops?</strong> Some networks block discovery. Use <strong>Scan desktop QR</strong> instead: the QR carries the address.</li>
-                <li {...when('link=paired')}><strong>Found but won't connect.</strong> Paired mode uses TCP port <code>20779</code> on the computer. Allow Track N Race through its firewall.</li>
-                <li {...when('link=paired')}><strong>"Pairing is not open on the desktop".</strong> The pairing window lasts two minutes. Click <strong>Pair a device</strong> again.</li>
-                <li {...when('link=paired')}><strong>"This is not the desktop this phone paired with".</strong> Track N Race was reinstalled on the computer. Use <strong>Forget paired desktop</strong> on the phone and pair again.</li>
-                <li {...when('link=desktop,paired')}><strong>Port in use.</strong> Only one app can listen on <code>20777</code>. Close other telemetry tools, or change the port in both the game and Track N Race.</li>
-                <li {...when('link=desktop,paired')}><strong>Wrong format.</strong> In Track N Race's <strong>Settings</strong> &rarr; <strong>Protocol</strong>, leave <strong>Protocol Version Override</strong> on <strong>Auto</strong> so it follows the game.</li>
+                <li data-when="ip=windows,macos,linux,android"><strong>IP changed?</strong> Routers can hand out a new address after a restart. Check it again, or reserve one for the device in your router's settings.</li>
+                <li data-when="ip=windows"><strong>Windows Firewall.</strong> Allow inbound UDP on port <code>20777</code> for Track N Race, and make sure your network is set to <strong>Private</strong>, not Public.</li>
+                <li data-when="ip=macos"><strong>macOS Firewall.</strong> In <strong>System Settings</strong> &rarr; <strong>Network</strong> &rarr; <strong>Firewall</strong> &rarr; <strong>Options</strong>, make sure Track N Race is allowed incoming connections.</li>
+                <li data-when="ip=linux"><strong>Firewall.</strong> Open UDP <code>20777</code> (for example <code>sudo ufw allow 20777/udp</code>).</li>
+                <li data-when="link=direct"><strong>"Local network access is off".</strong> Grant <strong>Nearby devices</strong> to Track N Race in Android's app settings.</li>
+                <li data-when="link=direct"><strong>Wi-Fi, not mobile data.</strong> Turn off any VPN on the phone; it can hide the Wi-Fi address from the game.</li>
+                <li data-when="link=paired"><strong>Desktop not in Nearby desktops?</strong> Some networks block discovery. Use <strong>Scan desktop QR</strong> instead: the QR carries the address.</li>
+                <li data-when="link=paired"><strong>Found but won't connect.</strong> Paired mode uses TCP port <code>20779</code> on the computer. Allow Track N Race through its firewall.</li>
+                <li data-when="link=paired"><strong>"Pairing is not open on the desktop".</strong> The pairing window lasts two minutes. Click <strong>Pair a device</strong> again.</li>
+                <li data-when="link=paired"><strong>"This is not the desktop this phone paired with".</strong> Track N Race was reinstalled on the computer. Use <strong>Forget paired desktop</strong> on the phone and pair again.</li>
+                <li data-when="link=desktop,paired"><strong>Port in use.</strong> Only one app can listen on <code>20777</code>. Close other telemetry tools, or change the port in both the game and Track N Race.</li>
+                <li data-when="link=desktop,paired"><strong>Wrong format.</strong> In Track N Race's <strong>Settings</strong> &rarr; <strong>Protocol</strong>, leave <strong>Protocol Version Override</strong> on <strong>Auto</strong> so it follows the game.</li>
             </ul>
         </div>
     </div>

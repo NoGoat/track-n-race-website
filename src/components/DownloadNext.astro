@@ -3,7 +3,7 @@
 // page. Its styles are in download-modal.css. Once a build is clicked, scripts/download-next.js says which one has
 // started downloading. A page can't see the download finish, so it never says more than that.
 import { VERSION } from '../version';
-import { linkFor } from '../data/nojs';
+import { linkFor, isNojsPath } from '../data/nojs';
 
 interface Props {
     // h3 inside the modal, h2 on the Download page
@@ -11,13 +11,15 @@ interface Props {
     class?: string;
 }
 const { heading: Heading = 'h3', class: className } = Astro.props;
+// The Setup page's version without JavaScript has no questions, only the settings
+const nojs = isNojsPath(Astro.url.pathname);
 ---
 <div class:list={['download-next', className]}>
     <div class="download-next-body">
         <p class="eyebrow download-next-status" data-next-status aria-live="polite">Next step</p>
         <Heading class="download-next-title">Connect it to the game</Heading>
         <p class="download-next-text">
-            <span data-next-idle>Answer a few questions on the Setup page to get the exact telemetry settings for your setup.</span>
+            <span data-next-idle>{nojs ? 'The Setup page has the telemetry settings to enter in the game.' : 'Answer a few questions on the Setup page to get the exact telemetry settings for your setup.'}</span>
             <span data-next-started hidden>
                 Your browser is downloading <strong data-next-name>Track N Race</strong>. While it finishes, answer a
                 few questions on the Setup page to get the exact telemetry settings for your setup.

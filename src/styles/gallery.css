@@ -18,10 +18,7 @@
     transition: background var(--fast), box-shadow var(--fast), border-color var(--fast);
 }
 
-/* Without JavaScript (html.no-js, the Gallery's versions under /no-js/) nothing can tell when it's stuck, so it
-   always has the stuck background, as the TNRD page's rail does */
-.gallery-head.is-stuck,
-.no-js .gallery-head {
+.gallery-head.is-stuck {
     background: var(--header-bg);
     border-bottom-color: var(--line);
     box-shadow: var(--header-shadow);
@@ -38,8 +35,7 @@
     border-bottom: 1px solid var(--line);
 }
 
-.gallery-head.is-stuck .gallery-head-inner,
-.no-js .gallery-head .gallery-head-inner {
+.gallery-head.is-stuck .gallery-head-inner {
     border-color: transparent;
 }
 
@@ -77,8 +73,25 @@
     margin: 0;
 }
 
-/* The no-JavaScript version (pages/no-js/gallery/) has a page per frontend: its switch is links, dressed as the
-   buttons (styles/tabs.css) */
+/* Without JavaScript (pages/no-js/gallery.astro) every frontend is listed, one after another: each is a
+   .gallery-section of its own, and the header stays put with links down to them, dressed as the tabs */
+.gallery-all {
+    padding-top: calc(var(--nav-h) + 40px);
+}
+
+.gallery-all .gallery-section {
+    padding-top: 0;
+    scroll-margin-top: var(--nav-h);
+}
+
+.gallery-all .gallery-section + .gallery-section {
+    padding-top: 2rem;
+}
+
+.gallery-all .gallery-head {
+    position: static;
+}
+
 a.gallery-switch-btn {
     text-decoration: none;
 }
@@ -113,7 +126,8 @@ a.gallery-switch-btn {
 }
 
 @media (max-width: 768px) {
-    .gallery-section {
+    .gallery-section,
+    .gallery-all {
         padding-top: calc(var(--nav-h) + 28px);
     }
 

@@ -1,5 +1,4 @@
-// The Frontends page's screens, shared with its version for no JavaScript (pages/no-js/electron-vs-qt.astro)
-// The screens with a slider, in tab order
+// The Frontends page's screens with a slider, in tab order
 export const order = [
     "overview",
     "analyze",

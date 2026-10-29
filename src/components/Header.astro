@@ -1,7 +1,8 @@
 ---
 // The navbar. The current page's link is marked active; scripts/site.js runs the mobile menu.
-// On /no-js/ pages the links go to the other pages' versions without JavaScript (data/nojs.ts).
-import { linkFor, isCurrent } from '../data/nojs';
+// On /no-js/ pages the links go to the other pages' versions without JavaScript, and pages that need it are left out
+// (data/nojs.ts).
+import { linkFor, isCurrent, showsOn } from '../data/nojs';
 
 const links = [
     { href: '/', label: 'Home' },
@@ -22,7 +23,7 @@ const path = Astro.url.pathname;
             </div>
         </a>
         <nav class="nav-menu" id="navMenu" aria-label="Main">
-            {links.map(({ href, label }) => (
+            {links.filter(({ href }) => showsOn(href, path)).map(({ href, label }) => (
                 <Fragment>
                     <a href={linkFor(href, path)} data-astro-prefetch class:list={['nav-btn', { active: isCurrent(href, path) }]}
                         aria-current={isCurrent(href, path) ? 'page' : undefined}>{label}</a>{'\n'}

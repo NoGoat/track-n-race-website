@@ -3,7 +3,8 @@
 // own stylesheet bundle (styles/pages/), which starts with base.css and site.css.
 // A page passes its own <title> and meta tags in the "head" slot, and anything that sits after the footer
 // (the download modal, the lightbox) in the "after-footer" slot.
-// A page with a version built for no JavaScript (data/nojs.ts) passes it as nojs: a noscript refresh opens it.
+// A page with a version built for no JavaScript (data/nojs.ts) passes it as nojs: a noscript refresh opens it. Pages
+// that need JavaScript and have none pass the home page's version instead.
 // <html> starts as .no-js, and the first script in the head swaps that for .js before anything is drawn, for the
 // little every page needs either way: .nojs-only / .js-only (base.css) mark elements for just one of the two, like
 // the header's menu button.
@@ -15,7 +16,7 @@ interface Props {
     /** Structured data for search engines, written out as JSON-LD */
     jsonLd?: object;
     bodyClass?: string;
-    /** This page's version without JavaScript, under /no-js/ */
+    /** Where browsers without JavaScript go: this page's version under /no-js/, or the home page's */
     nojs?: string;
 }
 
