@@ -1,7 +1,6 @@
 ---
 import Base from '../layouts/Base.astro';
 import '../styles/pages/compare.css';
-import DownloadModal from '../components/DownloadModal.astro';
 import DownloadButton from '../components/DownloadButton.astro';
 import { screens } from '../data/screens';
 
@@ -324,18 +323,16 @@ const jsonLd = {
                 </div>
             </div>
 
-            <!-- Opens the shared download modal (components/DownloadModal.astro); without it, the link goes to the release -->
+            <!-- Goes to the Download page, which walks through the builds for each platform -->
             <div class="compare-download">
                 <div class="compare-download-text">
                     <h2 class="section-heading">Picked one?</h2>
                     <p class="section-desc">Every build is free and open source, for Windows, macOS and Linux.</p>
                 </div>
-                <DownloadButton />
+                <DownloadButton page />
             </div>
         </section>
     </main>
-
-    <DownloadModal slot="after-footer" />
 
     <script>
         import '../scripts/compare.js';

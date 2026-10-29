@@ -1,0 +1,384 @@
+---
+import Base from '../layouts/Base.astro';
+import '../styles/pages/download.css';
+import DownloadNext from '../components/DownloadNext.astro';
+import { platformIcons } from '../data/icons';
+import { VERSION } from '../version';
+
+// Step 01: the platforms (scripts/download-page.js)
+const platforms = [
+    { os: 'windows', label: 'Windows', desc: 'Electron, Native or Minimal', icon: platformIcons.windows },
+    { os: 'macos', label: 'macOS', desc: 'Electron or Minimal', icon: platformIcons.apple },
+    { os: 'linux', label: 'Linux', desc: 'Electron, Native or Minimal', icon: platformIcons.tux },
+    { os: 'android', label: 'Android', desc: 'The full app, as an .apk', icon: platformIcons.phone },
+];
+
+// Step 02: a short guide per platform, its numbers from the table further down. A value given per OS
+// shows only on that platform (data-os-only, like the download modal).
+type PerOs = string | Record<string, string>;
+interface Build {
+    slug: string;
+    name: string;
+    stack?: PerOs;
+    desc: string;
+    pros: string[];
+    cons: string[];
+    specs: [string, PerOs][];
+    // The download button's label, when "Download <name>" doesn't read well
+    cta?: string;
+    // A callout under the name, for the one thing to know before picking it:
+    // pick (green) the default choice, alt (neutral) the fallback, warn (amber) a catch
+    badge?: { text: string; tone: 'pick' | 'alt' | 'warn' };
+}
+interface Dive {
+    for: string[];
+    title: string;
+    intro: string;
+    builds: Build[];
+    advice?: string;
+    // The footnote on where the RAM figures come from, for guides that quote them
+    ramNote?: boolean;
+}
+
+const winLinuxFile = (windows: string, linux: string) => ({ windows, linux });
+
+const dives: Dive[] = [
+    {
+        for: ['windows', 'linux'],
+        title: 'Electron, Native or Minimal?',
+        intro: 'Electron and Native are both the full app, with the same screens: live telemetry, lap analysis, the layout editor and playback. The difference is how they feel, how much memory they use, and where else they run. Both record your sessions too; the Minimal Recorder does only that, in as little memory as possible.',
+        builds: [
+            {
+                slug: 'electron',
+                name: 'Electron',
+                stack: 'Electron, React',
+                badge: { text: 'The recommended choice for most users', tone: 'pick' },
+                desc: 'The full app, and the same one on Windows, macOS and Linux.',
+                pros: [
+                    'Feels more modern, with a web-style look',
+                    'The same app on every desktop, so it carries over if you also use a Mac',
+                    'Every screen, recording, playback and UDP forwarding',
+                ],
+                cons: [
+                    'Uses the most memory: about 270 MB more than Native at the end of a live race',
+                ],
+                specs: [
+                    ['RAM, idle', '282 MB'],
+                    ['RAM, end of a live race', '714 MB'],
+                    ['RAM, peak reviewing', '1,115 MB'],
+                    ['File', winLinuxFile('.exe', '.AppImage')],
+                ],
+            },
+            {
+                slug: 'qt',
+                name: 'Native',
+                stack: 'Qt',
+                badge: { text: 'If your system can\'t handle Electron, download this', tone: 'alt' },
+                desc: 'Every screen Electron has, built with Qt, in a good deal less memory.',
+                pros: [
+                    'Feels more analytical and native, like a desktop tool',
+                    'Over a third less RAM in a live race: 444 MB against 714 MB',
+                    'Leaves more memory for the game when both run on one PC',
+                    'Every screen, recording, playback and UDP forwarding, like Electron',
+                ],
+                cons: [
+                    'No macOS build: on a Mac you need Electron',
+                ],
+                specs: [
+                    ['RAM, idle', '187 MB'],
+                    ['RAM, end of a live race', '444 MB'],
+                    ['RAM, peak reviewing', '712 MB'],
+                    ['File', winLinuxFile('.exe', '.AppImage')],
+                ],
+            },
+            {
+                slug: 'minimal',
+                name: 'Minimal Recorder',
+                stack: { windows: 'Win32', linux: 'Qt' },
+                badge: { text: 'Needs Electron or Native to view the recordings', tone: 'warn' },
+                desc: 'Electron and Native both record sessions too. The Minimal Recorder does only that, for those who care about squeezing every last bit of resources while they play, and has no screens of its own to view them.',
+                pros: [
+                    'Built for maximum resource optimization, when your PC can\'t spare the memory for the game and a full app together',
+                    '85 MB at its peak in a live race, against 463 MB for Native and 748 MB for Electron',
+                    'Forwards UDP to other apps',
+                ],
+                cons: [
+                    'No live telemetry, lap analysis or layout editor',
+                ],
+                specs: [
+                    ['RAM, idle', '7 MB'],
+                    ['RAM, end of a live race', '84 MB'],
+                    ['RAM, peak reviewing', '\u2014'],
+                    ['File', winLinuxFile('.zip', '.AppImage')],
+                ],
+            },
+        ],
+        ramNote: true,
+    },
+    {
+        for: ['macos'],
+        title: 'Electron or the Minimal Recorder?',
+        intro: 'Native isn\'t available on macOS, so Electron is the full app here. The Minimal Recorder is a lighter companion to it, not a replacement.',
+        builds: [
+            {
+                slug: 'electron',
+                name: 'Electron',
+                stack: 'Electron, React',
+                desc: 'The full app: live telemetry, lap analysis, the layout editor and playback of your recordings.',
+                pros: [
+                    'Everything Track N Race does, on macOS',
+                    'Opens the sessions the Minimal Recorder records',
+                ],
+                cons: [
+                    'Up to 748 MB in a live race, running beside the game',
+                ],
+                specs: [
+                    ['RAM, peak during a live race', '748 MB'],
+                    ['File', '.dmg'],
+                ],
+            },
+            {
+                slug: 'minimal',
+                name: 'Minimal Recorder',
+                stack: 'Swift',
+                badge: { text: 'Needs Electron to view the recordings', tone: 'warn' },
+                desc: 'Electron records sessions too. The Minimal Recorder does only that, for those who care about squeezing every last bit of resources while they play, and has no screens of its own to view them.',
+                pros: [
+                    'Built for maximum resource optimization, when your Mac can\'t spare the memory for the game and Electron together',
+                    '85 MB at its peak in a live race, against Electron\'s 748 MB',
+                    'Forwards UDP to other apps',
+                ],
+                cons: [
+                    'No live telemetry, lap analysis or layout editor',
+                ],
+                specs: [
+                    ['RAM, peak during a live race', '85 MB'],
+                    ['File', '.dmg'],
+                ],
+            },
+        ],
+        advice: 'Start with Electron. If your Mac struggles running it and the game together, record with the Minimal Recorder while you play and open the recordings in Electron afterwards.',
+        ramNote: true,
+    },
+    {
+        for: ['android'],
+        title: 'Track N Race for Android',
+        intro: 'There\'s one Android build, the full app, for phones and tablets. Use it on its own, or alongside the desktop app.',
+        builds: [
+            {
+                slug: 'android',
+                name: 'Android',
+                desc: 'The full Track N Race experience, on Android.',
+                pros: [
+                    'Direct mode: the game sends telemetry straight to your phone or tablet',
+                    'Paired mode: mirrors the desktop app running on your computer',
+                ],
+                cons: [],
+                specs: [['File', '.apk']],
+                cta: 'Download the .apk',
+            },
+        ],
+        advice: 'Once it\'s downloaded, open the .apk on your phone or tablet to install it. Android may ask you to allow installs from your browser first.',
+    },
+];
+
+const downloadIcon = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>';
+// Lucide-style: a check for the default pick, a feather for the lighter fallback, a warning for a catch
+const badgeIcons = {
+    pick: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/></svg>',
+    alt: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20.24 12.24a6 6 0 0 0-8.49-8.49L5 10.5V19h8.5z"/><line x1="16" y1="8" x2="2" y2="22"/><line x1="17.5" y1="15" x2="9" y2="15"/></svg>',
+    warn: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>',
+};
+const osLabels: Record<string, string> = { windows: 'Windows', macos: 'macOS', linux: 'Linux', android: 'Android' };
+
+const jsonLd = {
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "BreadcrumbList",
+      "@id": "https://track-n-race.com/download/#breadcrumb",
+      "itemListElement": [
+        {
+          "@type": "ListItem",
+          "position": 1,
+          "name": "Home",
+          "item": "https://track-n-race.com/"
+        },
+        {
+          "@type": "ListItem",
+          "position": 2,
+          "name": "Download",
+          "item": "https://track-n-race.com/download/"
+        }
+      ]
+    },
+    {
+      "@type": "WebPage",
+      "@id": "https://track-n-race.com/download/#about",
+      "about": {
+        "@type": "SoftwareApplication",
+        "@id": "https://track-n-race.com/#software",
+        "name": "Track N Race"
+      },
+      "name": "Download Track N Race — Electron, Native or Minimal Recorder",
+      "description": "Download Track N Race for Windows, macOS, Linux or Android. Pick your platform for a short guide to the Electron, Native and Minimal Recorder builds, then download the one that suits your setup.",
+      "isPartOf": {
+        "@type": "WebSite",
+        "@id": "https://track-n-race.com/#website",
+        "name": "Track N Race",
+        "url": "https://track-n-race.com/"
+      },
+      "breadcrumb": { "@id": "https://track-n-race.com/download/#breadcrumb" }
+    }
+  ]
+};
+---
+<Base jsonLd={jsonLd}>
+    <Fragment slot="head">
+        <!-- Primary Meta Tags -->
+        <title>Download Track N Race — Electron, Native or Minimal Recorder</title>
+        <meta name="description"
+            content="Download Track N Race for Windows, macOS, Linux or Android. Pick your platform for a short guide to the Electron, Native and Minimal Recorder builds, then download the one that suits your setup.">
+        <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1">
+        <meta name="author" content="NoGoat">
+        <meta name="application-name" content="Track N Race">
+        <meta name="apple-mobile-web-app-title" content="Track N Race">
+        <meta name="theme-color" content="#09090b">
+
+        <!-- Open Graph / Facebook -->
+        <meta property="og:type" content="article">
+        <meta property="og:site_name" content="Track N Race">
+        <meta property="og:locale" content="en_US">
+        <meta property="og:url" content="https://track-n-race.com/download/">
+        <meta property="og:title" content="Download Track N Race — Electron, Native or Minimal Recorder">
+        <meta property="og:description"
+            content="Download Track N Race for Windows, macOS, Linux or Android. Pick your platform for a short guide to the Electron, Native and Minimal Recorder builds, then download the one that suits your setup.">
+        <meta property="og:image" content="https://track-n-race.com/assets/og-image.png">
+        <meta property="og:image:width" content="1200">
+        <meta property="og:image:height" content="630">
+        <meta property="og:image:alt" content="Track N Race overview dashboard showing live speed, RPM and ERS traces with tyre temperatures">
+
+        <!-- Twitter -->
+        <meta name="twitter:card" content="summary_large_image">
+        <meta name="twitter:url" content="https://track-n-race.com/download/">
+        <meta name="twitter:title" content="Download Track N Race — Electron, Native or Minimal Recorder">
+        <meta name="twitter:description"
+            content="Download Track N Race for Windows, macOS, Linux or Android. Pick your platform for a short guide to the Electron, Native and Minimal Recorder builds, then download the one that suits your setup.">
+        <meta name="twitter:image" content="https://track-n-race.com/assets/og-image.png">
+        <meta name="twitter:image:alt" content="Track N Race overview dashboard showing live speed, RPM and ERS traces with tyre temperatures">
+
+        <!-- Canonical URL -->
+        <link rel="canonical" href="https://track-n-race.com/download/">
+
+        <!-- JSON-LD Structured Data -->
+    </Fragment>
+
+    <main id="main">
+        <!-- Download: pick a platform, read a short guide to its builds and download one, then the Setup link.
+             The full comparison (table and screen by screen) is the Frontends page, /electron-vs-qt/. -->
+        <section id="download" class="section download-section">
+            <div class="page-header">
+                <h1 class="main-title">Download Track N Race</h1>
+                <p class="subtitle">
+                    Free and open source. Pick your platform for a short guide to its builds, or
+                    <a href="/electron-vs-qt/" data-astro-prefetch>compare the frontends</a> screen by screen.
+                </p>
+            </div>
+
+            <!-- scripts/download-page.js. Without JavaScript only step 01 shows, so the noscript note points to GitHub. -->
+            <div class="dl-flow" id="downloadFlow">
+                <fieldset class="quiz-question">
+                    <legend class="quiz-legend">
+                        <span class="quiz-num">01</span>
+                        <span class="quiz-title">What are you downloading for?</span>
+                    </legend>
+                    <div class="quiz-options" data-count="4">
+                        {platforms.map(p => (
+                            <label class="quiz-option" data-os={p.os}>
+                                <input type="radio" name="platform" value={p.os} />
+                                <span class="quiz-option-icon" set:html={p.icon} />
+                                <span class="quiz-option-text">
+                                    <span class="quiz-option-label">{p.label}</span>
+                                    <span class="quiz-option-desc">{p.desc}</span>
+                                </span>
+                            </label>
+                        ))}
+                    </div>
+                </fieldset>
+
+                {dives.map(dive => (
+                    <section class="quiz-question dl-dive" data-for={dive.for.join(' ')} hidden>
+                        <div class="quiz-legend">
+                            <span class="quiz-num">02</span>
+                            <h2 class="quiz-title">{dive.title}</h2>
+                        </div>
+                        <div class="dl-dive-body">
+                            <p class="dl-intro">{dive.intro}</p>
+                            <div class="dl-builds" data-count={dive.builds.length}>
+                                {dive.builds.map(build => (
+                                    <article class="dl-build">
+                                        {build.stack && (
+                                            <p class="eyebrow dl-build-stack">
+                                                {typeof build.stack === 'string' ? build.stack : Object.entries(build.stack).map(([os, v]) => (
+                                                    <span data-os-only={os}>{v}</span>
+                                                ))}
+                                            </p>
+                                        )}
+                                        <h3 class="download-build-name">{build.name}</h3>
+                                        {build.badge && (
+                                            <p class="dl-badge" data-tone={build.badge.tone}>
+                                                <Fragment set:html={badgeIcons[build.badge.tone]} />
+                                                <span>{build.badge.text}</span>
+                                            </p>
+                                        )}
+                                        <p class="download-build-desc">{build.desc}</p>
+                                        <ul class="dl-points">
+                                            {build.pros.map(t => <li class="dl-pro"><span class="visually-hidden">Advantage: </span>{t}</li>)}
+                                            {build.cons.map(t => <li class="dl-con"><span class="visually-hidden">Disadvantage: </span>{t}</li>)}
+                                        </ul>
+                                        <dl class="download-build-specs">
+                                            {build.specs.map(([label, value]) => (
+                                                <div><dt>{label}</dt><dd>
+                                                    {typeof value === 'string' ? value : Object.entries(value).map(([os, v]) => (
+                                                        <span data-os-only={os}>{v}</span>
+                                                    ))}
+                                                </dd></div>
+                                            ))}
+                                        </dl>
+                                        {dive.for.map(os => (
+                                            <a class="download-build-get" data-os-only={os} data-build={`${build.slug}/${os}`}>
+                                                <Fragment set:html={downloadIcon} />
+                                                <span>{build.cta ?? `Download ${build.name}`}<span class="visually-hidden"> for {osLabels[os]}</span></span>
+                                            </a>
+                                        ))}
+                                    </article>
+                                ))}
+                            </div>
+                            {dive.advice && <p class="dl-advice">{dive.advice}</p>}
+                            {dive.ramNote && (
+                                <p class="dl-note">
+                                    RAM measured on Windows 11 over a 92-minute race. How, and every figure, on the
+                                    <a href="/electron-vs-qt/#at-a-glance" data-astro-prefetch>Frontends page</a>.
+                                </p>
+                            )}
+                        </div>
+                    </section>
+                ))}
+            </div>
+
+            <!-- The end of the flow: always shown, and says which download started once one is clicked -->
+            <noscript>
+                <p class="dl-note">
+                    The guide needs JavaScript. Every build is also on
+                    <a href={`https://github.com/NoGoat/Track-N-Race/releases/tag/${VERSION}`} rel="noopener">GitHub</a>.
+                </p>
+            </noscript>
+
+            <DownloadNext heading="h2" class="dl-next" />
+        </section>
+    </main>
+
+    <script>
+        import '../scripts/download-page.js';
+    </script>
+</Base>

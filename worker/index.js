@@ -5,8 +5,10 @@
 //                            Hits that don't look like a person clicking on our pages are labelled in blob6 (see
 //                            botReason) and still redirected.
 //   /download/release        Same, for the release page (what the Download buttons open without the modal).
-//   /download                Also the release page, with or without the trailing slash.
 //   /api/event               Counts a page event sent with navigator.sendBeacon (only the names listed below).
+//
+// /download/ itself is the Download page (pages/download.astro): it matches /download/* too, so it reaches this
+// script and is handed straight back to the static assets.
 //
 // Nothing identifying is stored: no IP, no cookies, no user agent, no network. Each data point is the build, platform,
 // the page it came from and the visitor's country as Cloudflare reports it, plus the bot label, which is worked out
@@ -18,7 +20,8 @@
 // The current release comes from env.VERSION ("vars" in wrangler.jsonc), which the pages are built from too
 const RELEASE = `https://github.com/NoGoat/Track-N-Race/releases`;
 
-// Only these slugs redirect, so /download/ can't be used to bounce visitors to arbitrary URLs
+// Only these slugs redirect, so /download/ can't be used to bounce visitors to arbitrary URLs.
+// public/robots.txt disallows each build's prefix by name, so a new build needs its line there too.
 const FILES = {
     'electron/windows': 'Track-N-Race-Electron-Windows.exe',
     'electron/macos': 'Track-N-Race-Electron-MacOS.dmg',
@@ -33,7 +36,7 @@ const FILES = {
 
 const EVENTS = new Set(['download_modal_open']);
 
-// The page a click came from, as a path ("/", "/electron-vs-qt/"), or "" when the referrer is missing or another site
+// The page a click came from, as a path ("/", "/download/"), or "" when the referrer is missing or another site
 const sourcePage = (request, url) => {
     try {
         const ref = new URL(request.headers.get('Referer'));
@@ -105,9 +108,9 @@ export default {
         const url = new URL(request.url);
         const path = url.pathname.replace(/\/+$/, '');
 
-        if (path === '/download' || path.startsWith('/download/')) {
-            // Bare /download (with or without the trailing slash) is the release page, like /download/release
-            const slug = path === '/download' ? 'release' : path.slice('/download/'.length).toLowerCase();
+        // Trailing slashes are trimmed, so the Download page (/download/) doesn't match and falls through to the assets
+        if (path.startsWith('/download/')) {
+            const slug = path.slice('/download/'.length).toLowerCase();
             // Bots still get redirected, and are recorded with their label so the filter can be checked
             const flag = botReason(request, url);
 

@@ -2,7 +2,8 @@
   "$schema": "./node_modules/wrangler/config-schema.json",
   "name": "track-n-race",
   "compatibility_date": "2026-10-14",
-  // Only /download, /download/* and /api/* reach this script (see run_worker_first); every other request is a static asset
+  // Only /download/* and /api/* reach this script (see run_worker_first); every other request is a static asset.
+  // /download/* also matches the Download page (/download/) itself, which the script hands back to the assets.
   "main": "worker/index.js",
   // Builds the pages with Astro into dist/ (astro.config.mjs) before dev and deploy. During wrangler dev, editing
   // anything in src/ rebuilds.
@@ -16,7 +17,7 @@
     "binding": "ASSETS",
     "html_handling": "auto-trailing-slash",
     "not_found_handling": "404-page",
-    "run_worker_first": ["/download", "/download/*", "/api/*"]
+    "run_worker_first": ["/download/*", "/api/*"]
   },
   // The current release. The Worker uses it for /download/ redirects and its counts, and the Astro build reads it
   // for the pages (src/version.ts). Bump it here for a new release.

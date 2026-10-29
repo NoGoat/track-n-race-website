@@ -1,6 +1,13 @@
 User-agent: *
-Allow: /
-# Counted redirects and analytics beacons (worker/index.js), not pages
-Disallow: /download
+# Counted redirects and analytics beacons (worker/index.js), not pages. Listed by name so the Download page itself
+# (/download/) stays crawlable without relying on $ or longest-match, which not every crawler supports.
+# A new build in worker/index.js's FILES needs its prefix here too.
+Disallow: /download/release
+Disallow: /download/electron/
+Disallow: /download/qt/
+Disallow: /download/minimal/
+Disallow: /download/android/
 Disallow: /api/
+# Last, so crawlers that take the first matching rule still see the ones above
+Allow: /
 Sitemap: https://track-n-race.com/sitemap.xml

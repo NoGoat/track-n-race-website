@@ -1,0 +1,288 @@
+/* ==========================================================================
+   Download flow
+   Step 01 is Setup's question row (styles/quiz.css); step 02 lays the builds out as cards, with the modal's
+   data rows and download buttons (styles/download-modal.css). Driven by scripts/download-page.js.
+   ========================================================================== */
+/* The page's one section, spaced like the Frontends page's (styles/compare.css). The flow's rows start on the
+   header's rule, like Setup's questions. */
+.section.download-section {
+    padding-top: calc(var(--nav-h) + 72px);
+}
+
+@media (max-width: 768px) {
+    .section.download-section {
+        padding-top: calc(var(--nav-h) + 48px);
+    }
+}
+
+.download-section .page-header {
+    margin-bottom: 0;
+}
+
+.download-section .subtitle a {
+    color: var(--text);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+}
+
+/* The guides start hidden, and .quiz-question's display: grid must not bring them back */
+.dl-flow [hidden] {
+    display: none !important;
+}
+
+.dl-flow {
+    display: flex;
+    flex-direction: column;
+}
+
+/* Steps, not questions: just the number */
+.dl-flow .quiz-num::before {
+    content: none;
+}
+
+.quiz-options[data-count="4"] {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+/* Step 02 */
+.dl-dive {
+    scroll-margin-top: calc(var(--nav-h) + 1rem);
+}
+
+.dl-dive h2.quiz-title {
+    margin: 0;
+}
+
+/* Like Setup's step headers: the number and title stay under the navbar while the cards scroll past */
+.dl-dive .quiz-legend {
+    align-self: start;
+    position: sticky;
+    top: calc(var(--nav-h) + 1.5rem);
+}
+
+.dl-dive-body {
+    grid-column: 2;
+    min-width: 0;
+}
+
+.dl-intro {
+    max-width: 46rem;
+    font-size: 0.95rem;
+    line-height: 1.65;
+    color: var(--text-2);
+}
+
+/* Only the chosen platform's file types and download links */
+.dl-flow[data-os="windows"] [data-os-only]:not([data-os-only="windows"]),
+.dl-flow[data-os="macos"] [data-os-only]:not([data-os-only="macos"]),
+.dl-flow[data-os="linux"] [data-os-only]:not([data-os-only="linux"]) {
+    display: none;
+}
+
+.dl-builds {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.75rem;
+    margin-top: 1.25rem;
+}
+
+/* Windows and Linux: Electron, Native and the Minimal Recorder side by side */
+.dl-builds[data-count="3"] {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+/* Android's one build: a single card, as wide as one of the macOS pair */
+.dl-builds[data-count="1"] {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+}
+
+.dl-build {
+    display: flex;
+    flex-direction: column;
+    padding: 1.25rem 1.25rem 1.35rem;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+}
+
+.dl-build-stack {
+    font-size: 0.66rem;
+}
+
+.dl-build-stack + .download-build-name {
+    margin-top: 0.4rem;
+}
+
+/* The cards' downloads take the primary button's white fill (styles/base.css), not the modal's outline */
+.dl-build a.download-build-get {
+    border-color: var(--text);
+    color: var(--bg);
+}
+
+.dl-build a.download-build-get::before {
+    opacity: 1;
+}
+
+.dl-build a.download-build-get:hover {
+    border-color: #fff;
+}
+
+.dl-build a.download-build-get:hover::before {
+    background: #fff;
+}
+
+/* The one thing to know before picking a build, right under its name */
+.dl-badge {
+    --tone: var(--text);
+    --tone-bg: var(--surface-3);
+    --tone-line: var(--line-hover);
+    display: flex;
+    align-items: flex-start;
+    gap: 0.55rem;
+    margin-top: 0.75rem;
+    padding: 0.6rem 0.75rem;
+    background: var(--tone-bg);
+    border: 1px solid var(--tone-line);
+    border-radius: var(--radius-sm);
+    color: var(--tone);
+    font-size: 0.85rem;
+    font-weight: 600;
+    line-height: 1.4;
+    letter-spacing: -0.01em;
+}
+
+.dl-badge svg {
+    width: 16px;
+    height: 16px;
+    flex-shrink: 0;
+    margin-top: 0.05rem;
+}
+
+.dl-badge[data-tone="pick"] {
+    --tone: var(--ok);
+    --tone-bg: var(--ok-soft);
+    --tone-line: var(--ok-line);
+}
+
+/* The matrix's "partly" yellow (styles/matrix.css) */
+.dl-badge[data-tone="warn"] {
+    --tone: #f9d923;
+    --tone-bg: rgba(249, 217, 35, 0.08);
+    --tone-line: rgba(249, 217, 35, 0.3);
+}
+
+.dl-badge + .download-build-desc {
+    margin-top: 0.75rem;
+}
+
+/* Advantages with a green plus, drawbacks with a grey minus */
+.dl-points {
+    display: flex;
+    flex-direction: column;
+    gap: 0.45rem;
+    margin-top: 1rem;
+    padding: 0;
+    list-style: none;
+}
+
+.dl-points li {
+    position: relative;
+    padding-left: 1.25rem;
+    font-size: 0.85rem;
+    line-height: 1.5;
+    color: var(--text-2);
+}
+
+.dl-points li::before {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 1rem;
+    font-family: var(--font-mono);
+    font-weight: 500;
+}
+
+.dl-pro::before {
+    content: "+";
+    color: var(--ok);
+}
+
+.dl-con::before {
+    content: "\2212";
+    color: var(--text-3);
+}
+
+.dl-advice {
+    margin-top: 1.25rem;
+    padding-left: 0.85rem;
+    border-left: 2px solid var(--accent);
+    font-size: 0.9rem;
+    line-height: 1.6;
+    color: var(--text);
+}
+
+.dl-note {
+    margin-top: 1rem;
+    font-size: 0.8rem;
+    line-height: 1.6;
+    color: var(--text-3);
+}
+
+.dl-note a {
+    color: var(--text-2);
+    text-decoration: underline;
+    text-underline-offset: 2px;
+}
+
+.dl-note a:hover {
+    color: var(--text);
+}
+
+/* The end of the flow: the Setup link (components/DownloadNext.astro) as a raised panel */
+.dl-next {
+    margin-top: 2rem;
+    padding: 1.25rem 1.25rem 1.25rem 1.5rem;
+    background: var(--surface);
+    border: 1px solid var(--line-strong);
+    border-radius: var(--radius);
+}
+
+@media (max-width: 1024px) {
+    .quiz-options[data-count="4"] {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    /* Too narrow for three cards' data rows: they stack */
+    .dl-builds[data-count="3"] {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 860px) {
+    .dl-dive-body {
+        grid-column: 1;
+    }
+
+    /* One column: the header sits above the cards, as on Setup */
+    .dl-dive .quiz-legend {
+        position: static;
+    }
+}
+
+@media (max-width: 680px) {
+    .dl-builds,
+    .dl-builds[data-count="1"] {
+        grid-template-columns: 1fr;
+    }
+
+    .dl-next .download-next-setup.primary-btn {
+        width: 100%;
+        justify-content: center;
+    }
+}
+
+@media (max-width: 480px) {
+    .quiz-options[data-count="4"] {
+        grid-template-columns: 1fr;
+    }
+}

@@ -2,7 +2,6 @@
 import Base from '../layouts/Base.astro';
 import '../styles/pages/home.css';
 import Lightbox from '../components/Lightbox.astro';
-import DownloadModal from '../components/DownloadModal.astro';
 import DownloadButton from '../components/DownloadButton.astro';
 import ZoomBadge from '../components/ZoomBadge.astro';
 import { VERSION } from '../version';
@@ -124,8 +123,8 @@ const jsonLd = {
                         Analyze and find out where you lose that extra tenth over your competitors.
                     </p>
                     <div class="cta-group">
-                        <!-- Opens the shared download modal; without it, the link still goes to the release -->
-                        <DownloadButton />
+                        <!-- Goes to the Download page, which walks through the builds for each platform -->
+                        <DownloadButton page />
                         <a class="secondary-btn" href="/setup/" data-astro-prefetch>
                             <span>Setup guide</span>
                             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
@@ -575,7 +574,6 @@ const jsonLd = {
         </section>
     </main>
 
-    <DownloadModal slot="after-footer" />
     <Lightbox slot="after-footer" />
 
     <script>

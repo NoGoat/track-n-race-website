@@ -3,6 +3,7 @@
 // the release on GitHub. Its styles (tabs.css, download-modal.css) are in the bundles of the pages that use it
 // (styles/pages/).
 import { VERSION } from '../version';
+import DownloadNext from './DownloadNext.astro';
 ---
 <dialog class="download-modal" id="downloadModal" data-os="windows" aria-labelledby="downloadModalTitle">
     <div class="modal-content download-modal-content">
@@ -32,9 +33,9 @@ import { VERSION } from '../version';
         <div class="download-choose">
             <p class="download-choose-text">
                 <strong>Not sure which one to get?</strong>
-                <span>Compare RAM use, platforms and features side by side.</span>
+                <span>A short guide to each build on your platform, and how they compare.</span>
             </p>
-            <a class="primary-btn download-choose-btn" href="/electron-vs-qt/" data-astro-prefetch>
+            <a class="primary-btn download-choose-btn" href="/download/" data-astro-prefetch>
                 <span>What to choose</span>
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
             </a>
@@ -152,27 +153,8 @@ import { VERSION } from '../version';
             </section>
         </div>
 
-        <!-- Shown in place of everything above once a build is clicked (scripts/download-modal.js). A page
-             can't see the download finish, so this says it has started and points to the Setup page. -->
-        <div class="download-next" id="downloadNext" tabindex="-1" aria-labelledby="downloadNextTitle">
-            <p class="eyebrow">Download started</p>
-            <h3 id="downloadNextTitle">Next, connect it to the game</h3>
-            <p class="download-next-text">
-                Your browser is downloading <strong id="downloadNextName">Track N Race</strong>. While it finishes,
-                answer a few questions on the Setup page to get the exact telemetry settings for your setup.
-            </p>
-            <div class="download-next-actions">
-                <a class="primary-btn" id="downloadNextSetup" href="/setup/">
-                    <span>Set up telemetry</span>
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
-                </a>
-                <button class="secondary-btn" id="downloadNextBack" type="button">Back to downloads</button>
-            </div>
-            <p class="download-next-note">
-                Download didn't start? <a id="downloadNextRetry" href="#">Try again</a>, or get it from
-                <a href={`https://github.com/NoGoat/Track-N-Race/releases/tag/${VERSION}`} target="_blank" rel="noopener">GitHub</a>.
-            </p>
-        </div>
+        <!-- Always at the end, under the builds; says which download started once one is clicked -->
+        <DownloadNext />
     </div>
 </dialog>
 

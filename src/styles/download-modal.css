@@ -74,35 +74,38 @@
     white-space: nowrap;
 }
 
-/* "Download started": replaces the head, tabs and builds once a build is clicked */
+/* The Setup link (components/DownloadNext.astro), also at the end of the Download page's flow (styles/download.css):
+   text on the left, the button on the right, folding under it when there's no room */
 .download-next {
-    display: none;
-}
-
-.download-modal[data-step="next"] .download-modal-content > :not(.download-bar, .download-next) {
-    display: none;
-}
-
-.download-modal[data-step="next"] .download-next {
     display: flex;
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 0.85rem;
-    max-width: 34rem;
-    padding: 0.5rem 0.25rem 0.25rem;
-    outline: none;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem 1.5rem;
 }
 
-.download-next h3 {
-    font-size: 1.5rem;
+.download-next-body {
+    flex: 1 1 22rem;
+    min-width: 0;
+}
+
+/* Turns green once a build is clicked (scripts/download-next.js) */
+.download-next[data-started] .download-next-status {
+    color: var(--ok);
+}
+
+.download-next-title {
+    margin-top: 0.35rem;
+    font-size: 1.05rem;
     font-weight: 600;
-    line-height: 1.2;
-    letter-spacing: -0.03em;
+    line-height: 1.3;
+    letter-spacing: -0.02em;
 }
 
 .download-next-text {
-    font-size: 0.95rem;
-    line-height: 1.6;
+    margin-top: 0.35rem;
+    font-size: 0.85rem;
+    line-height: 1.55;
     color: var(--text-2);
 }
 
@@ -111,15 +114,8 @@
     font-weight: 500;
 }
 
-.download-next-actions {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: 0.75rem;
-    margin-top: 0.5rem;
-}
-
 .download-next-note {
+    margin-top: 0.5rem;
     font-size: 0.8rem;
     color: var(--text-3);
 }
@@ -132,6 +128,19 @@
 
 .download-next-note a:hover {
     color: var(--text);
+}
+
+.download-next-setup.primary-btn {
+    flex-shrink: 0;
+    white-space: nowrap;
+}
+
+/* In the modal it's a footer under the builds, reaching the modal's edges through its padding */
+.download-modal .download-next {
+    margin: 0 -1.75rem -1.75rem;
+    padding: 1.25rem 1.75rem 1.5rem;
+    background: var(--surface);
+    border-top: 1px solid var(--line);
 }
 
 /* Only the active platform's file type, link and "not available" note show. Android keeps the Windows ones in
@@ -220,12 +229,10 @@
     margin-inline: -1.75rem;
 }
 
-/* Three equal columns, split by hairlines like the hero specs. The row runs down through the modal's bottom
-   padding (1.75rem), so the hairlines reach the modal's edge; the columns pad the buttons back up by as much. */
+/* Three equal columns, split by hairlines like the hero specs. The hairlines run down to the Setup footer. */
 .download-builds {
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
-    margin-bottom: -1.75rem;
 }
 
 .download-build {
@@ -395,7 +402,17 @@ a.download-build-get:hover::before {
 
     .download-builds {
         grid-template-columns: 1fr;
-        margin-bottom: 0;
+        margin-bottom: 1.25rem;
+    }
+
+    .download-modal .download-next {
+        margin: 0 -1.25rem -1.25rem;
+        padding: 1.25rem;
+    }
+
+    .download-next-setup.primary-btn {
+        width: 100%;
+        justify-content: center;
     }
 
     .download-build,
