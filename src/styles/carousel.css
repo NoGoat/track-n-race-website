@@ -27,6 +27,21 @@
     overflow: hidden;
 }
 
+/* Without JavaScript: every slide, one under the other, and no controls to drive them */
+.no-js .carousel-track {
+    flex-direction: column;
+    gap: 4rem;
+    width: auto;
+}
+
+.no-js .carousel-slide {
+    width: 100%;
+}
+
+.no-js .carousel-controls {
+    display: none;
+}
+
 .carousel-controls {
     display: flex;
     align-items: center;

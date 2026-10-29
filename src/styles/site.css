@@ -272,7 +272,7 @@
     color: var(--text-3);
 }
 
-/* A button (it opens the license pop-up) dressed as an inline link */
+/* The GPL link in the footer: it opens the license pop-up (scripts/site.js), or the text file without JavaScript */
 .footer-license {
     display: inline;
     padding: 0;

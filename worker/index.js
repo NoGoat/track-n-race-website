@@ -7,8 +7,8 @@
 //   /download/release        Same, for the release page (what the Download buttons open without the modal).
 //   /api/event               Counts a page event sent with navigator.sendBeacon (only the names listed below).
 //
-// /download/ itself is the Download page (pages/download.astro): it matches /download/* too, so it reaches this
-// script and is handed straight back to the static assets.
+// /download/ itself is the Download page (pages/download.astro), and /download/no-js/ its version without JavaScript:
+// both match /download/* too, so they reach this script and are handed straight back to the static assets.
 //
 // Nothing identifying is stored: no IP, no cookies, no user agent, no network. Each data point is the build, platform,
 // the page it came from and the visitor's country as Cloudflare reports it, plus the bot label, which is worked out

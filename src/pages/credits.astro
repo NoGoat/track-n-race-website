@@ -2,6 +2,56 @@
 import Base from '../layouts/Base.astro';
 import '../styles/pages/credits.css';
 
+// The library browser's projects, by stack. file is the license text in /assets/licenses/.
+const libraries = [
+    {
+        stack: 'core',
+        title: 'Core',
+        items: [
+            { name: 'zlib', spdx: 'Zlib', file: 'Zlib.txt', href: 'https://zlib.net' },
+            { name: 'Zstandard', spdx: 'BSD-3-Clause', file: 'zstandard.txt', href: 'https://facebook.github.io/zstd/' },
+            { name: 'glaze', spdx: 'MIT', file: 'glaze.txt', href: 'https://github.com/stephenberry/glaze' },
+            { name: 'libxlsxwriter', spdx: 'BSD-2-Clause', file: 'libxlsxwriter.txt', href: 'https://libxlsxwriter.github.io' },
+        ],
+    },
+    {
+        stack: 'electron',
+        title: 'Electron',
+        items: [
+            { name: 'Electron', spdx: 'MIT', file: 'electron.txt', href: 'https://electronjs.org' },
+            { name: 'React', spdx: 'MIT', file: 'react.txt', href: 'https://react.dev' },
+            { name: 'React DOM', spdx: 'MIT', file: 'react-dom.txt', href: 'https://react.dev' },
+            { name: 'electron-store', spdx: 'MIT', file: 'electron-store.txt', href: 'https://github.com/sindresorhus/electron-store' },
+            { name: 'lucide-react', spdx: 'ISC', file: 'lucide-react.txt', href: 'https://lucide.dev' },
+            { name: 'react-select', spdx: 'MIT', file: 'react-select.txt', href: 'https://react-select.com' },
+            { name: '@uiw/react-color', spdx: 'MIT', file: 'uiw-react-color.txt', href: 'https://github.com/uiwjs/react-color' },
+            { name: 'zustand', spdx: 'MIT', file: 'zustand.txt', href: 'https://zustand.docs.pmnd.rs/' },
+            { name: 'TimeChart', spdx: 'MIT', file: 'timechart.txt', href: 'https://github.com/huww98/TimeChart' },
+            { name: 'd3-axis', spdx: 'ISC', file: 'd3-axis.txt', href: 'https://d3js.org/d3-axis/' },
+            { name: 'd3-color', spdx: 'ISC', file: 'd3-color.txt', href: 'https://d3js.org/d3-color/' },
+            { name: 'd3-scale', spdx: 'ISC', file: 'd3-scale.txt', href: 'https://d3js.org/d3-scale/' },
+            { name: 'd3-selection', spdx: 'ISC', file: 'd3-selection.txt', href: 'https://d3js.org/d3-selection/' },
+            { name: 'gl-matrix', spdx: 'MIT', file: 'gl-matrix.txt', href: 'https://glmatrix.net/' },
+            { name: 'tslib', spdx: '0BSD', file: 'tslib.txt', href: 'https://github.com/microsoft/tslib' },
+            { name: 'Cascadia Code', spdx: 'OFL-1.1', file: 'cascadia-code.txt', href: 'https://github.com/microsoft/cascadia-code' },
+            { name: 'node-addon-api', spdx: 'MIT', file: 'node-addon-api.txt', href: 'https://github.com/nodejs/node-addon-api' },
+        ],
+    },
+    {
+        stack: 'qt',
+        title: 'Native',
+        items: [
+            { name: 'Qt', spdx: 'LGPL-3.0', file: 'LGPL-3.0.txt', href: 'https://www.qt.io' },
+            { name: 'qt-toast (fork)', spdx: 'MIT', file: 'MIT-qt-toast.txt', href: 'https://github.com/niklashenning/qt-toast' },
+            { name: 'Noto Sans', spdx: 'OFL-1.1', file: 'OFL-1.1-Noto.txt', href: 'https://fonts.google.com/noto/specimen/Noto+Sans' },
+            { name: 'Breeze style (Plasma)', spdx: 'GPL-2.0', file: 'GPL-2.0.txt', href: 'https://invent.kde.org/plasma/breeze' },
+            { name: 'Breeze Icons', spdx: 'LGPL-3.0', file: 'LGPL-3.0.txt', href: 'https://invent.kde.org/frameworks/breeze-icons' },
+            { name: 'KDE Frameworks', spdx: 'LGPL-2.1', file: 'LGPL-2.1.txt', href: 'https://develop.kde.org/products/frameworks/' },
+        ],
+    },
+];
+const pad = (n: number) => String(n).padStart(2, '0');
+
 const jsonLd = {
   "@context": "https://schema.org",
   "@graph": [
@@ -101,210 +151,26 @@ const jsonLd = {
                      On phones the reader is hidden and licenses open in the pop-up instead. -->
                 <div class="library">
                     <nav class="library-list" aria-label="Open source projects">
-                    <section class="library-group" data-stack="core">
-                        <h2 class="library-group-title">Core <span class="library-count">04</span></h2>
-                        <ul class="library-items">
-                            <li>
-                                <button class="library-item active" aria-pressed="true" aria-controls="library-reader"
-                                    data-file="Zlib.txt" data-spdx="Zlib" data-href="https://zlib.net" data-stack="core">
-                                    <span class="library-name">zlib</span>
-                                    <span class="library-spdx">Zlib</span>
-                                </button>
-                            </li>
-                            <li>
-                                <button class="library-item" aria-pressed="false" aria-controls="library-reader"
-                                    data-file="zstandard.txt" data-spdx="BSD-3-Clause" data-href="https://facebook.github.io/zstd/" data-stack="core">
-                                    <span class="library-name">Zstandard</span>
-                                    <span class="library-spdx">BSD-3-Clause</span>
-                                </button>
-                            </li>
-                            <li>
-                                <button class="library-item" aria-pressed="false" aria-controls="library-reader"
-                                    data-file="glaze.txt" data-spdx="MIT" data-href="https://github.com/stephenberry/glaze" data-stack="core">
-                                    <span class="library-name">glaze</span>
-                                    <span class="library-spdx">MIT</span>
-                                </button>
-                            </li>
-                            <li>
-                                <button class="library-item" aria-pressed="false" aria-controls="library-reader"
-                                    data-file="libxlsxwriter.txt" data-spdx="BSD-2-Clause" data-href="https://libxlsxwriter.github.io" data-stack="core">
-                                    <span class="library-name">libxlsxwriter</span>
-                                    <span class="library-spdx">BSD-2-Clause</span>
-                                </button>
-                            </li>
-                        </ul>
-                    </section>
-                    <section class="library-group" data-stack="electron">
-                        <h2 class="library-group-title">Electron <span class="library-count">17</span></h2>
-                        <ul class="library-items">
-                            <li>
-                                <button class="library-item" aria-pressed="false" aria-controls="library-reader"
-                                    data-file="electron.txt" data-spdx="MIT" data-href="https://electronjs.org" data-stack="electron">
-                                    <span class="library-name">Electron</span>
-                                    <span class="library-spdx">MIT</span>
-                                </button>
-                            </li>
-                            <li>
-                                <button class="library-item" aria-pressed="false" aria-controls="library-reader"
-                                    data-file="react.txt" data-spdx="MIT" data-href="https://react.dev" data-stack="electron">
-                                    <span class="library-name">React</span>
-                                    <span class="library-spdx">MIT</span>
-                                </button>
-                            </li>
-                            <li>
-                                <button class="library-item" aria-pressed="false" aria-controls="library-reader"
-                                    data-file="react-dom.txt" data-spdx="MIT" data-href="https://react.dev" data-stack="electron">
-                                    <span class="library-name">React DOM</span>
-                                    <span class="library-spdx">MIT</span>
-                                </button>
-                            </li>
-                            <li>
-                                <button class="library-item" aria-pressed="false" aria-controls="library-reader"
-                                    data-file="electron-store.txt" data-spdx="MIT" data-href="https://github.com/sindresorhus/electron-store" data-stack="electron">
-                                    <span class="library-name">electron-store</span>
-                                    <span class="library-spdx">MIT</span>
-                                </button>
-                            </li>
-                            <li>
-                                <button class="library-item" aria-pressed="false" aria-controls="library-reader"
-                                    data-file="lucide-react.txt" data-spdx="ISC" data-href="https://lucide.dev" data-stack="electron">
-                                    <span class="library-name">lucide-react</span>
-                                    <span class="library-spdx">ISC</span>
-                                </button>
-                            </li>
-                            <li>
-                                <button class="library-item" aria-pressed="false" aria-controls="library-reader"
-                                    data-file="react-select.txt" data-spdx="MIT" data-href="https://react-select.com" data-stack="electron">
-                                    <span class="library-name">react-select</span>
-                                    <span class="library-spdx">MIT</span>
-                                </button>
-                            </li>
-                            <li>
-                                <button class="library-item" aria-pressed="false" aria-controls="library-reader"
-                                    data-file="uiw-react-color.txt" data-spdx="MIT" data-href="https://github.com/uiwjs/react-color" data-stack="electron">
-                                    <span class="library-name">@uiw/react-color</span>
-                                    <span class="library-spdx">MIT</span>
-                                </button>
-                            </li>
-                            <li>
-                                <button class="library-item" aria-pressed="false" aria-controls="library-reader"
-                                    data-file="zustand.txt" data-spdx="MIT" data-href="https://zustand.docs.pmnd.rs/" data-stack="electron">
-                                    <span class="library-name">zustand</span>
-                                    <span class="library-spdx">MIT</span>
-                                </button>
-                            </li>
-                            <li>
-                                <button class="library-item" aria-pressed="false" aria-controls="library-reader"
-                                    data-file="timechart.txt" data-spdx="MIT" data-href="https://github.com/huww98/TimeChart" data-stack="electron">
-                                    <span class="library-name">TimeChart</span>
-                                    <span class="library-spdx">MIT</span>
-                                </button>
-                            </li>
-                            <li>
-                                <button class="library-item" aria-pressed="false" aria-controls="library-reader"
-                                    data-file="d3-axis.txt" data-spdx="ISC" data-href="https://d3js.org/d3-axis/" data-stack="electron">
-                                    <span class="library-name">d3-axis</span>
-                                    <span class="library-spdx">ISC</span>
-                                </button>
-                            </li>
-                            <li>
-                                <button class="library-item" aria-pressed="false" aria-controls="library-reader"
-                                    data-file="d3-color.txt" data-spdx="ISC" data-href="https://d3js.org/d3-color/" data-stack="electron">
-                                    <span class="library-name">d3-color</span>
-                                    <span class="library-spdx">ISC</span>
-                                </button>
-                            </li>
-                            <li>
-                                <button class="library-item" aria-pressed="false" aria-controls="library-reader"
-                                    data-file="d3-scale.txt" data-spdx="ISC" data-href="https://d3js.org/d3-scale/" data-stack="electron">
-                                    <span class="library-name">d3-scale</span>
-                                    <span class="library-spdx">ISC</span>
-                                </button>
-                            </li>
-                            <li>
-                                <button class="library-item" aria-pressed="false" aria-controls="library-reader"
-                                    data-file="d3-selection.txt" data-spdx="ISC" data-href="https://d3js.org/d3-selection/" data-stack="electron">
-                                    <span class="library-name">d3-selection</span>
-                                    <span class="library-spdx">ISC</span>
-                                </button>
-                            </li>
-                            <li>
-                                <button class="library-item" aria-pressed="false" aria-controls="library-reader"
-                                    data-file="gl-matrix.txt" data-spdx="MIT" data-href="https://glmatrix.net/" data-stack="electron">
-                                    <span class="library-name">gl-matrix</span>
-                                    <span class="library-spdx">MIT</span>
-                                </button>
-                            </li>
-                            <li>
-                                <button class="library-item" aria-pressed="false" aria-controls="library-reader"
-                                    data-file="tslib.txt" data-spdx="0BSD" data-href="https://github.com/microsoft/tslib" data-stack="electron">
-                                    <span class="library-name">tslib</span>
-                                    <span class="library-spdx">0BSD</span>
-                                </button>
-                            </li>
-                            <li>
-                                <button class="library-item" aria-pressed="false" aria-controls="library-reader"
-                                    data-file="cascadia-code.txt" data-spdx="OFL-1.1" data-href="https://github.com/microsoft/cascadia-code" data-stack="electron">
-                                    <span class="library-name">Cascadia Code</span>
-                                    <span class="library-spdx">OFL-1.1</span>
-                                </button>
-                            </li>
-                            <li>
-                                <button class="library-item" aria-pressed="false" aria-controls="library-reader"
-                                    data-file="node-addon-api.txt" data-spdx="MIT" data-href="https://github.com/nodejs/node-addon-api" data-stack="electron">
-                                    <span class="library-name">node-addon-api</span>
-                                    <span class="library-spdx">MIT</span>
-                                </button>
-                            </li>
-                        </ul>
-                    </section>
-                    <section class="library-group" data-stack="qt">
-                        <h2 class="library-group-title">Native <span class="library-count">06</span></h2>
-                        <ul class="library-items">
-                            <li>
-                                <button class="library-item" aria-pressed="false" aria-controls="library-reader"
-                                    data-file="LGPL-3.0.txt" data-spdx="LGPL-3.0" data-href="https://www.qt.io" data-stack="qt">
-                                    <span class="library-name">Qt</span>
-                                    <span class="library-spdx">LGPL-3.0</span>
-                                </button>
-                            </li>
-                            <li>
-                                <button class="library-item" aria-pressed="false" aria-controls="library-reader"
-                                    data-file="MIT-qt-toast.txt" data-spdx="MIT" data-href="https://github.com/niklashenning/qt-toast" data-stack="qt">
-                                    <span class="library-name">qt-toast (fork)</span>
-                                    <span class="library-spdx">MIT</span>
-                                </button>
-                            </li>
-                            <li>
-                                <button class="library-item" aria-pressed="false" aria-controls="library-reader"
-                                    data-file="OFL-1.1-Noto.txt" data-spdx="OFL-1.1" data-href="https://fonts.google.com/noto/specimen/Noto+Sans" data-stack="qt">
-                                    <span class="library-name">Noto Sans</span>
-                                    <span class="library-spdx">OFL-1.1</span>
-                                </button>
-                            </li>
-                            <li>
-                                <button class="library-item" aria-pressed="false" aria-controls="library-reader"
-                                    data-file="GPL-2.0.txt" data-spdx="GPL-2.0" data-href="https://invent.kde.org/plasma/breeze" data-stack="qt">
-                                    <span class="library-name">Breeze style (Plasma)</span>
-                                    <span class="library-spdx">GPL-2.0</span>
-                                </button>
-                            </li>
-                            <li>
-                                <button class="library-item" aria-pressed="false" aria-controls="library-reader"
-                                    data-file="LGPL-3.0.txt" data-spdx="LGPL-3.0" data-href="https://invent.kde.org/frameworks/breeze-icons" data-stack="qt">
-                                    <span class="library-name">Breeze Icons</span>
-                                    <span class="library-spdx">LGPL-3.0</span>
-                                </button>
-                            </li>
-                            <li>
-                                <button class="library-item" aria-pressed="false" aria-controls="library-reader"
-                                    data-file="LGPL-2.1.txt" data-spdx="LGPL-2.1" data-href="https://develop.kde.org/products/frameworks/" data-stack="qt">
-                                    <span class="library-name">KDE Frameworks</span>
-                                    <span class="library-spdx">LGPL-2.1</span>
-                                </button>
-                            </li>
-                        </ul>
-                    </section>
+                    {libraries.map((group, g) => (
+                        <section class="library-group" data-stack={group.stack}>
+                            <h2 class="library-group-title">{group.title} <span class="library-count">{pad(group.items.length)}</span></h2>
+                            <ul class="library-items">
+                                {group.items.map((item, i) => {
+                                    // The first project is the one the reader opens on
+                                    const first = g === 0 && i === 0;
+                                    return (
+                                        <li>
+                                            <button class:list={['library-item', { active: first }]} aria-pressed={first ? 'true' : 'false'} aria-controls="library-reader"
+                                                data-file={item.file} data-spdx={item.spdx} data-href={item.href} data-stack={group.stack}>
+                                                <span class="library-name">{item.name}</span>
+                                                <span class="library-spdx">{item.spdx}</span>
+                                            </button>
+                                        </li>
+                                    );
+                                })}
+                            </ul>
+                        </section>
+                    ))}
                     </nav>
 
                     <article class="library-reader" id="library-reader">
@@ -325,6 +191,25 @@ const jsonLd = {
                         <!-- Focusable so the keyboard can scroll the license -->
                         <pre class="reader-text" tabindex="0" role="region" aria-label="License text">Loading...</pre>
                     </article>
+                </div>
+
+                <!-- Without JavaScript the reader can't load a license, so the browser above is hidden (credits.css) and
+                     every project is listed instead, its name linking to the license text -->
+                <div class="library-static nojs-only">
+                    {libraries.map(group => (
+                        <section class="library-static-group">
+                            <h2 class="library-group-title">{group.title} <span class="library-count">{pad(group.items.length)}</span></h2>
+                            <ul class="library-static-items">
+                                {group.items.map(item => (
+                                    <li>
+                                        <a class="library-name" href={`/assets/licenses/${item.file}`}>{item.name}<span class="visually-hidden"> license</span></a>
+                                        <span class="library-spdx">{item.spdx}</span>
+                                        <a class="library-static-site" href={item.href} target="_blank" rel="noopener">Website<span class="visually-hidden">: {item.name}</span></a>
+                                    </li>
+                                ))}
+                            </ul>
+                        </section>
+                    ))}
                 </div>
             </div>
         </section>

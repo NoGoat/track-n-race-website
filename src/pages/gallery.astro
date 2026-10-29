@@ -104,6 +104,8 @@ const jsonLd = {
     </Fragment>
 
     <main id="main" class="gallery-section" data-ui="electron">
+        <!-- The no-JavaScript switch's targets (#qt and #android also open the gallery on that frontend with it) -->
+        <span class="gallery-target" id="electron"></span><span class="gallery-target" id="qt"></span><span class="gallery-target" id="android"></span>
         <!-- Gallery: every screen, grouped by area. The switch shows each one in the Electron or the Qt frontend
              or the Android app; every capture sits in the markup, and a hidden one's lazy images don't load until
              it is picked. Screens the Android app doesn't have are left out of its tab. -->
@@ -115,9 +117,13 @@ const jsonLd = {
                 <h1 class="main-title">Gallery</h1>
                 <!-- Same tabs as the Setup page's Single PC / Dual System selector -->
                 <div class="scenario-selector gallery-switch" role="radiogroup" aria-label="Frontend">
-                    <button class="scenario-btn gallery-switch-btn active" role="radio" aria-checked="true" data-ui="electron">Electron</button>
-                    <button class="scenario-btn gallery-switch-btn" role="radio" aria-checked="false" data-ui="qt" tabindex="-1">Native</button>
-                    <button class="scenario-btn gallery-switch-btn" role="radio" aria-checked="false" data-ui="android" tabindex="-1">Android</button>
+                    <button class="scenario-btn gallery-switch-btn js-only active" role="radio" aria-checked="true" data-ui="electron">Electron</button>
+                    <button class="scenario-btn gallery-switch-btn js-only" role="radio" aria-checked="false" data-ui="qt" tabindex="-1">Native</button>
+                    <button class="scenario-btn gallery-switch-btn js-only" role="radio" aria-checked="false" data-ui="android" tabindex="-1">Android</button>
+                    <!-- Without JavaScript: links to the targets at the top of the page, which gallery.css reads with :target -->
+                    <a class="scenario-btn gallery-switch-link nojs-only" href="#electron">Electron</a>
+                    <a class="scenario-btn gallery-switch-link nojs-only" href="#qt">Native</a>
+                    <a class="scenario-btn gallery-switch-link nojs-only" href="#android">Android</a>
                 </div>
             </div>
         </div>

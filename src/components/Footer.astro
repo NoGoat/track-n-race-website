@@ -1,5 +1,5 @@
 ---
-// The footer. The GPL link opens the license pop-up (scripts/site.js).
+// The footer. The GPL link opens the license pop-up (scripts/site.js); without JavaScript it opens the text file.
 const pages = [
     { href: '/', label: 'Home' },
     { href: '/gallery/', label: 'Gallery' },
@@ -17,16 +17,17 @@ const current = Astro.url.pathname;
         <div class="footer-left">
             <span class="footer-brand"><span class="brand-accent">Track</span> N Race</span>
             <p class="footer-desc">
-                Copyright &copy; 2026 NoGoat. Track N Race is distributed under the <button type="button"
-                    class="footer-license" data-license="GPL-3.0.txt">GNU
-                    General Public License v3.0</button>
+                Copyright &copy; 2026 NoGoat. Track N Race is distributed under the <a
+                    class="footer-license" href="/assets/licenses/GPL-3.0.txt" data-license="GPL-3.0.txt">GNU
+                    General Public License v3.0</a>
             </p>
             <p class="footer-disclaimer">
                 Track N Race is not affiliated with, endorsed by, or associated with EA, Codemasters, Formula One,
                 the FIA, the drivers or the teams participating in Formula One.
             </p>
         </div>
-        <ul class="footer-links">
+        <!-- Also where the navbar's menu icon leads without JavaScript (components/Header.astro) -->
+        <ul class="footer-links" id="footer-pages">
             {pages.map(({ href, label }) => (
                 <li><a href={href} data-astro-prefetch aria-current={href === current ? 'page' : undefined}>{label}</a></li>
             ))}

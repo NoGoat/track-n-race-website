@@ -378,3 +378,59 @@ body.page-fit main {
         line-height: 1.65;
     }
 }
+
+/* ==========================================================================
+   Without JavaScript (html.no-js, layouts/Base.astro)
+   The reader can't load a license, so the browser gives way to a plain list of every project: its name links to
+   the license text, then its license and its website
+   ========================================================================== */
+.no-js .library {
+    display: none;
+}
+
+.library-static {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 2rem 2.5rem;
+    align-items: start;
+    margin-top: 1.5rem;
+}
+
+.library-static-items {
+    list-style: none;
+    border-top: 1px solid var(--line);
+}
+
+.library-static-items li {
+    display: flex;
+    align-items: baseline;
+    gap: 0.75rem;
+    padding: 0.55rem 0;
+    border-bottom: 1px solid var(--line);
+    font-size: 0.9rem;
+}
+
+.library-static-items .library-name {
+    flex: 1 1 auto;
+    color: var(--text);
+    text-decoration: underline;
+    text-decoration-color: var(--line-hover);
+    text-underline-offset: 3px;
+}
+
+.library-static-site {
+    flex-shrink: 0;
+    font-size: 0.8rem;
+    color: var(--text-2);
+}
+
+.library-static-site:hover,
+.library-static-items .library-name:hover {
+    color: var(--text);
+}
+
+@media (max-width: 860px) {
+    .library-static {
+        grid-template-columns: minmax(0, 1fr);
+    }
+}

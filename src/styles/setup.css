@@ -180,10 +180,6 @@
     color: #fff;
 }
 
-.step-cta {
-    margin-bottom: 0.25rem;
-}
-
 /* Recording: what each "drivers to save" option keeps, and the playback list under it */
 .record-scopes {
     margin-top: 0.75rem;

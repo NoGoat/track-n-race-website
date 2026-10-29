@@ -77,8 +77,10 @@ if (licenseModal) {
         }
     };
 
+    // The trigger is a link to the text file, for when this script doesn't run
     document.querySelectorAll('[data-license]').forEach(btn => {
-        btn.addEventListener('click', () => {
+        btn.addEventListener('click', (e) => {
+            e.preventDefault();
             lastTrigger = btn;
             openLicenseModal('Track N Race License', btn.getAttribute('data-license'));
         });

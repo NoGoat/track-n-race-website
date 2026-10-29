@@ -53,10 +53,12 @@
     padding-top: 2.5rem;
 }
 
-/* Only the picked frontend's screenshots show. A hidden lazy image never loads. */
-.gallery-section:not([data-ui="electron"]) [data-ui="electron"]:not(.gallery-switch-btn),
-.gallery-section:not([data-ui="qt"]) [data-ui="qt"]:not(.gallery-switch-btn),
-.gallery-section:not([data-ui="android"]) [data-ui="android"]:not(.gallery-switch-btn),
+/* Only the picked frontend's screenshots show. A hidden lazy image never loads. The pick is the section's data-ui,
+   set by scripts/gallery.js; without JavaScript it's whichever of #electron, #qt or #android the switch's links
+   targeted (the rules below this one). */
+.js .gallery-section:not([data-ui="electron"]) [data-ui="electron"]:not(.gallery-switch-btn),
+.js .gallery-section:not([data-ui="qt"]) [data-ui="qt"]:not(.gallery-switch-btn),
+.js .gallery-section:not([data-ui="android"]) [data-ui="android"]:not(.gallery-switch-btn),
 /* On Android a screen's own name, number and caption replace the desktop ones, and a screen it lacks is left out */
 .gallery-section[data-ui="android"] .desc-desktop,
 .gallery-section[data-ui="android"] .no-android {
@@ -71,6 +73,46 @@
 .gallery-section[data-ui="android"] .shot .mockup-img {
     width: 100%;
     margin: 0;
+}
+
+/* Without JavaScript: the same, from :target. Kept apart from the rules above so a browser without :has() drops only
+   these (and shows Electron), not those. */
+.gallery-target {
+    position: absolute;
+    top: 0;
+}
+
+.no-js .gallery-section:has(#qt:target, #android:target) [data-ui="electron"],
+.no-js .gallery-section:not(:has(#qt:target)) [data-ui="qt"],
+.no-js .gallery-section:not(:has(#android:target)) [data-ui="android"],
+.no-js .gallery-section:has(#android:target) .desc-desktop,
+.no-js .gallery-section:has(#android:target) .no-android {
+    display: none;
+}
+
+.no-js .gallery-section:has(#android:target) .img-zoom-wrapper {
+    aspect-ratio: 2560 / 1488;
+}
+
+.no-js .gallery-section:has(#android:target) .shot .mockup-img {
+    width: 100%;
+    margin: 0;
+}
+
+.no-js .gallery-section:has(#qt:target) .shot .app-window {
+    border-radius: 2px;
+}
+
+/* The switch's links, dressed as its buttons (styles/tabs.css), the picked one underlined in red */
+.gallery-switch-link {
+    text-decoration: none;
+}
+
+.no-js .gallery-section:not(:has(#qt:target, #android:target)) .gallery-switch-link[href="#electron"],
+.no-js .gallery-section:has(#qt:target) .gallery-switch-link[href="#qt"],
+.no-js .gallery-section:has(#android:target) .gallery-switch-link[href="#android"] {
+    color: var(--text);
+    border-bottom-color: var(--accent);
 }
 
 .gallery-group + .gallery-group {

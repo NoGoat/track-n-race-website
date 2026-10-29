@@ -44,7 +44,7 @@ const current = Astro.url.pathname;
                 </svg>
                 <span>GitHub</span>
             </a>
-            <button class="mobile-toggle-btn" id="mobileToggleBtn" aria-label="Toggle Navigation Menu"
+            <button class="mobile-toggle-btn js-only" id="mobileToggleBtn" aria-label="Toggle Navigation Menu"
                 aria-expanded="false" aria-controls="navMenu">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
                     stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
@@ -53,6 +53,15 @@ const current = Astro.url.pathname;
                     <line x1="4" y1="18" x2="20" y2="18"></line>
                 </svg>
             </button>
+            <!-- Without JavaScript the menu can't open, so the same icon jumps to the footer's page list -->
+            <a class="mobile-toggle-btn nojs-only" href="#footer-pages" aria-label="Pages">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                    stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <line x1="4" y1="6" x2="20" y2="6"></line>
+                    <line x1="4" y1="12" x2="20" y2="12"></line>
+                    <line x1="4" y1="18" x2="20" y2="18"></line>
+                </svg>
+            </a>
         </div>
     </div>
 </header>

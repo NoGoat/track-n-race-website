@@ -1,7 +1,5 @@
 ---
 import Base from '../layouts/Base.astro';
-import DownloadModal from '../components/DownloadModal.astro';
-import DownloadButton from '../components/DownloadButton.astro';
 import '../styles/pages/setup.css';
 import { platformIcons } from '../data/icons';
 
@@ -288,30 +286,16 @@ const questions = [
                 </p>
 
                 <div class="setup-flow">
-                    <!-- Get the apps -->
-                    <div class="setup-step-card result-step">
+                    <!-- Opening it on macOS. Track N Race isn't signed or notarised with an Apple Developer certificate, so
+                         Gatekeeper stops the first launch. -->
+                    <div class="setup-step-card result-step" data-when="os=macos">
                         <div class="setup-step-card-header">
                             <div class="setup-step-title-group">
                                 <div class="setup-step-badge">01</div>
-                                <h3 class="setup-step-title">Get Track N Race</h3>
+                                <h3 class="setup-step-title">Open it on macOS</h3>
                             </div>
                         </div>
-                        <p class="step-desc">
-                            <span data-when="link=desktop">Install Track N Race on <strong data-fill="host-name">your computer</strong>.</span>
-                            <span data-when="link=direct">Install Track N Race for Android on your phone or tablet. It's an <code>.apk</code>: Android asks you to allow installs from your browser the first time.</span>
-                            <span data-when="link=paired">Install Track N Race on <strong data-fill="host-name">your computer</strong>, and Track N Race for Android on your phone or tablet. Both need the same version for pairing.</span>
-                        </p>
-                        <div class="step-cta">
-                            <DownloadButton />
-                        </div>
-                        <p class="step-callout" data-when="link=desktop,paired">
-                            <Fragment set:html={icon.info} />
-                            <span>Paired mode needs the full desktop app (Electron<span data-when="native=yes"> or Native</span>). The Minimal Recorder can't pair with a phone.</span>
-                        </p>
-
-                        <!-- Track N Race isn't signed or notarised with an Apple Developer certificate, so Gatekeeper stops the first launch -->
-                        <div class="gatekeeper" data-when="os=macos">
-                            <h4 class="record-subtitle">Opening it on macOS</h4>
+                        <div class="gatekeeper">
                             <p class="step-desc">
                                 Track N Race isn't signed with an Apple Developer certificate, so the first time you
                                 open it macOS blocks it with <strong>"Track N Race" Not Opened</strong> (or "cannot be
@@ -344,13 +328,13 @@ const questions = [
                             </div>
                             <p class="step-callout">
                                 <Fragment set:html={icon.info} />
-                                <span>The Minimal Recorder is unsigned too: use the same steps, with its own app name in the command.<span data-when="link=paired"> This is separate from the keychain password prompt in step 04.</span></span>
+                                <span>The Minimal Recorder is unsigned too: use the same steps, with its own app name in the command.<span data-when="link=paired"> This is separate from the keychain password prompt in step <span data-step-ref="pair">04</span>.</span></span>
                             </p>
                         </div>
                     </div>
 
                     <!-- Find the receiving device's IP -->
-                    <div class="setup-step-card result-step" data-when="ip=windows,macos,linux,android">
+                    <div class="setup-step-card result-step" data-step="ip" data-when="ip=windows,macos,linux,android">
                         <div class="setup-step-card-header">
                             <div class="setup-step-title-group">
                                 <div class="setup-step-badge">02</div>
@@ -483,7 +467,7 @@ const questions = [
                                 <div class="config-info">
                                     <span class="config-label">UDP IP Address</span>
                                     <span class="config-subtext" data-when="ip=loopback">Means "this same PC".</span>
-                                    <span class="config-subtext" data-when="ip=windows,macos,linux,android">The address from step 02.</span>
+                                    <span class="config-subtext" data-when="ip=windows,macos,linux,android">The address from step <span data-step-ref="ip">02</span>.</span>
                                 </div>
                                 <div class="config-value-group">
                                     <span class="code-pill green" id="ipPill" data-fill="ip-target">127.0.0.1</span>
@@ -555,7 +539,7 @@ const questions = [
                     </div>
 
                     <!-- Paired mode -->
-                    <div class="setup-step-card result-step" data-when="link=paired">
+                    <div class="setup-step-card result-step" data-step="pair" data-when="link=paired">
                         <div class="setup-step-card-header">
                             <div class="setup-step-title-group">
                                 <div class="setup-step-badge">04</div>
@@ -717,7 +701,6 @@ const questions = [
         <p class="visually-hidden" id="copyStatus" role="status"></p>
     </main>
 
-    <DownloadModal slot="after-footer" />
 
     <script>
         import '../scripts/setup.js';

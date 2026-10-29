@@ -1,7 +1,5 @@
 /* Setup: every stylesheet it uses, in cascade order. The build inlines them into one file. */
 @import '../base.css';
 @import '../site.css';
-@import '../tabs.css';
-@import '../download-modal.css';
 @import '../quiz.css';
 @import '../setup.css';

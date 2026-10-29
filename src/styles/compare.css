@@ -328,3 +328,59 @@
 .compare-tag:last-child {
     text-align: right;
 }
+
+/* ==========================================================================
+   Without JavaScript (html.no-js, layouts/Base.astro)
+   No tabs and no slider: every screen, one under the other, Electron and Native side by side
+   ========================================================================== */
+.no-js .compare-modules {
+    grid-template-columns: minmax(0, 1fr);
+}
+
+.no-js .module-list,
+.no-js .compare-handle,
+.no-js .compare-range {
+    display: none;
+}
+
+.no-js .module-stage {
+    display: flex;
+    flex-direction: column;
+    gap: 4rem;
+}
+
+.no-js .module-pane,
+.no-js .compare-modules .module-pane:not(.active) {
+    height: auto;
+    overflow: visible;
+    opacity: 1;
+    visibility: visible;
+}
+
+/* The slider's frame takes its shape from the screenshots, as two columns (inline aspect-ratio set for the slider) */
+.no-js .compare {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1rem;
+    aspect-ratio: auto !important;
+    overflow: visible;
+}
+
+.no-js .compare-img,
+.no-js .compare-top,
+.no-js .compare > .compare-img {
+    position: static;
+    height: auto;
+    clip-path: none;
+}
+
+/* Electron first, on the left, like the caption's tags */
+.no-js .compare-top {
+    order: -1;
+}
+
+@media (max-width: 640px) {
+    .no-js .compare {
+        grid-template-columns: minmax(0, 1fr);
+    }
+}

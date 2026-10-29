@@ -7,6 +7,10 @@ document.querySelectorAll('.modules').forEach(modules => {
     const moduleTabs = Array.from(modules.querySelectorAll('.module-tab'));
     const modulePanes = Array.from(modules.querySelectorAll('.module-pane'));
     if (moduleTabs.length === 0 || moduleTabs.length !== modulePanes.length) return;
+    // The panes ship without aria-hidden, since without this script every one of them shows
+    modulePanes.forEach(pane => {
+        if (!pane.classList.contains('active')) pane.setAttribute('aria-hidden', 'true');
+    });
     const moduleList = moduleTabs[0].parentElement;
 
     const selectModule = (index, focus = false) => {

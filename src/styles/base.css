@@ -359,6 +359,12 @@ dialog::backdrop {
     color: var(--text-2);
 }
 
+/* Elements for only one of with and without JavaScript (layouts/Base.astro swaps html.no-js for .js) */
+.js .nojs-only,
+.no-js .js-only {
+    display: none !important;
+}
+
 /* Hidden from view, still read out by screen readers */
 .visually-hidden {
     position: absolute;

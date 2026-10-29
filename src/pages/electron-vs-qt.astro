@@ -300,7 +300,7 @@ const jsonLd = {
                         const loading = i === 0 ? undefined : 'lazy';
                         return (
                             <figure class:list={['module-pane', { active: i === 0 }]} role="tabpanel" id={`module-pane-${i}`}
-                                aria-labelledby={`module-tab-${i}`} aria-hidden={i === 0 ? undefined : 'true'}>
+                                aria-labelledby={`module-tab-${i}`}>
                                 <div class="compare" style={`aspect-ratio: ${screen.width} / ${screen.height}`}>
                                     <img class="compare-img" src={`/assets/screenshots/qt/${file}.webp`}
                                         alt={`Native frontend: ${screen.name}`} width={screen.width} height={screen.height} loading={loading}>

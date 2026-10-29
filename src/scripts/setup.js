@@ -81,6 +81,11 @@ const render = () => {
         n += 1;
         step.querySelector('.setup-step-badge').textContent = String(n).padStart(2, '0');
     });
+    // "step 02" in the text follows the numbering: data-step-ref names the step's data-step
+    result.querySelectorAll('[data-step-ref]').forEach(ref => {
+        const badge = result.querySelector(`.result-step[data-step="${ref.dataset.stepRef}"] .setup-step-badge`);
+        if (badge) ref.textContent = badge.textContent;
+    });
 
     // Remember the answers in the address bar (only the ones that apply)
     const params = new URLSearchParams();
