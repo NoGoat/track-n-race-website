@@ -16,8 +16,8 @@ export const pages = {
     home: {
         path: "/",
         title: "Track N Race — Free F1 Telemetry & Lap Analysis",
-        description: "Track N Race records and analyzes F1 24, F1 25, and 2026 Season Pack telemetry. Compare laps, driver inputs, tyre wear, ERS, fuel, and delta times for free.",
-        socialDescription: "Record and analyze F1 24, F1 25, and 2026 Season Pack telemetry. Compare laps, driver inputs, tyre wear, ERS, fuel, and delta times for free.",
+        description: "Track N Race records and analyzes F1 24, F1 25, and 2026 Season Pack telemetry on Windows, macOS, Linux and Android. Compare laps, driver inputs, tyre wear, ERS, fuel, and delta times for free.",
+        socialDescription: "Record and analyze F1 24, F1 25, and 2026 Season Pack telemetry on Windows, macOS, Linux and Android. Compare laps, driver inputs, tyre wear, ERS, fuel, and delta times for free.",
         type: "website",
     },
     gallery: {
@@ -34,7 +34,7 @@ export const pages = {
     },
     download: {
         path: "/download/",
-        title: "Download Track N Race — Electron, Native or Minimal Recorder",
+        title: "Download Track N Race — Electron, Native, Minimal Recorder or Android",
         description: "Download Track N Race for Windows, macOS, Linux or Android. Pick your platform for a short guide to the Electron, Native and Minimal Recorder builds, then download the one that suits your setup.",
     },
     setup: {

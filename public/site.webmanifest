@@ -1,7 +1,7 @@
 {
   "name": "Track N Race",
   "short_name": "Track N Race",
-  "description": "Free, open-source telemetry recording and lap performance analysis tool for F1 games.",
+  "description": "Free, open-source telemetry recording and lap performance analysis tool for F1 games, on Windows, macOS, Linux and Android.",
   "icons": [
     {
       "src": "assets/icons/favicon-48x48.png",
