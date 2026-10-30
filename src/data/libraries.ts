@@ -9,6 +9,8 @@ export const libraries = [
             { name: 'Zstandard', spdx: 'BSD-3-Clause', file: 'zstandard.txt', href: 'https://facebook.github.io/zstd/' },
             { name: 'glaze', spdx: 'MIT', file: 'glaze.txt', href: 'https://github.com/stephenberry/glaze' },
             { name: 'libxlsxwriter', spdx: 'BSD-2-Clause', file: 'libxlsxwriter.txt', href: 'https://libxlsxwriter.github.io' },
+            { name: 'libsodium', spdx: 'ISC', file: 'libsodium.txt', href: 'https://libsodium.org' },
+            { name: 'CPace', spdx: 'BSD-2-Clause', file: 'cpace.txt', href: 'https://github.com/jedisct1/cpace' },
         ],
     },
     {
@@ -38,12 +40,14 @@ export const libraries = [
         stack: 'qt',
         title: 'Native',
         items: [
-            { name: 'Qt', spdx: 'LGPL-3.0', file: 'LGPL-3.0.txt', href: 'https://www.qt.io' },
+            { name: 'Qt', spdx: 'LGPL-3.0-only', file: 'qt.txt', href: 'https://www.qt.io' },
             { name: 'qt-toast (fork)', spdx: 'MIT', file: 'MIT-qt-toast.txt', href: 'https://github.com/niklashenning/qt-toast' },
             { name: 'Noto Sans', spdx: 'OFL-1.1', file: 'OFL-1.1-Noto.txt', href: 'https://fonts.google.com/noto/specimen/Noto+Sans' },
-            { name: 'Breeze style (Plasma)', spdx: 'GPL-2.0', file: 'GPL-2.0.txt', href: 'https://invent.kde.org/plasma/breeze' },
-            { name: 'Breeze Icons', spdx: 'LGPL-3.0', file: 'LGPL-3.0.txt', href: 'https://invent.kde.org/frameworks/breeze-icons' },
-            { name: 'KDE Frameworks', spdx: 'LGPL-2.1', file: 'LGPL-2.1.txt', href: 'https://develop.kde.org/products/frameworks/' },
+            { name: 'Breeze style (Plasma)', spdx: 'GPL-2.0-or-later', file: 'breeze.txt', href: 'https://invent.kde.org/plasma/breeze' },
+            { name: 'Breeze Icons', spdx: 'LGPL-3.0-or-later', file: 'breeze-icons.txt', href: 'https://invent.kde.org/frameworks/breeze-icons' },
+            { name: 'KDE Frameworks', spdx: 'LGPL-2.0-or-later', file: 'kde-frameworks.txt', href: 'https://develop.kde.org/products/frameworks/' },
+            { name: 'GNU gettext (libintl) & libiconv', spdx: 'LGPL-2.1-or-later', file: 'LGPL-2.1.txt', href: 'https://www.gnu.org/software/gettext/' },
+            { name: 'Linux AppImage libraries', spdx: 'Various', file: 'linux-appimage-libraries.txt', href: 'https://launchpad.net/ubuntu' },
         ],
     },
 ];
