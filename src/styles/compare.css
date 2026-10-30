@@ -328,3 +328,59 @@
 .compare-tag:last-child {
     text-align: right;
 }
+
+/* ==========================================================================
+   Without JavaScript (html.no-js, layouts/Base.astro)
+   scripts/compare.js can't switch screens or move the sliders, so the list is left out and every screen shows,
+   one under the other, with Electron and Native side by side in the order the caption names them.
+   ========================================================================== */
+.no-js .compare-modules {
+    display: block;
+}
+
+.no-js .module-list,
+.no-js .compare-handle,
+.no-js .compare-range {
+    display: none;
+}
+
+.no-js .module-stage {
+    display: flex;
+    flex-direction: column;
+    gap: 3.5rem;
+}
+
+.no-js .compare-modules .module-pane {
+    height: auto;
+    overflow: visible;
+    opacity: 1;
+    visibility: visible;
+}
+
+/* The inline aspect-ratio is the slider's frame; side by side, each screenshot keeps its own */
+.no-js .compare {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1.5rem;
+    aspect-ratio: auto !important;
+    overflow: visible;
+}
+
+.no-js .compare-top {
+    position: static;
+    order: -1;
+    clip-path: none;
+}
+
+.no-js .compare-img,
+.no-js .compare > .compare-img {
+    position: static;
+    height: auto;
+    clip-path: none;
+}
+
+@media (max-width: 600px) {
+    .no-js .compare {
+        grid-template-columns: minmax(0, 1fr);
+    }
+}

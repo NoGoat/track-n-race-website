@@ -1,6 +1,6 @@
 import { platformIcons } from './icons';
 
-// Step 01 on the Download page (scripts/download-page.js) and its versions without JavaScript
+// Step 01 on the Download page (scripts/download-page.js)
 export const platformQuestion = 'What are you downloading for?';
 export const platforms = [
     { os: 'windows', label: 'Windows', desc: 'Electron, Native or Minimal', icon: platformIcons.windows },
@@ -9,9 +9,8 @@ export const platforms = [
     { os: 'android', label: 'Android', desc: 'The full app, as an .apk', icon: platformIcons.phone },
 ];
 
-// The Download page's guides, one per platform (pages/download.astro), also listed all at once on its no-JavaScript
-// version (pages/no-js/download/). Their numbers come from the Frontends page's table. A value given per OS shows
-// only on that platform.
+// The Download page's guides, one per platform (pages/download.astro). Their numbers come from the Frontends page's
+// table. A value given per OS shows only on that platform.
 export type PerOs = string | Record<string, string>;
 export interface Build {
     slug: string;

@@ -2,7 +2,6 @@
 import Base from '../layouts/Base.astro';
 import PageHead from '../components/PageHead.astro';
 import { pages } from '../data/pages';
-import { NOJS_HOME } from '../data/nojs';
 import '../styles/pages/credits.css';
 import { libraries } from '../data/libraries';
 import { pad } from '../data/format';
@@ -49,7 +48,7 @@ const jsonLd = {
   ]
 };
 ---
-<Base jsonLd={jsonLd} bodyClass="page-fit" nojs={NOJS_HOME}>
+<Base jsonLd={jsonLd} bodyClass="page-fit">
     <Fragment slot="head">
         <PageHead page={pages.credits} />
     </Fragment>
@@ -63,8 +62,9 @@ const jsonLd = {
                     <p class="section-desc">{pages.credits.intro}</p>
                 </div>
 
-                <!-- Library browser: grouped project list beside a license reader.
-                     On phones the reader is hidden and licenses open in the pop-up instead. -->
+                <!-- Library browser: grouped project list beside a license reader (scripts/credits.js). Each project
+                     links to its license text, which the reader shows in place; without JavaScript the reader is left
+                     out and the links open the text files (styles/credits.css). -->
                 <div class="library">
                     <nav class="library-list" aria-label="Open source projects">
                     {libraries.map((group, g) => (
@@ -76,11 +76,12 @@ const jsonLd = {
                                     const first = g === 0 && i === 0;
                                     return (
                                         <li>
-                                            <button class:list={['library-item', { active: first }]} aria-pressed={first ? 'true' : 'false'} aria-controls="library-reader"
+                                            <a class:list={['library-item', { active: first }]} href={`/assets/licenses/${item.file}`}
+                                                aria-current={first ? 'true' : undefined} aria-controls="library-reader"
                                                 data-file={item.file} data-spdx={item.spdx} data-href={item.href} data-stack={group.stack}>
                                                 <span class="library-name">{item.name}</span>
                                                 <span class="library-spdx">{item.spdx}</span>
-                                            </button>
+                                            </a>
                                         </li>
                                     );
                                 })}

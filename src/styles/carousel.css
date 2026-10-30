@@ -27,15 +27,14 @@
     overflow: hidden;
 }
 
-/* The home page without JavaScript (components/HomeBody.astro with nojs): every slide, one under the other, and no
-   controls to drive them */
-.carousel-static .carousel-track {
+/* Without JavaScript (html.no-js, layouts/Base.astro): every slide, one under the other. The controls are .js-only. */
+.no-js .carousel-track {
     flex-direction: column;
     gap: 4rem;
     width: auto;
 }
 
-.carousel-static .carousel-slide {
+.no-js .carousel-slide {
     width: 100%;
 }
 

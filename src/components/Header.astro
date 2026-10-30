@@ -1,8 +1,5 @@
 ---
 // The navbar. The current page's link is marked active; scripts/site.js runs the mobile menu.
-// On /no-js/ pages the links go to the other pages' versions without JavaScript, and pages that need it are left out
-// (data/nojs.ts).
-import { linkFor, isCurrent, showsOn } from '../data/nojs';
 
 const links = [
     { href: '/', label: 'Home' },
@@ -15,7 +12,7 @@ const path = Astro.url.pathname;
 ---
 <header class="navbar">
     <div class="nav-container">
-        <a href={linkFor('/', path)} data-astro-prefetch class="brand-link" aria-label="Track N Race Home">
+        <a href="/" data-astro-prefetch class="brand-link" aria-label="Track N Race Home">
             <div class="brand">
                 <img src="/assets/icons/icon_transparent-78.webp" alt="Track N Race Logo" class="brand-logo-img"
                     width="78" height="64">
@@ -23,10 +20,10 @@ const path = Astro.url.pathname;
             </div>
         </a>
         <nav class="nav-menu" id="navMenu" aria-label="Main">
-            {links.filter(({ href }) => showsOn(href, path)).map(({ href, label }) => (
+            {links.map(({ href, label }) => (
                 <Fragment>
-                    <a href={linkFor(href, path)} data-astro-prefetch class:list={['nav-btn', { active: isCurrent(href, path) }]}
-                        aria-current={isCurrent(href, path) ? 'page' : undefined}>{label}</a>{'\n'}
+                    <a href={href} data-astro-prefetch class:list={['nav-btn', { active: href === path }]}
+                        aria-current={href === path ? 'page' : undefined}>{label}</a>{'\n'}
                 </Fragment>
             ))}
         </nav>

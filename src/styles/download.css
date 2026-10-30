@@ -1,7 +1,8 @@
 /* ==========================================================================
    Download flow
    Step 01 is Setup's question row (styles/quiz.css); step 02 lays the builds out as cards, with the modal's
-   data rows and download buttons (styles/download-modal.css). Driven by scripts/download-page.js.
+   data rows and download buttons (styles/download-modal.css). Step 01's radios pick what shows here, without
+   JavaScript too; scripts/download-page.js starts on this device's platform.
    ========================================================================== */
 /* The page's one section, spaced like the Frontends page's (styles/compare.css). The flow's rows start on the
    header's rule, like Setup's questions. */
@@ -25,9 +26,16 @@
     text-underline-offset: 3px;
 }
 
-/* The guides start hidden, and .quiz-question's display: grid must not bring them back */
-.dl-flow [hidden] {
-    display: none !important;
+/* Only the checked platform's guide, and none until one is picked. Outranks .quiz-question's display: grid. */
+.dl-flow .dl-dive {
+    display: none;
+}
+
+.dl-flow:has(input[value="windows"]:checked) .dl-dive[data-for~="windows"],
+.dl-flow:has(input[value="macos"]:checked) .dl-dive[data-for~="macos"],
+.dl-flow:has(input[value="linux"]:checked) .dl-dive[data-for~="linux"],
+.dl-flow:has(input[value="android"]:checked) .dl-dive[data-for~="android"] {
+    display: grid;
 }
 
 .dl-flow {
@@ -73,9 +81,9 @@
 }
 
 /* Only the chosen platform's file types and download links */
-.dl-flow[data-os="windows"] [data-os-only]:not([data-os-only="windows"]),
-.dl-flow[data-os="macos"] [data-os-only]:not([data-os-only="macos"]),
-.dl-flow[data-os="linux"] [data-os-only]:not([data-os-only="linux"]) {
+.dl-flow:has(input[value="windows"]:checked) [data-os-only]:not([data-os-only="windows"]),
+.dl-flow:has(input[value="macos"]:checked) [data-os-only]:not([data-os-only="macos"]),
+.dl-flow:has(input[value="linux"]:checked) [data-os-only]:not([data-os-only="linux"]) {
     display: none;
 }
 
@@ -111,6 +119,12 @@
 
 .dl-build-stack + .download-build-name {
     margin-top: 0.4rem;
+}
+
+/* Without JavaScript the real links sit in a <noscript> (components/BuildCard.astro): it mustn't break the column.
+   Only under .no-js: with JavaScript on, a <noscript> holds its markup as text, and any display would show it. */
+.no-js .dl-build noscript {
+    display: contents;
 }
 
 /* The cards' downloads take the primary button's white fill (styles/base.css), not the modal's outline */

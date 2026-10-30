@@ -3,8 +3,8 @@ import { loadLicense, licenseError } from './licenses.js';
 // Smooth scrolling, unless reduced motion is asked for (CSS's own setting doesn't reach scrollTo / scrollBy)
 const scrollBehavior = window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth';
 
-// Credits library browser: selecting a project shows its license in the reader.
-// On phones the list is a horizontal strip above the reader.
+// Credits library browser: selecting a project shows its license in the reader instead of opening the text file
+// its link points to (what it does without this script). On phones the list is a horizontal strip above the reader.
 const libraryItems = Array.from(document.querySelectorAll('.library-item'));
 const libraryReader = document.getElementById('library-reader');
 
@@ -22,7 +22,8 @@ if (libraryItems.length > 0 && libraryReader) {
         libraryItems.forEach(other => {
             const isActive = other === item;
             other.classList.toggle('active', isActive);
-            other.setAttribute('aria-pressed', isActive ? 'true' : 'false');
+            if (isActive) other.setAttribute('aria-current', 'true');
+            else other.removeAttribute('aria-current');
         });
 
         // Keep the selected project in view inside the list: centred in the phone strip,
@@ -67,7 +68,10 @@ if (libraryItems.length > 0 && libraryReader) {
     };
 
     libraryItems.forEach(item => {
-        item.addEventListener('click', () => showInReader(item));
+        item.addEventListener('click', (e) => {
+            e.preventDefault();
+            showInReader(item);
+        });
     });
 
     showInReader(libraryItems.find(item => item.classList.contains('active')) || libraryItems[0]);

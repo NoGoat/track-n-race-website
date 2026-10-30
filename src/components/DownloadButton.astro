@@ -1,9 +1,7 @@
 ---
 // Opens the download modal (DownloadModal.astro); without it, the link goes to the release.
-// With page, it's a plain link to the Download page instead (the home page's hero), and needs no modal; on a /no-js/
-// page, to the Download page's version without JavaScript (data/nojs.ts).
+// With page, it's a plain link to the Download page instead (the home page's hero), and needs no modal.
 import { VERSION } from '../version';
-import { linkFor } from '../data/nojs';
 
 interface Props {
     page?: boolean;
@@ -11,7 +9,7 @@ interface Props {
 const { page = false } = Astro.props;
 ---
 {page ? (
-    <a class="primary-btn" href={linkFor('/download/', Astro.url.pathname)} data-astro-prefetch>
+    <a class="primary-btn" href="/download/" data-astro-prefetch>
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
             stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
             <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>

@@ -1,7 +1,6 @@
 ---
 // One screen on the Gallery: its screenshot and caption. Every frontend's capture, marked data-ui, and the Android
 // tab's own name, number and caption beside the desktop ones; styles/gallery.css shows the picked frontend's.
-// Without zoom (the version without JavaScript, pages/no-js/gallery.astro) there's no lightbox button.
 import ScreenPicture from './ScreenPicture.astro';
 import ZoomBadge from './ZoomBadge.astro';
 import { screens } from '../data/screens';
@@ -12,9 +11,8 @@ interface Props {
     file: string;
     /** Whether the screenshot waits until scrolled to (every group but the first) */
     lazy: boolean;
-    zoom?: boolean;
 }
-const { file, lazy, zoom = true } = Astro.props;
+const { file, lazy } = Astro.props;
 const screen = screens[file];
 const SIZES = '(max-width: 768px) 100vw, 600px';
 ---
@@ -25,7 +23,7 @@ const SIZES = '(max-width: 768px) 100vw, 600px';
             <ScreenPicture screen={screen} ui="electron" sizes={SIZES} lazy={lazy} />
             <ScreenPicture screen={screen} ui="qt" sizes={SIZES} lazy />
             {screen.android && <ScreenPicture screen={screen} ui="android" sizes={SIZES} lazy />}
-            {zoom && <ZoomBadge />}
+            <ZoomBadge />
         </div>
     </div>
     <figcaption class="shot-caption">

@@ -37,7 +37,7 @@
     color: var(--text);
 }
 
-.scenario-btn.active,
+.scenario-btn:has(input:checked),
 .download-os-tab.active {
     color: var(--text);
     border-bottom-color: var(--accent);

@@ -5,6 +5,7 @@ import { pages } from '../data/pages';
 import '../styles/pages/setup.css';
 import { icon, questions } from '../data/setup';
 import SetupResult from '../components/SetupResult.astro';
+import SetupAll from '../components/SetupAll.astro';
 import { pad } from '../data/format';
 import OptionContent from '../components/OptionContent.astro';
 
@@ -87,7 +88,7 @@ const jsonLd = {
 };
 
 ---
-<Base jsonLd={jsonLd} nojs="/no-js/setup/">
+<Base jsonLd={jsonLd}>
     <Fragment slot="head">
         <PageHead page={pages.setup} />
     </Fragment>
@@ -97,12 +98,13 @@ const jsonLd = {
             <!-- Header Section -->
             <div class="page-header">
                 <h1 class="main-title" set:html={pages.setup.heading} />
-                <p class="subtitle">{pages.setup.intro}</p>
+                <p class="subtitle js-only">{pages.setup.intro}</p>
+                <p class="subtitle nojs-only">The settings for every setup on one page. With JavaScript on, the Setup page asks how you play and shows only your steps.</p>
             </div>
 
-            <!-- Questionnaire (scripts/setup.js). Without JavaScript the layout's noscript refresh opens /no-js/setup/, a
-                 single page with the settings for every setup. -->
-            <form class="setup-quiz" id="setupQuiz" aria-label="Your setup">
+            <!-- Questionnaire (scripts/setup.js). Without JavaScript it and the result are left out for the settings
+                 for every setup, on one page (components/SetupAll.astro). -->
+            <form class="setup-quiz js-only" id="setupQuiz" aria-label="Your setup">
                 {questions.map((q, i) => (
                     <fieldset class="quiz-question" data-when={q.when}>
                         <legend class="quiz-legend">
@@ -123,6 +125,7 @@ const jsonLd = {
 
             <!-- Your setup: shown once every question that applies is answered (components/SetupResult.astro) -->
             <SetupResult />
+            <SetupAll />
         </div>
         <!-- Copy results, read out by screen readers (scripts/setup.js) -->
         <p class="visually-hidden" id="copyStatus" role="status"></p>

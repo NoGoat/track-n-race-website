@@ -1,20 +1,19 @@
 ---
-// One build's card in a Download page guide (pages/download.astro) and on its no-JavaScript version
-// (pages/no-js/download/). Styles in styles/download.css and download-modal.css.
+// One build's card in a Download page guide (pages/download.astro). Styles in styles/download.css and
+// download-modal.css.
 //
 // For more than one OS (Windows and Linux share a guide), every per-OS value and link is rendered, marked data-os-only,
 // and the page's CSS shows the chosen platform's; for one OS, the values are picked here.
-// The links carry only a data-build slug, which scripts/platform.js turns into an href, so scrapers reading the HTML
-// find no download URLs. With staticLinks (the versions without JavaScript, one OS per card) they are real hrefs instead.
+// The links carry only a data-build slug, which scripts/platform.js turns into an href, so scrapers that skip
+// <noscript> find no download URLs. Without JavaScript a <noscript> copy of each, with its real href, takes its place.
 import type { Build, PerOs } from '../data/downloads';
 import { osLabels } from '../data/downloads';
 
 interface Props {
     build: Build;
     oses: string[];
-    staticLinks?: boolean;
 }
-const { build, oses, staticLinks = false } = Astro.props;
+const { build, oses } = Astro.props;
 const single = oses.length === 1 ? oses[0] : null;
 const pick = (value: PerOs) => typeof value === 'string' ? value : value[single!];
 
@@ -55,15 +54,18 @@ const badgeIcons = {
             </dd></div>
         ))}
     </dl>
-    {staticLinks && single ? (
-        <a class="download-build-get" href={`/download/${build.slug}/${single}`} rel="nofollow">
-            <Fragment set:html={downloadIcon} />
-            <span>{build.cta ?? `Download ${build.name}`}<span class="visually-hidden"> for {osLabels[single]}</span></span>
-        </a>
-    ) : oses.map(os => (
-        <a class="download-build-get" data-os-only={single ? undefined : os} data-build={`${build.slug}/${os}`}>
-            <Fragment set:html={downloadIcon} />
-            <span>{build.cta ?? `Download ${build.name}`}<span class="visually-hidden"> for {osLabels[os]}</span></span>
-        </a>
+    {oses.map(os => (
+        <Fragment>
+            <a class="download-build-get js-only" data-os-only={single ? undefined : os} data-build={`${build.slug}/${os}`}>
+                <Fragment set:html={downloadIcon} />
+                <span>{build.cta ?? `Download ${build.name}`}<span class="visually-hidden"> for {osLabels[os]}</span></span>
+            </a>
+            <noscript>
+                <a class="download-build-get" data-os-only={single ? undefined : os} href={`/download/${build.slug}/${os}`} rel="nofollow">
+                    <Fragment set:html={downloadIcon} />
+                    <span>{build.cta ?? `Download ${build.name}`}<span class="visually-hidden"> for {osLabels[os]}</span></span>
+                </a>
+            </noscript>
+        </Fragment>
     ))}
 </article>

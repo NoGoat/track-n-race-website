@@ -1,12 +1,11 @@
-// Each page's title, description and address, for its <head> (components/PageHead.astro) and, where it has one,
-// its version without JavaScript (data/nojs.ts), so both carry the same text.
+// Each page's title, description and address, for its <head> (components/PageHead.astro)
 export interface PageMeta {
     path: string;
     title: string;
     description: string;
     /** For link previews (Open Graph, Twitter), when it differs from the search description */
     socialDescription?: string;
-    /** The page header's title (may hold markup) and intro, for pages that share them with their no-JS version */
+    /** The page header's title (may hold markup) and intro */
     heading?: string;
     intro?: string;
     type?: 'website' | 'article';

@@ -13,11 +13,6 @@
   Referrer-Policy: strict-origin-when-cross-origin
   Permissions-Policy: camera=(), microphone=(), geolocation=(), payment=(), usb=(), serial=(), bluetooth=(), hid=()
 
-# The pages' versions for browsers without JavaScript (src/pages/no-js/): crawlers may fetch them and follow their
-# links, but not list them. Each also says so in a robots meta tag (components/PageHead.astro).
-/no-js/*
-  X-Robots-Tag: noindex, follow
-
 # Styles and scripts built by Astro: their names carry a hash of their content, so a changed file gets a new name
 /_astro/*
   Cache-Control: public, max-age=31536000, immutable

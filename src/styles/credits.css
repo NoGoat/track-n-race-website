@@ -120,6 +120,7 @@ body.page-fit main {
     font-size: 0.875rem;
     font-weight: 500;
     text-align: left;
+    text-decoration: none;
     cursor: pointer;
     transition: color var(--fast);
 }
@@ -376,5 +377,72 @@ body.page-fit main {
         padding: 0.9rem 1rem 1rem;
         font-size: 0.72rem;
         line-height: 1.65;
+    }
+}
+
+/* Without JavaScript (html.no-js, layouts/Base.astro) the reader can't load a license, so it's left out: each
+   project's link opens its license text instead, nothing is marked as open, and the page grows to fit the list,
+   in columns on wider screens */
+.no-js body.page-fit {
+    height: auto;
+}
+
+.no-js .library {
+    flex: none;
+    height: auto;
+    grid-template-columns: minmax(0, 1fr);
+}
+
+.no-js .library-reader {
+    display: none;
+}
+
+.no-js .library-item.active {
+    color: var(--text-2);
+    border-bottom-color: transparent;
+}
+
+.no-js .library-item.active:hover {
+    color: var(--text);
+}
+
+.no-js .library-item.active::before {
+    height: 0;
+}
+
+@media (min-width: 861px) {
+    .no-js .library-list {
+        overflow: visible;
+        padding-right: 0;
+        column-width: 300px;
+        column-gap: 2.5rem;
+    }
+
+    .no-js .library-group {
+        break-inside: avoid;
+    }
+}
+
+/* On phones the list is the project strip: with no reader under it, it wraps instead of scrolling */
+@media (max-width: 860px) {
+    .no-js .library-list {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 1rem;
+        overflow: visible;
+        margin-right: 0;
+        padding-right: 0;
+        box-shadow: none;
+    }
+
+    .no-js .library-group {
+        flex-wrap: wrap;
+        align-items: baseline;
+        flex-shrink: 1;
+    }
+
+    .no-js .library-items {
+        flex-wrap: wrap;
+        gap: 0 1rem;
     }
 }

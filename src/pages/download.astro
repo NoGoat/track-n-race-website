@@ -51,7 +51,7 @@ const jsonLd = {
   ]
 };
 ---
-<Base jsonLd={jsonLd} nojs="/no-js/download/">
+<Base jsonLd={jsonLd}>
     <Fragment slot="head">
         <PageHead page={pages.download} />
     </Fragment>
@@ -62,8 +62,8 @@ const jsonLd = {
         <section id="download" class="section download-section">
             <DownloadHeader />
 
-            <!-- scripts/download-page.js. Without JavaScript the layout's noscript refresh opens /no-js/download/; the
-                 note below links there too, for browsers that block refreshes. -->
+            <!-- The checked platform's guide shows (styles/download.css), so picking one works without JavaScript too.
+                 scripts/download-page.js starts on this device's platform and fills in the download links. -->
             <div class="dl-flow" id="downloadFlow">
                 <fieldset class="quiz-question">
                     <legend class="quiz-legend">
@@ -81,7 +81,7 @@ const jsonLd = {
                 </fieldset>
 
                 {dives.map(dive => (
-                    <section class="quiz-question dl-dive" data-for={dive.for.join(' ')} hidden>
+                    <section class="quiz-question dl-dive" data-for={dive.for.join(' ')}>
                         <div class="quiz-legend">
                             <span class="quiz-num">02</span>
                             <h2 class="quiz-title">{dive.title}</h2>
@@ -92,11 +92,6 @@ const jsonLd = {
             </div>
 
             <!-- The end of the flow: always shown, and says which download started once one is clicked -->
-            <noscript>
-                <p class="dl-note">
-                    The guide needs JavaScript. <a href="/no-js/download/">Use the version without it</a> instead.
-                </p>
-            </noscript>
 
             <DownloadNext heading="h2" class="dl-next" />
         </section>

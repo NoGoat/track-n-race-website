@@ -1,0 +1,127 @@
+---
+// The Setup page without JavaScript (pages/setup.astro): no questionnaire, just the settings for every setup, in the
+// result's step cards. Shown only without JavaScript (.nojs-only); keep it in step with components/SetupResult.astro.
+import { icon } from '../data/setup';
+---
+<div class="setup-flow nojs-only">
+    <!-- Where the game sends its telemetry -->
+    <div class="setup-step-card">
+        <div class="setup-step-card-header">
+            <div class="setup-step-title-group">
+                <div class="setup-step-badge">01</div>
+                <h2 class="setup-step-title">Pick the address to send to</h2>
+            </div>
+        </div>
+        <div class="config-list">
+            <div class="config-item">
+                <div class="config-info">
+                    <span class="config-label">Track N Race on the PC you play on</span>
+                    <span class="config-subtext">Means "this same PC".</span>
+                </div>
+                <div class="config-value-group"><span class="code-pill green">127.0.0.1</span></div>
+            </div>
+            <div class="config-item">
+                <div class="config-info">
+                    <span class="config-label">On another computer, or you play on a console</span>
+                    <span class="config-subtext">Also for an Android phone paired with that computer.</span>
+                </div>
+                <div class="config-value-group"><span class="code-pill">The computer's IP</span></div>
+            </div>
+            <div class="config-item">
+                <div class="config-info">
+                    <span class="config-label">The Android app on its own (Direct mode)</span>
+                </div>
+                <div class="config-value-group"><span class="code-pill">The phone's IP</span></div>
+            </div>
+        </div>
+        <h3 class="record-subtitle">Finding an IP address</h3>
+        <ul class="info-box-checklist">
+            <li><strong>Windows:</strong> run <code>ipconfig</code> and look for <strong>IPv4 Address</strong> under your active connection.</li>
+            <li><strong>macOS:</strong> run <code>ipconfig getifaddr en0</code> in Terminal (<code>en1</code> for Ethernet).</li>
+            <li><strong>Linux:</strong> run <code>hostname -I</code>.</li>
+            <li><strong>Android:</strong> open Track N Race and tap the <strong>menu</strong> button. The source line shows it, like <code>Direct UDP · 192.168.1.42</code>.</li>
+        </ul>
+    </div>
+
+    <!-- In-game telemetry settings -->
+    <div class="setup-step-card">
+        <div class="setup-step-card-header">
+            <div class="setup-step-title-group">
+                <div class="setup-step-badge">02</div>
+                <h2 class="setup-step-title">Set up the game</h2>
+            </div>
+        </div>
+        <p class="step-desc">
+            In the game, open <strong>Settings</strong> &rarr; <strong>Telemetry Settings</strong> and set:
+        </p>
+        <div class="config-list">
+            <div class="config-item">
+                <div class="config-info"><span class="config-label">UDP Telemetry</span></div>
+                <div class="config-value-group"><span class="code-pill green">On</span></div>
+            </div>
+            <div class="config-item">
+                <div class="config-info"><span class="config-label">UDP Broadcast Mode</span></div>
+                <div class="config-value-group"><span class="code-pill">Off</span></div>
+            </div>
+            <div class="config-item">
+                <div class="config-info">
+                    <span class="config-label">UDP IP Address</span>
+                    <span class="config-subtext">The address from step 01.</span>
+                </div>
+            </div>
+            <div class="config-item">
+                <div class="config-info"><span class="config-label">UDP Port</span></div>
+                <div class="config-value-group"><span class="code-pill">20777</span></div>
+            </div>
+            <div class="config-item">
+                <div class="config-info">
+                    <span class="config-label">UDP Send Rate</span>
+                    <span class="config-subtext">Drop to 20–30Hz if the connection struggles.</span>
+                </div>
+                <div class="config-value-group"><span class="code-pill green">60Hz</span></div>
+            </div>
+            <div class="config-item">
+                <div class="config-info">
+                    <span class="config-label">UDP Format</span>
+                    <span class="config-subtext">2024 for F1 24, 2025 for F1 25, 2026 with the 2026 Season Pack.</span>
+                </div>
+                <div class="config-value-group"><span class="code-pill green">Newest</span></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- The app's side -->
+    <div class="setup-step-card">
+        <div class="setup-step-card-header">
+            <div class="setup-step-title-group">
+                <div class="setup-step-badge">03</div>
+                <h2 class="setup-step-title">Start Track N Race</h2>
+            </div>
+        </div>
+        <ul class="info-box-checklist">
+            <li><strong>On a computer:</strong> open it. It listens on port <code>20777</code> straight away. If the system asks, allow it on the network.</li>
+            <li><strong>On Android, Direct mode:</strong> open <strong>Settings</strong> &rarr; <strong>Telemetry</strong> &rarr; <strong>Source</strong> and choose <strong>Direct UDP</strong> (the default). Allow <strong>Nearby devices</strong> if asked, and keep the app on screen.</li>
+            <li><strong>On Android, Paired mode:</strong> on the computer, open <strong>Settings</strong> &rarr; <strong>Paired Devices</strong>, turn on <strong>Enable paired mode</strong> and click <strong>Pair a device</strong>. On the phone, open <strong>Settings</strong> &rarr; <strong>Telemetry</strong> &rarr; <strong>Pair a desktop</strong> and scan the QR code.</li>
+        </ul>
+        <p class="step-callout">
+            <Fragment set:html={icon.info} />
+            <span>On macOS, the first launch is blocked because the app isn't signed. Go to <strong>System Settings</strong> &rarr; <strong>Privacy &amp; Security</strong> and click <strong>Open Anyway</strong>.</span>
+        </p>
+    </div>
+
+    <!-- Troubleshooting -->
+    <div class="setup-step-card">
+        <div class="setup-step-card-header">
+            <div class="setup-step-title-group">
+                <div class="setup-step-badge">04</div>
+                <h2 class="setup-step-title">If nothing shows up</h2>
+            </div>
+        </div>
+        <ul class="info-box-checklist">
+            <li><strong>Be on track.</strong> The game only sends telemetry once you're in a session.</li>
+            <li><strong>Same network.</strong> The game and Track N Race must share a router. Guest Wi-Fi can block this.</li>
+            <li><strong>Firewall.</strong> Allow inbound UDP on port <code>20777</code> for Track N Race (and TCP <code>20779</code> for Paired mode).</li>
+            <li><strong>Port in use.</strong> Close other telemetry tools listening on <code>20777</code>.</li>
+        </ul>
+    </div>
+</div>

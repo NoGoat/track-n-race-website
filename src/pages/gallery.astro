@@ -51,15 +51,16 @@ const jsonLd = {
   ]
 };
 ---
-<Base jsonLd={jsonLd} nojs="/no-js/gallery/">
+<Base jsonLd={jsonLd}>
     <Fragment slot="head">
         <PageHead page={pages.gallery} />
     </Fragment>
 
-    <main id="main" class="gallery-section" data-ui="electron">
+    <main id="main" class="gallery-section">
         <!-- Gallery: every screen, grouped by area. The switch shows each one in the Electron or the Qt frontend
              or the Android app; every capture sits in the markup, and a hidden one's lazy images don't load until
-             it is picked. Screens the Android app doesn't have are left out of its tab. -->
+             it is picked. Screens the Android app doesn't have are left out of its tab. The switch is a radio group
+             that styles/gallery.css follows, so it works without JavaScript too. -->
 
         <!-- Sticky header. At rest its rule matches the content column; once it sticks under the navbar
              (scripts/sticky-bar.js adds .is-stuck) it runs edge to edge with the navbar's background, border and shadow. -->
@@ -67,10 +68,11 @@ const jsonLd = {
             <div class="gallery-head-inner">
                 <h1 class="main-title">Gallery</h1>
                 <!-- Same tabs as the Setup page's Single PC / Dual System selector -->
+                <!-- autocomplete off: a reload starts on Electron (or the URL's pick) instead of the last one checked -->
                 <div class="scenario-selector gallery-switch" role="radiogroup" aria-label="Frontend">
-                    <button class="scenario-btn gallery-switch-btn active" role="radio" aria-checked="true" data-ui="electron">Electron</button>
-                    <button class="scenario-btn gallery-switch-btn" role="radio" aria-checked="false" data-ui="qt" tabindex="-1">Native</button>
-                    <button class="scenario-btn gallery-switch-btn" role="radio" aria-checked="false" data-ui="android" tabindex="-1">Android</button>
+                    <label class="scenario-btn gallery-switch-btn"><input type="radio" name="ui" id="ui-electron" value="electron" autocomplete="off" checked>Electron</label>
+                    <label class="scenario-btn gallery-switch-btn"><input type="radio" name="ui" id="ui-qt" value="qt" autocomplete="off">Native</label>
+                    <label class="scenario-btn gallery-switch-btn"><input type="radio" name="ui" id="ui-android" value="android" autocomplete="off">Android</label>
                 </div>
             </div>
         </div>

@@ -1,15 +1,10 @@
 ---
-// The Download page's header, also on its versions without JavaScript, which leave out the link to the Frontends page
-// (it needs JavaScript, data/nojs.ts)
-import { showsOn } from '../data/nojs';
-
-const compare = showsOn('/electron-vs-qt/', Astro.url.pathname);
+// The Download page's header
 ---
 <div class="page-header">
     <h1 class="main-title">Download Track N Race</h1>
     <p class="subtitle">
-        Free and open source. Pick your platform for a short guide to its builds{compare ? (
-            <Fragment>, or <a href="/electron-vs-qt/" data-astro-prefetch>compare the frontends</a> screen by screen.</Fragment>
-        ) : '.'}
+        Free and open source. Pick your platform for a short guide to its builds, or
+        <a href="/electron-vs-qt/" data-astro-prefetch>compare the frontends</a> screen by screen.
     </p>
 </div>

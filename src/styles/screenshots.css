@@ -20,6 +20,12 @@
     aspect-ratio: 16 / 10;
 }
 
+/* Without JavaScript there's no lightbox to open (components/ZoomBadge.astro) */
+.no-js .hero-img,
+.no-js .img-zoom-wrapper {
+    cursor: auto;
+}
+
 .hero-img > picture,
 .img-zoom-wrapper > picture {
     display: contents;

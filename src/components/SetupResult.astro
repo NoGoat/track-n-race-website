@@ -1,10 +1,11 @@
 ---
 // The Setup page's result: the steps for the answers given. Every block is marked data-when / data-fill, and
 // scripts/setup.js shows the ones that apply, numbers the steps and fills in the names as the answers change.
+// Without JavaScript the page shows components/SetupAll.astro instead, so a change here may belong there too.
 import { icon } from '../data/setup';
 ---
 <!-- Your setup: shown once every question that applies is answered -->
-<section class="setup-result" id="setupResult" data-when="complete=yes" aria-labelledby="resultTitle" tabindex="-1">
+<section class="setup-result js-only" id="setupResult" data-when="complete=yes" aria-labelledby="resultTitle" tabindex="-1">
     <div class="result-head">
         <div>
             <p class="eyebrow">Your setup</p>
