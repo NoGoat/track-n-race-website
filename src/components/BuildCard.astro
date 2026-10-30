@@ -4,8 +4,8 @@
 //
 // For more than one OS (Windows and Linux share a guide), every per-OS value and link is rendered, marked data-os-only,
 // and the page's CSS shows the chosen platform's; for one OS, the values are picked here.
-// The links carry only a data-build slug, which scripts/platform.js turns into an href, so scrapers that skip
-// <noscript> find no download URLs. Without JavaScript a <noscript> copy of each, with its real href, takes its place.
+// Each link is its /download/<slug> redirect (worker/index.js counts the hits and labels bots); data-build names the
+// build for scripts/download-next.js.
 import type { Build, PerOs } from '../data/downloads';
 import { osLabels } from '../data/downloads';
 
@@ -55,17 +55,10 @@ const badgeIcons = {
         ))}
     </dl>
     {oses.map(os => (
-        <Fragment>
-            <a class="download-build-get js-only" data-os-only={single ? undefined : os} data-build={`${build.slug}/${os}`}>
-                <Fragment set:html={downloadIcon} />
-                <span>{build.cta ?? `Download ${build.name}`}<span class="visually-hidden"> for {osLabels[os]}</span></span>
-            </a>
-            <noscript>
-                <a class="download-build-get" data-os-only={single ? undefined : os} href={`/download/${build.slug}/${os}`} rel="nofollow">
-                    <Fragment set:html={downloadIcon} />
-                    <span>{build.cta ?? `Download ${build.name}`}<span class="visually-hidden"> for {osLabels[os]}</span></span>
-                </a>
-            </noscript>
-        </Fragment>
+        <a class="download-build-get" data-os-only={single ? undefined : os} data-build={`${build.slug}/${os}`}
+            href={`/download/${build.slug}/${os}`} rel="nofollow">
+            <Fragment set:html={downloadIcon} />
+            <span>{build.cta ?? `Download ${build.name}`}<span class="visually-hidden"> for {osLabels[os]}</span></span>
+        </a>
     ))}
 </article>

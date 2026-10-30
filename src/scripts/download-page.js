@@ -1,9 +1,9 @@
-import { detectOS, fillBuildLinks } from './platform.js';
+import { detectOS } from './platform.js';
 import { markDownloadStarted } from './download-next.js';
 
 // Download page (pages/download.astro): pick a platform, then a short guide to its builds with their download
-// links. The checked platform's guide shows by CSS alone (styles/download.css); this fills in the links, starts on
-// this device's platform and brings a newly picked guide into view.
+// links. The checked platform's guide shows by CSS alone (styles/download.css); this starts on this device's platform
+// and brings a newly picked guide into view.
 const flow = document.getElementById('downloadFlow');
 const nextBlock = document.querySelector('.dl-next');
 
@@ -11,8 +11,6 @@ const nextBlock = document.querySelector('.dl-next');
 const scrollBehavior = window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth';
 
 if (flow) {
-    fillBuildLinks(flow);
-
     // Focus stays on the option, so the arrow keys still move between platforms
     flow.addEventListener('change', (e) => {
         if (e.target.name !== 'platform') return;

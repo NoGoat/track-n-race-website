@@ -1,6 +1,6 @@
 import { normalisePath, currentPath } from './paths.js';
 import { setupDialog } from './dialog.js';
-import { detectOS, fillBuildLinks } from './platform.js';
+import { detectOS } from './platform.js';
 import { markDownloadStarted } from './download-next.js';
 
 // Download modal: its markup is components/DownloadModal.astro, on the pages that have links marked
@@ -55,8 +55,6 @@ const setupDownloadModal = (downloadModal) => {
 
     const openDownloadModal = (trigger) => {
         lastTrigger = trigger;
-        // The build links ship without an href (see components/DownloadModal.astro) and get one on first open
-        fillBuildLinks(downloadModal);
         // Counted by worker/index.js; the downloads themselves are counted by their /download/ redirects
         navigator.sendBeacon?.(`/api/event?name=download_modal_open&os=${detectedOS || ''}`);
         // Unsupported platforms (phones, tablets, ...) fall back to the Windows builds

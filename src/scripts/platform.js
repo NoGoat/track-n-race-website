@@ -10,12 +10,3 @@ export const detectOS = () => {
 };
 
 export const osLabels = { windows: 'Windows', macos: 'macOS', linux: 'Linux', android: 'Android' };
-
-// Build links ship with only a data-build slug, so scrapers that read the HTML find no download URLs to hit
-// (worker/index.js counts the hits). This gives them their /download/<slug> href.
-export const fillBuildLinks = (root) => {
-    root.querySelectorAll('a[data-build]:not([href])').forEach(link => {
-        link.href = `/download/${link.dataset.build}`;
-        link.rel = 'nofollow';
-    });
-};

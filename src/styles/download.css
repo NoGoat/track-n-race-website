@@ -121,12 +121,6 @@
     margin-top: 0.4rem;
 }
 
-/* Without JavaScript the real links sit in a <noscript> (components/BuildCard.astro): it mustn't break the column.
-   Only under .no-js: with JavaScript on, a <noscript> holds its markup as text, and any display would show it. */
-.no-js .dl-build noscript {
-    display: contents;
-}
-
 /* The cards' downloads take the primary button's white fill (styles/base.css), not the modal's outline */
 .dl-build a.download-build-get {
     border-color: var(--text);

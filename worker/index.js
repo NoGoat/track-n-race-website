@@ -81,7 +81,7 @@ const HOSTING_ASNS = new Set([
 // Whether a /download/ hit is a person clicking a link on our pages. Crawlers and link scanners that ignore robots.txt
 // fetch download URLs without a Referer or Sec-Fetch headers.
 // Browsers that send Sec-Fetch-* must mark it a same-origin user click; older ones without them need our Referer.
-const isHumanClick = (request, url) => {
+const downloadClassifier = (request, url) => {
     const site = request.headers.get('Sec-Fetch-Site');
     if (site === null) return sourcePage(request, url) !== '';
     return site === 'same-origin' && request.headers.get('Sec-Fetch-User') === '?1';
@@ -97,7 +97,7 @@ const botReason = (request, url) => {
     const ua = request.headers.get('User-Agent') ?? '';
     if (!ua || BOT_UA.test(ua)) return 'bot-ua';
     if (HOSTING_ASNS.has(request.cf?.asn)) return 'datacenter';
-    if (!isHumanClick(request, url)) return 'not-click';
+    if (!downloadClassifier(request, url)) return 'not-click';
     return '';
 };
 
