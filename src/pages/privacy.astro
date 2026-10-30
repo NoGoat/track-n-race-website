@@ -3,6 +3,7 @@ import Base from '../layouts/Base.astro';
 import PageHead from '../components/PageHead.astro';
 import { pages } from '../data/pages';
 import '../styles/pages/privacy.css';
+import { TURNSTILE_SITE_KEY } from '../version';
 
 const jsonLd = {
   "@context": "https://schema.org",
@@ -244,7 +245,7 @@ const jsonLd = {
                         <p>Download links on the Website redirect to the corresponding file on GitHub, which serves the download. GitHub handles that request under its own privacy statement.</p>
 
                         <h3 class="privacy-subsection-title">6.4 Cookies and Third-Party Content</h3>
-                        <p>The Website does not set cookies, does not use browser storage to track visitors, and does not include advertising, third-party analytics, or social media trackers. Its fonts, scripts, and images are served from the Website itself. Cloudflare may set strictly necessary security cookies if it needs to check a request for abuse.</p>
+                        <p>The Website does not set cookies, does not use browser storage to track visitors, and does not include advertising, third-party analytics, or social media trackers. Its fonts, scripts, and images are served from the Website itself, with one exception: if you choose to show the contact email in Section 14, the Website first loads Cloudflare Turnstile from Cloudflare to check that the request comes from a person. Turnstile processes information about your browser and device to make that check, under Cloudflare's privacy policy, and the Website keeps none of it. Cloudflare may set strictly necessary security cookies if it needs to check a request for abuse.</p>
                         <p>The Website links to external sites, such as GitHub and Discord. Those sites have their own privacy practices, which this Policy does not cover.</p>
                     </div>
                 </section>
@@ -262,7 +263,7 @@ const jsonLd = {
                             </div>
                             <div class="privacy-dl-row">
                                 <dt>Cloudflare</dt>
-                                <dd>Hosts the Website and stores its anonymous download and event counts.</dd>
+                                <dd>Hosts the Website, stores its anonymous download and event counts, and runs the Turnstile check before the contact email is shown.</dd>
                             </div>
                         </dl>
                         <p>This Privacy Policy does not claim to govern information collected independently by third-party websites, operating systems, network providers, or other services outside our control.</p>
@@ -370,9 +371,20 @@ const jsonLd = {
                                 <span class="privacy-contact-label">Project Repository</span>
                                 <a href="https://github.com/NoGoat/Track-N-Race" target="_blank" rel="noopener" class="privacy-contact-link">https://github.com/NoGoat/Track-N-Race</a>
                             </div>
-                            <div class="privacy-contact-row">
+                            <!-- The email is behind a Cloudflare Turnstile challenge (scripts/contact.js, worker/index.js), so
+                                 it's in no page. Without JavaScript the challenge can't run, so the row says so instead. -->
+                            <div class="privacy-contact-row nojs-only">
                                 <span class="privacy-contact-label">Contact Email</span>
-                                <a href="mailto:eagleeyes007123@gmail.com" class="privacy-contact-link">eagleeyes007123@gmail.com</a>
+                                <span class="privacy-contact-note">Turn on JavaScript to see the email address.</span>
+                            </div>
+                            <div class="privacy-contact-row js-only" id="contactEmail" data-sitekey={TURNSTILE_SITE_KEY}>
+                                <span class="privacy-contact-label">Contact Email</span>
+                                <div class="privacy-contact-email">
+                                    <button class="privacy-contact-reveal" type="button">Show email</button>
+                                    <div class="privacy-contact-challenge" hidden></div>
+                                    <a class="privacy-contact-link" hidden></a>
+                                    <p class="privacy-contact-status" role="status"></p>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -390,4 +402,8 @@ const jsonLd = {
             </div><!-- /.privacy-body -->
         </div><!-- /.setup-container -->
     </main>
+
+    <script>
+        import '../scripts/contact.js';
+    </script>
 </Base>

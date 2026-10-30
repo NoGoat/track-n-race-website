@@ -1,6 +1,6 @@
 {
   "$schema": "./node_modules/wrangler/config-schema.json",
-  "name": "track-n-race",
+  "name": "track-n-race-website",
   "compatibility_date": "2026-10-14",
   // Only /download/* and /api/* reach this script (see run_worker_first); every other request is a static asset.
   // /download/* also matches the Download page (/download/) itself, which the script hands back to the assets.
@@ -21,8 +21,13 @@
   },
   // The current release. The Worker uses it for /download/ redirects and its counts, and the Astro build reads it
   // for the pages (src/version.ts). Bump it here for a new release.
+  // TURNSTILE_SITE_KEY is the Turnstile widget the Privacy Policy shows before its contact email (worker/index.js,
+  // scripts/contact.js), for track-n-race.com only. The widget's secret key and the email itself are secrets:
+  // wrangler secret put TURNSTILE_SECRET, then wrangler secret put CONTACT_EMAIL. For wrangler dev they go in
+  // .dev.vars, with Cloudflare's test secret: on localhost scripts/contact.js swaps in the matching test site key.
   "vars": {
-    "VERSION": "1.6.2"
+    "VERSION": "1.6.2",
+    "TURNSTILE_SITE_KEY": "0x4AAAAAAFshssWMkfbyZ3qi"
   },
   // Download and modal-open counts (worker/index.js). The dataset is created on the first write.
   "analytics_engine_datasets": [

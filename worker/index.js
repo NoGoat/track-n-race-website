@@ -1,4 +1,4 @@
-// Track N Race site Worker. Everything is served from static assets except two paths, which wrangler.jsonc
+// Track N Race site Worker. Everything is served from static assets except these paths, which wrangler.jsonc
 // routes here first (assets.run_worker_first):
 //
 //   /download/<build>/<os>   Counts the download in Workers Analytics Engine, then redirects to the file on GitHub.
@@ -6,6 +6,8 @@
 //                            botReason) and still redirected.
 //   /download/release        Same, for the release page (what the Download buttons open without the modal).
 //   /api/event               Counts a page event sent with navigator.sendBeacon (only the names listed below).
+//   /api/contact             The contact email, for the Privacy Policy (scripts/contact.js), once a Cloudflare
+//                            Turnstile challenge is solved. The address is the CONTACT_EMAIL secret, so it's in no page.
 //
 // /download/ itself is the Download page (pages/download.astro): it matches /download/* too, so it reaches this
 // script and is handed straight back to the static assets.
@@ -103,6 +105,26 @@ const botReason = (request, url) => {
 
 const noStore = { 'Cache-Control': 'no-store' };
 
+// Whether a Turnstile token (from the Privacy Policy's challenge) is valid for the contact action. Tokens are single
+// use and expire after five minutes. The visitor's IP is optional for Siteverify and isn't sent.
+// TURNSTILE_SECRET is a secret (wrangler secret put TURNSTILE_SECRET); its site key is vars.TURNSTILE_SITE_KEY.
+const SITEVERIFY = 'https://challenges.cloudflare.com/turnstile/v0/siteverify';
+const passedTurnstile = async (env, token) => {
+    if (!env.TURNSTILE_SECRET || !token || token.length > 2048) return false;
+    try {
+        const response = await fetch(SITEVERIFY, {
+            method: 'POST',
+            body: new URLSearchParams({ secret: env.TURNSTILE_SECRET, response: token }),
+        });
+        const outcome = await response.json();
+        // Cloudflare's test secret (.dev.vars) answers without an action, and marks it; a real secret never does
+        const forContact = outcome.action === 'contact' || outcome.metadata?.result_with_testing_key === true;
+        return outcome.success === true && forContact;
+    } catch {
+        return false;
+    }
+};
+
 export default {
     async fetch(request, env) {
         const url = new URL(request.url);
@@ -139,6 +161,13 @@ export default {
                 record(env, request, url, name, url.searchParams.get('os') ?? '');
             }
             return new Response(null, { status: 204, headers: noStore });
+        }
+
+        if (path === '/api/contact') {
+            if (request.method !== 'POST') return new Response(null, { status: 405, headers: { Allow: 'POST', ...noStore } });
+            if (!env.CONTACT_EMAIL) return new Response(null, { status: 503, headers: noStore });
+            if (!await passedTurnstile(env, await request.text())) return new Response(null, { status: 403, headers: noStore });
+            return Response.json({ email: env.CONTACT_EMAIL }, { headers: noStore });
         }
 
         return env.ASSETS.fetch(request);

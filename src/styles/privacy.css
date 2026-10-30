@@ -187,6 +187,40 @@
     opacity: 0.8;
 }
 
+/* The email: a button until the Turnstile challenge is solved (scripts/contact.js), then the link */
+.privacy-contact-email {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+    min-width: 0;
+}
+
+.privacy-contact-reveal {
+    padding: 0;
+    background: none;
+    border: none;
+    color: var(--accent);
+    font: inherit;
+    cursor: pointer;
+    transition: opacity var(--fast);
+}
+
+.privacy-contact-reveal:hover {
+    opacity: 0.8;
+}
+
+/* Notes in the email's row: without JavaScript in its place, and when the check fails */
+.privacy-contact-note,
+.privacy-contact-status {
+    font-size: 0.85rem;
+    color: var(--text-2);
+}
+
+.privacy-contact-status:empty {
+    display: none;
+}
+
 /* Responsive */
 @media (max-width: 600px) {
     .privacy-permission-row,
