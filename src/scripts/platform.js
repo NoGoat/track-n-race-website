@@ -1,5 +1,7 @@
-// The visitor's platform, for the download modal and the Download page.
+// The visitor's platform, for the Download page.
 // Android's user agent also says Linux, so it's checked first. null when it's none of the four (iOS, ...).
+// iOS users are intentionally sent to the macOS build, since iOS is not supported and macOS is the closest
+// thing in the Apple ecosystem.
 export const detectOS = () => {
     const ua = navigator.userAgent || navigator.platform || '';
     if (/Android/.test(ua)) return 'android';

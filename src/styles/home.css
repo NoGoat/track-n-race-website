@@ -40,7 +40,7 @@
     min-width: 0;
 }
 
-/* Specs: label over value in open columns, split by hairlines like the download modal's builds */
+/* Specs: label over value in open columns, split by hairlines */
 .hero-specs {
     display: grid;
     grid-template-columns: repeat(4, minmax(0, 1fr));

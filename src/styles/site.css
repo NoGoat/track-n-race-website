@@ -97,9 +97,11 @@
     gap: 0.5rem;
 }
 
-/* Header link buttons: GitHub and Discord share one style */
+/* Header link buttons: GitHub, Discord and Download share one style (and so do the phone menu's copies) */
 .github-link-btn,
-.discord-link-btn {
+.nav-download-btn,
+.discord-link-btn,
+.nav-social-btn {
     display: inline-flex;
     align-items: center;
     gap: 0.45rem;
@@ -114,16 +116,25 @@
 }
 
 .github-link-btn:hover,
-.discord-link-btn:hover {
+.nav-download-btn:hover,
+.discord-link-btn:hover,
+.nav-social-btn:hover {
     border-color: var(--line-hover);
     background: var(--surface-2);
 }
 
 .github-link-btn svg,
-.discord-link-btn svg {
+.nav-download-btn svg,
+.discord-link-btn svg,
+.nav-social-btn svg {
     width: 15px;
     height: 15px;
     flex-shrink: 0;
+}
+
+/* Discord and GitHub inside the menu: phones only */
+.nav-menu-social {
+    display: none;
 }
 
 .mobile-toggle-btn {
@@ -151,10 +162,11 @@
     height: 18px;
 }
 
-/* The nav collapses into the menu button once its links would run into the logo or the buttons */
-@media (max-width: 1100px) {
+/* GitHub, Discord and Download drop their labels before the centred nav would reach them */
+@media (max-width: 1240px) {
     .github-link-btn,
-    .discord-link-btn {
+    .discord-link-btn,
+    .nav-download-btn {
         width: 34px;
         height: 34px;
         padding: 0;
@@ -162,10 +174,14 @@
     }
 
     .github-link-btn span,
-    .discord-link-btn span {
+    .discord-link-btn span,
+    .nav-download-btn span {
         display: none;
     }
+}
 
+/* The nav collapses into the menu button once its links would run into the logo or the buttons */
+@media (max-width: 1100px) {
     .mobile-toggle-btn {
         display: inline-flex;
     }
@@ -239,6 +255,29 @@
 @media (max-width: 768px) {
     .nav-container {
         padding: 0 var(--gutter);
+    }
+}
+
+/* The narrowest phones, where four icon buttons would crowd the logo: Discord and GitHub move into the menu's last row */
+@media (max-width: 374px) {
+    .nav-actions .github-link-btn,
+    .nav-actions .discord-link-btn {
+        display: none;
+    }
+
+    .nav-menu-social {
+        display: flex;
+        gap: 0.5rem;
+        margin-top: 0.25rem;
+        padding-top: 0.75rem;
+        border-top: 1px solid var(--line);
+    }
+
+    .nav-social-btn {
+        flex: 1;
+        justify-content: center;
+        height: 40px;
+        font-size: 0.875rem;
     }
 }
 
@@ -339,7 +378,6 @@
 
 /* ==========================================================================
    License pop-up
-   Its frame (.modal-content, .modal-header, .modal-close) is shared with the download modal.
    ========================================================================== */
 .license-modal {
     position: fixed;

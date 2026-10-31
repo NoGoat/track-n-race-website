@@ -1,6 +1,6 @@
 import { osLabels } from './platform.js';
 
-// The link to the Setup page at the end of the download modal and the Download page (components/DownloadNext.astro).
+// The link to the Setup page at the end of the Download page (components/DownloadNext.astro).
 // Once a build link is clicked, it says that download has started; the link's own default action starts it.
 const buildNames = { electron: 'Track N Race', qt: 'Track N Race Native', minimal: 'the Minimal Recorder' };
 

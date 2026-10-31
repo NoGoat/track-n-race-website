@@ -1,18 +1,15 @@
 /* ==========================================================================
    Full-width tabs
-   Setup's Single PC / Dual System switch, the Gallery's Electron / Qt switch and the
-   download modal's platform tabs.
+   Setup's Single PC / Dual System switch and the Gallery's Electron / Qt switch.
    ========================================================================== */
 /* Single PC / Dual System: two tabs that split the width between them, each with
    its own underline (red when active), so together they read as one bar */
-.scenario-selector,
-.download-os-tabs {
+.scenario-selector {
     display: flex;
     margin: 0.25rem 0 1.5rem;
 }
 
-.scenario-btn,
-.download-os-tab {
+.scenario-btn {
     flex: 1 1 0;
     min-width: 0;
     display: inline-flex;
@@ -32,19 +29,16 @@
     transition: color var(--fast), border-color var(--fast);
 }
 
-.scenario-btn:hover,
-.download-os-tab:hover {
+.scenario-btn:hover {
     color: var(--text);
 }
 
-.scenario-btn:has(input:checked),
-.download-os-tab.active {
+.scenario-btn:has(input:checked) {
     color: var(--text);
     border-bottom-color: var(--accent);
 }
 
-.scenario-btn svg,
-.download-os-tab svg {
+.scenario-btn svg {
     width: 15px;
     height: 15px;
     flex-shrink: 0;

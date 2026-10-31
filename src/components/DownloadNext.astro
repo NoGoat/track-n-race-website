@@ -1,20 +1,18 @@
 ---
-// "Connect it to the game": the closing link to the Setup page, at the end of the download modal and the Download
-// page. Its styles are in download-modal.css. Once a build is clicked, scripts/download-next.js says which one has
+// "Connect it to the game": the closing link to the Setup page, at the end of the Download page. Its styles are in
+// download-build.css. Once a build is clicked, scripts/download-next.js says which one has
 // started downloading. A page can't see the download finish, so it never says more than that.
 import { VERSION } from '../version';
 
 interface Props {
-    // h3 inside the modal, h2 on the Download page
-    heading?: 'h2' | 'h3';
     class?: string;
 }
-const { heading: Heading = 'h3', class: className } = Astro.props;
+const { class: className } = Astro.props;
 ---
 <div class:list={['download-next', className]}>
     <div class="download-next-body">
         <p class="eyebrow download-next-status" data-next-status aria-live="polite">Next step</p>
-        <Heading class="download-next-title">Connect it to the game</Heading>
+        <h2 class="download-next-title">Connect it to the game</h2>
         <p class="download-next-text">
             <!-- Without JavaScript the Setup page has no questions, only the settings -->
             <span data-next-idle><span class="js-only">Answer a few questions on the Setup page to get the exact telemetry

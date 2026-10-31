@@ -1,4 +1,4 @@
-// Pop-ups (license, download, lightbox) are <dialog>s opened with showModal(): the browser moves focus in, keeps it
+// Pop-ups (license, lightbox) are <dialog>s opened with showModal(): the browser moves focus in, keeps it
 // there and makes the page behind inert. .active runs each one's fade in and out (their CSS), and the page
 // stops scrolling while one is open. onClose runs once the dialog has really closed, however that happened.
 const FADE_MS = 200;

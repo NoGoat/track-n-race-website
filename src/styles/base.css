@@ -224,7 +224,7 @@ body.modal-open {
     overflow: hidden !important;
 }
 
-/* Pop-ups (license, download, lightbox) are <dialog>s opened with showModal(), so the browser keeps focus in
+/* Pop-ups (license, lightbox) are <dialog>s opened with showModal(), so the browser keeps focus in
    them and makes the page behind inert. Each one covers the viewport and draws its own overlay, so the
    browser's frame and backdrop go; a closed one is display: none whatever its own display is. */
 dialog {

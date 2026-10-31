@@ -1,7 +1,7 @@
 /* ==========================================================================
    Download flow
-   Step 01 is Setup's question row (styles/quiz.css); step 02 lays the builds out as cards, with the modal's
-   data rows and download buttons (styles/download-modal.css). Step 01's radios pick what shows here, without
+   Step 01 is Setup's question row (styles/quiz.css); step 02 lays the builds out as cards, with their
+   data rows and download buttons (styles/download-build.css). Step 01's radios pick what shows here, without
    JavaScript too; scripts/download-page.js starts on this device's platform.
    ========================================================================== */
 /* The page's one section, spaced like the Frontends page's (styles/compare.css). The flow's rows start on the
@@ -121,7 +121,7 @@
     margin-top: 0.4rem;
 }
 
-/* The cards' downloads take the primary button's white fill (styles/base.css), not the modal's outline */
+/* The cards' downloads take the primary button's white fill (styles/base.css) over their outline */
 .dl-build a.download-build-get {
     border-color: var(--text);
     color: var(--bg);

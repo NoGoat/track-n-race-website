@@ -346,7 +346,8 @@ const jsonLd = {
                         Or ... that's what's supposed to happen. Except, I set the threshold too high. And what that caused is,
                         data never got to rewind because the maximum flashback threshold of the game was lower than what was needed
                         to trigger a branched flashback. If it was below the threshold, it did a in memory replacement and didn't need
-                        a branch.
+                        a branch. So, I made the call to leave it in instead of taking it out and breaking something. If it ain't broke, 
+                        don't fix it.
                     </p>
                     <p>
                         Which means ... I wrote and designed the entire system for nothing. The code is there but it has never been
