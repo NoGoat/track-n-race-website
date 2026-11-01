@@ -8,6 +8,7 @@ export default defineConfig({
     trailingSlash: 'always',
     // Keep the HTML as written. Compression drops line breaks next to inline tags, which glues words together
     // ("<strong>lap table</strong>" at a line end followed by "lists" became "lap tablelists").
+    // We have compression at the Cloudflare level, so, disabling compression here is a non issue.
     compressHTML: false,
     build: {
         format: 'directory',

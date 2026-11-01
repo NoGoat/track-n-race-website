@@ -1,4 +1,4 @@
-import { detectOS } from './platform.js';
+import { detectOS, appleMobileOS } from './platform.js';
 import { markDownloadStarted } from './download-next.js';
 
 // Download page (pages/download.astro): pick a platform, then a short guide to its builds with their download
@@ -26,9 +26,17 @@ if (flow) {
     });
 
     // Start on this device's platform, unless going back to the page brought the last choice back.
-    // No scroll: the guide just appears under the options. A platform detectOS doesn't know starts with none.
+    // No scroll: the guide just appears under the options.
     if (!flow.querySelector('input[name="platform"]:checked')) {
-        const detected = flow.querySelector(`input[name="platform"][value="${detectOS()}"]`);
-        if (detected) detected.checked = true;
+        flow.querySelector(`input[name="platform"][value="${detectOS()}"]`).checked = true;
+    }
+
+    // There's no iOS or iPadOS build: the macOS guide, where they start, says so
+    const mobileOS = appleMobileOS();
+    if (mobileOS) {
+        flow.querySelectorAll('.dl-ios-warning').forEach(note => {
+            note.querySelector('.dl-ios-name').textContent = mobileOS;
+            note.hidden = false;
+        });
     }
 }

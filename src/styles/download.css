@@ -80,6 +80,16 @@
     color: var(--text-2);
 }
 
+/* iOS visitors only (scripts/download-page.js): a .dl-badge above the guide's intro */
+.dl-ios-warning {
+    margin: 0 0 1rem;
+    max-width: 46rem;
+}
+
+.dl-ios-warning[hidden] {
+    display: none;
+}
+
 /* Only the chosen platform's file types and download links */
 .dl-flow:has(input[value="windows"]:checked) [data-os-only]:not([data-os-only="windows"]),
 .dl-flow:has(input[value="macos"]:checked) [data-os-only]:not([data-os-only="macos"]),

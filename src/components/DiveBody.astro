@@ -9,8 +9,17 @@ interface Props {
     oses: string[];
 }
 const { dive, oses } = Astro.props;
+
+const warnIcon = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>';
 ---
 <div class="dl-dive-body">
+    <!-- iOS visitors land on the macOS guide (scripts/platform.js); scripts/download-page.js unhides this for them and says iPadOS on an iPad -->
+    {oses.includes('macos') && (
+        <p class="dl-badge dl-ios-warning" data-tone="warn" role="note" hidden>
+            <Fragment set:html={warnIcon} />
+            <span>Track N Race is not available for <span class="dl-ios-name">iOS</span>. Check out the macOS build instead.</span>
+        </p>
+    )}
     <p class="dl-intro">{dive.intro}</p>
     <div class="dl-builds" data-count={dive.builds.length}>
         {dive.builds.map(build => <BuildCard build={build} oses={oses} />)}
