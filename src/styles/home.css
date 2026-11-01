@@ -358,3 +358,8 @@
 .section-link:hover svg {
     transform: translateX(2px);
 }
+
+/* A slide's link to its own page, under its feature list */
+.feature-link {
+    margin-top: 1.25rem;
+}

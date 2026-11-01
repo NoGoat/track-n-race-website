@@ -49,6 +49,13 @@ export const pages = {
         title: "The .tnrd Format — How Track N Race Stores Telemetry",
         description: "How the Track N Race recording format evolved from a single gzipped JSON stream (TNRD V1) to an indexed, per-driver, per-lap, per-data-type container (TNRD V6), and what each version changed.",
     },
+    analysis: {
+        path: "/analysis/",
+        title: "Analysis Map Tour — Track N Race 1.7.0",
+        description: "Try the Track N Race 1.7.0 Analysis map on two real races: Track Dominance, Driver Inputs, Speed, ERS Usage and ERS Harvest layers, braking points and the data comparison panel.",
+        // Not in the navbar or sitemap until 1.7.0 ships
+        robots: "noindex, follow",
+    },
     credits: {
         path: "/credits/",
         title: "Credits & Licensing — Track N Race",

@@ -185,19 +185,6 @@
     margin-top: 0.75rem;
 }
 
-.config-tag {
-    margin-left: 0.4rem;
-    padding: 0.05rem 0.4rem;
-    font-family: var(--font-mono);
-    font-size: 0.65rem;
-    font-weight: 500;
-    letter-spacing: 0.04em;
-    color: var(--text-3);
-    border: 1px solid var(--line-strong);
-    border-radius: 4px;
-    vertical-align: 0.1em;
-}
-
 .record-subtitle {
     margin: 1.75rem 0 0.85rem;
     font-size: 0.95rem;

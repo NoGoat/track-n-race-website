@@ -159,40 +159,8 @@ const jsonLd = {
                 <div class="carousel-card">
                     <div class="carousel-viewport">
                         <div class="carousel-track">
-                            <!-- Slide 1: Session files (TNRD) -->
+                            <!-- Slide 1: Analyze, linking to the Analysis page -->
                             <div class="carousel-slide active">
-                                <div class="feature-container">
-                                    <div class="feature-text">
-                                        <h3 class="feature-title">Session <span class="highlight-red">Files</span>
-                                        </h3>
-                                        <p class="section-desc">
-                                            Every session is saved as one .tnrd file, split by driver, by lap and by data type. Charts read only the blocks they need instead of the whole recording.
-                                        </p>
-                                        <ul class="feature-list">
-                                            <li>One file per session, every driver and every lap</li>
-                                            <li>Each driver, lap and data type is its own compressed block</li>
-                                            <li>Charts load only the blocks they need</li>
-                                            <li>Share it and compare laps against a friend's file in Analyze</li>
-                                        </ul>
-                                        <a class="eyebrow section-link feature-cta" href="/tnrd/" data-astro-prefetch>
-                                            <span>View the history of .tnrd files</span>
-                                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                                                stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                                                <path d="M5 12h14"></path>
-                                                <path d="m12 5 7 7-7 7"></path>
-                                            </svg>
-                                        </a>
-                                    </div>
-                                    <div class="feature-visual">
-                                        <div class="tnrd-frame" data-src="/assets/tnrd-anim.svg" data-fallback="/assets/tnrd-static.svg">
-                                            <noscript><img class="tnrd-static" src="/assets/tnrd-static.svg" alt="Alonso's slice of a .tnrd file as a table of laps and data types, with lap 5's speed, RPM and ERS blocks drawn as traces alongside" width="1600" height="1000"></noscript>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- Slide 2: Analyze -->
-                            <div class="carousel-slide">
                                 <div class="feature-container">
                                     <div class="feature-text">
                                         <h3 class="feature-title">Deep <span class="highlight-blue">Analysis</span>
@@ -207,6 +175,14 @@ const jsonLd = {
                                             <li>Customizable colors and chart hierarchy</li>
                                             <li>Visualize your position on the map</li>
                                         </ul>
+                                        <a class="eyebrow section-link feature-link" href="/analysis/" data-astro-prefetch>
+                                            <span>See the Analysis Workspace in Action</span>
+                                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                                stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                                <path d="M5 12h14"></path>
+                                                <path d="m12 5 7 7-7 7"></path>
+                                            </svg>
+                                        </a>
                                     </div>
                                     <div class="feature-visual">
                                         <div class="app-window">
@@ -216,10 +192,35 @@ const jsonLd = {
                                                         sizes="(max-width: 860px) 100vw, (max-width: 1200px) 58vw, 700px">
                                                     <img src="/assets/screenshots/analyze.webp"
                                                         alt="Analysis view overlaying throttle, speed, RPM, gear and MGU-K power traces for two laps"
-                                                        class="mockup-img" width="2624" height="1624" loading="lazy">
+                                                        class="mockup-img" width="2624" height="1624">
                                                 </picture>
                                                 <ZoomBadge />
                                             </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+
+                            <!-- Slide 2: Session files (TNRD) -->
+                            <div class="carousel-slide">
+                                <div class="feature-container">
+                                    <div class="feature-text">
+                                        <h3 class="feature-title">Session <span class="highlight-red">Files</span>
+                                        </h3>
+                                        <p class="section-desc">
+                                            Every session is saved as one .tnrd file, split by driver, by lap and by data type. Charts read only the blocks they need instead of the whole recording.
+                                        </p>
+                                        <ul class="feature-list">
+                                            <li>Store all telemetry for later in depth analysis</li>
+                                            <li>Store full sessions at heavy compression ratios</li>
+                                            <li>Files work across Free Practice, Quali, and Races.</li>
+                                            <li>Share your friend's files and compare your laps</li>
+                                        </ul>
+                                    </div>
+                                    <div class="feature-visual">
+                                        <div class="tnrd-frame" data-src="/assets/tnrd-anim.svg" data-fallback="/assets/tnrd-static.svg">
+                                            <noscript><img class="tnrd-static" src="/assets/tnrd-static.svg" alt="Alonso's slice of a .tnrd file as a table of laps and data types, with lap 5's speed, RPM and ERS blocks drawn as traces alongside" width="1600" height="1000"></noscript>
                                         </div>
                                     </div>
                                 </div>

@@ -1,8 +1,16 @@
 // Builds the site into dist/ as plain static files, which wrangler.jsonc serves as Cloudflare static assets.
 // No server rendering: only /download/* and /api/* reach the Worker (worker/index.js).
 import { defineConfig } from 'astro/config';
+import react from '@astrojs/react';
+import tailwindcss from '@tailwindcss/vite';
 
 export default defineConfig({
+    // React and Tailwind are only for the Analysis tour (/analysis/): a copy of the app's React screen, so it is
+    // built from the app's own components, classes and react-select. No other page loads either.
+    integrations: [react()],
+    vite: {
+        plugins: [tailwindcss()],
+    },
     site: 'https://track-n-race.com',
     // Every page is a folder with an index.html ("/setup/"), matching the URLs in the links and sitemap
     trailingSlash: 'always',

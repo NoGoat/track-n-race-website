@@ -1,0 +1,529 @@
+/* ==========================================================================
+   The Analysis tour's copy of the app (components/analysis/).
+   The app is React + Tailwind; its components are ported with their classNames as written, so this file brings in
+   Tailwind's utilities for that folder only. No preflight, and the theme is inlined rather than emitted as variables,
+   so nothing here touches the rest of the site (whose own --font-mono, --radius-* etc. would otherwise be replaced).
+   Utilities stay unlayered: base.css's unlayered `* { margin: 0; padding: 0 }` would beat any layered utility.
+   Below them: the app's midnight theme tokens and its own CSS (electron-frontend/src/renderer/src/index.css).
+   ========================================================================== */
+@import "tailwindcss/theme.css" theme(reference inline);
+@import "tailwindcss/utilities.css" source(none);
+@source "../components/analysis";
+
+@theme inline reference {
+    --font-mono: 'Cascadia Code', ui-monospace, monospace;
+}
+
+@font-face {
+    font-family: 'Cascadia Code';
+    src: url('/assets/fonts/CascadiaCode.woff2') format('woff2-variations');
+    font-weight: 200 700;
+    font-style: normal;
+    font-display: swap;
+}
+
+/* The app window and anything it portals out (select menus, pop-ups) */
+.tnr-app,
+.tnr-portal {
+    color-scheme: dark;
+    --compound-soft: #f01a3c;
+    --compound-medium: #ffd700;
+    --compound-hard: #dcdfe8;
+    --compound-inter: #36c759;
+    --compound-wet: #3d8cff;
+    --bg-base: #06070a;
+    --bg-panel: #0c0d12;
+    --bg-card: #090a0e;
+    --bg-input: #050507;
+    --bg-menu: #101117;
+    --bg-hover: #151720;
+    --bg-accent: #111319;
+    --bg-modal: rgba(3, 4, 6, 0.82);
+    --bg-selected: #111826;
+    --bg-widget-active: #151f33;
+    --border: #171922;
+    --border-subtle: #0f1016;
+    --border-muted: #13151d;
+    --border-focus: #202c46;
+    --border-focus-hover: #2c3d62;
+    --text-primary: #e2e4ec;
+    --text-secondary: #7a7d8c;
+    --text-muted: #444754;
+    --text-dim: #565968;
+    --text-inactive: #1e2028;
+    --color-info: #5794F2;
+    --color-fastest: #c065f5;
+    --chart-grid: rgba(255, 255, 255, 0.03);
+    --chart-ref: rgba(255, 255, 255, 0.065);
+    --chart-axis: #7a7d8c;
+    --chart-zero: rgba(255, 255, 255, 0.16);
+    --shadow-overlay: 0 10px 30px rgba(0, 0, 0, 0.7), 0 2px 8px rgba(0, 0, 0, 0.5);
+    font-family: 'Cascadia Code', ui-monospace, 'Fira Code', Consolas, monospace;
+    color: var(--text-primary);
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+}
+
+/* The slice of Tailwind's preflight the app relies on, at zero specificity so every utility still wins */
+:where(.tnr-app, .tnr-portal) :where(*, ::before, ::after) {
+    border: 0 solid;
+}
+
+:where(.tnr-app, .tnr-portal) :where(button, input, select) {
+    font: inherit;
+    color: inherit;
+    letter-spacing: inherit;
+    background: transparent;
+    border-radius: 0;
+}
+
+:where(.tnr-app, .tnr-portal) :where(button) {
+    cursor: pointer;
+}
+
+:where(.tnr-app, .tnr-portal) :where(button:disabled) {
+    cursor: default;
+}
+
+:where(.tnr-app, .tnr-portal) :where(svg, canvas) {
+    display: block;
+}
+
+:where(.tnr-app, .tnr-portal) :where(table) {
+    border-collapse: collapse;
+}
+
+:where(.tnr-app, .tnr-portal) :where(h1, h2, h3, p) {
+    font: inherit;
+}
+
+:where(.tnr-app, .tnr-portal) :focus-visible {
+    outline: none;
+}
+
+.tnr-app ::-webkit-scrollbar,
+.tnr-portal ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+
+.tnr-app ::-webkit-scrollbar-track,
+.tnr-portal ::-webkit-scrollbar-track {
+    background: transparent;
+    border: none;
+}
+
+.tnr-app ::-webkit-scrollbar-thumb,
+.tnr-portal ::-webkit-scrollbar-thumb {
+    background: var(--border);
+    border: none;
+    border-radius: 9999px;
+}
+
+/* --- The window: macOS chrome around the app --- */
+.tnr-window {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    border: 1px solid #23252e;
+    border-radius: 12px;
+    background: var(--bg-base);
+    box-shadow: 0 40px 100px rgba(0, 0, 0, 0.65), 0 0 0 1px rgba(0, 0, 0, 0.6);
+}
+
+.tnr-traffic {
+    position: absolute;
+    top: 14px;
+    left: 14px;
+    z-index: 20;
+    display: flex;
+    gap: 8px;
+}
+
+.tnr-traffic i {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+}
+
+.tnr-traffic i:nth-child(1) { background: #ff5f57; }
+.tnr-traffic i:nth-child(2) { background: #febc2e; }
+.tnr-traffic i:nth-child(3) { background: #28c840; }
+
+/* --- react-select menus (lib/selectStyles.ts) --- */
+@keyframes selectMenuEnterBottom {
+    from { clip-path: inset(0 0 99.99% 0 round 6px); }
+    to { clip-path: inset(0 0 0 0 round 6px); }
+}
+
+@keyframes selectMenuEnterTop {
+    from { clip-path: inset(99.99% 0 0 0 round 6px); }
+    to { clip-path: inset(0 0 0 0 round 6px); }
+}
+
+@keyframes selectMenuExitBottom {
+    from { clip-path: inset(0 0 0 0 round 6px); }
+    to { clip-path: inset(0 0 99.99% 0 round 6px); }
+}
+
+@keyframes selectMenuExitTop {
+    from { clip-path: inset(0 0 0 0 round 6px); }
+    to { clip-path: inset(99.99% 0 0 0 round 6px); }
+}
+
+/* --- Modals --- */
+.modal-backdrop {
+    opacity: 0;
+    transition: opacity 180ms ease-in;
+}
+
+.modal-backdrop[data-state='open'] {
+    opacity: 1;
+    transition-timing-function: ease-out;
+}
+
+.modal-panel {
+    opacity: 0;
+    transform: translateY(8px) scale(0.975);
+    transition: opacity 150ms ease-in, transform 180ms cubic-bezier(0.4, 0, 1, 1);
+}
+
+.modal-backdrop[data-state='open'] .modal-panel {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+    transition: opacity 180ms ease-out, transform 220ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+/* --- Title bar --- */
+.titlebar-filename {
+    max-width: 200px;
+}
+
+/* --- Analysis (index.css) --- */
+.analyze-map-color-slot {
+    display: grid;
+    grid-template-columns: 0fr;
+    margin-right: 0;
+    opacity: 0;
+    pointer-events: none;
+    transform: translateX(-4px);
+    transition:
+        grid-template-columns 220ms cubic-bezier(0.22, 1, 0.36, 1),
+        margin-right 220ms cubic-bezier(0.22, 1, 0.36, 1),
+        opacity 140ms ease-out,
+        transform 220ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.analyze-map-color-slot__inner {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 0;
+    overflow: hidden;
+}
+
+.analyze-map-color-slot--visible {
+    grid-template-columns: 1fr;
+    margin-right: 0.5rem;
+    opacity: 1;
+    pointer-events: auto;
+    transform: translateX(0);
+}
+
+.analyze-lap-mode-switch {
+    position: relative;
+}
+
+.analyze-lap-mode-panel {
+    display: flex;
+    width: 100%;
+    min-width: 0;
+    flex-direction: column;
+    gap: 0;
+    transition: opacity 140ms ease, visibility 0s linear 140ms;
+}
+
+.analyze-lap-mode-panel--visible {
+    position: relative;
+    visibility: visible;
+    opacity: 1;
+    pointer-events: auto;
+    transition-delay: 0s, 0s;
+}
+
+.analyze-lap-mode-panel--hidden-left,
+.analyze-lap-mode-panel--hidden-right {
+    position: absolute;
+    inset: 0 0 auto;
+    visibility: hidden;
+    opacity: 0;
+    pointer-events: none;
+    transition-delay: 0s, 140ms;
+}
+
+.analyze-input-comparison {
+    position: absolute;
+    top: 0.5rem;
+    left: 0.5rem;
+    z-index: 10;
+    width: 252px;
+    max-width: calc(100% - 1rem);
+    overflow: hidden;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: var(--bg-panel);
+    color: var(--text-primary);
+    box-shadow: 0 2px 8px rgb(0 0 0 / 12%);
+    font-size: 11px;
+}
+
+.analyze-input-comparison__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 4px;
+    width: 100%;
+    padding: 4px 6px 4px 10px;
+    color: var(--text-secondary);
+    font-size: 9px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.analyze-input-comparison__drag-handle {
+    display: flex;
+    flex: 1;
+    align-items: center;
+    gap: 5px;
+    min-width: 0;
+    min-height: 24px;
+    text-align: left;
+    text-transform: inherit;
+    letter-spacing: inherit;
+    cursor: grab;
+    touch-action: none;
+    user-select: none;
+}
+
+.analyze-input-comparison[data-dragging='true'] .analyze-input-comparison__drag-handle {
+    cursor: grabbing;
+}
+
+.analyze-input-comparison__action {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    width: 24px;
+    height: 24px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 140ms ease, color 140ms ease;
+}
+
+.analyze-input-comparison__action:hover {
+    background: var(--bg-hover);
+    color: var(--text-primary);
+}
+
+.analyze-input-comparison__toggle-stroke {
+    transform-box: view-box;
+    transform-origin: center;
+    transform: rotate(90deg);
+    opacity: 0;
+    transition: transform 180ms ease, opacity 140ms ease;
+}
+
+.analyze-input-comparison__action[aria-expanded='false'] .analyze-input-comparison__toggle-stroke {
+    transform: rotate(0deg);
+    opacity: 1;
+}
+
+.analyze-input-comparison__content {
+    display: grid;
+    gap: 6px;
+    padding: 8px 10px 10px;
+    border-top: 1px solid var(--border);
+}
+
+.analyze-input-comparison__body,
+.analyze-comparison-group__body {
+    display: grid;
+    grid-template-rows: 0fr;
+    opacity: 0;
+    pointer-events: none;
+    transition: grid-template-rows 180ms ease, opacity 140ms ease;
+}
+
+.analyze-input-comparison__body--expanded,
+.analyze-comparison-group__body--expanded {
+    grid-template-rows: 1fr;
+    opacity: 1;
+    pointer-events: auto;
+}
+
+.analyze-input-comparison__body-inner,
+.analyze-comparison-group__body-inner {
+    min-height: 0;
+    overflow: hidden;
+}
+
+.analyze-input-comparison__row {
+    display: grid;
+    grid-template-columns: 72px minmax(0, 1fr);
+    align-items: center;
+    gap: 8px;
+}
+
+.analyze-input-comparison__bars {
+    position: relative;
+    display: grid;
+    gap: 2px;
+    padding: 2px;
+    overflow: hidden;
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    background: var(--bg-input);
+}
+
+.analyze-input-comparison__bars--signed::after {
+    position: absolute;
+    top: 1px;
+    bottom: 1px;
+    left: 50%;
+    width: 1px;
+    background: var(--text-dim);
+    content: '';
+}
+
+.analyze-input-comparison__lane {
+    position: relative;
+    height: 4px;
+}
+
+.analyze-input-comparison__fill {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    border-radius: 1px;
+    transition: left 50ms linear, width 50ms linear, background-color 140ms ease;
+}
+
+.analyze-input-comparison__missing {
+    position: absolute;
+    inset: 0;
+    color: var(--text-muted);
+    font-size: 8px;
+    line-height: 4px;
+    text-align: center;
+}
+
+.analyze-input-comparison__values {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) 34px;
+    align-items: baseline;
+    gap: 6px;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+}
+
+.analyze-map-playback-bar {
+    display: grid;
+    flex: none;
+    grid-template-rows: 0fr;
+    opacity: 0;
+    pointer-events: none;
+    transition: grid-template-rows 180ms ease, opacity 140ms ease;
+}
+
+.analyze-map-playback-bar__inner {
+    min-height: 0;
+    overflow: hidden;
+}
+
+.analyze-map-playback-bar--visible {
+    grid-template-rows: 1fr;
+    opacity: 1;
+    pointer-events: auto;
+}
+
+.analyze-toggle-button {
+    border: 1px solid transparent;
+    background: transparent;
+    color: var(--text-secondary);
+    transition: background-color 150ms ease, border-color 150ms ease, color 150ms ease;
+}
+
+.analyze-toggle-button:hover:not(:disabled) {
+    background: var(--border);
+    color: var(--text-primary);
+}
+
+.analyze-toggle-button:focus-visible {
+    border-color: color-mix(in srgb, var(--color-info) 70%, transparent);
+}
+
+.analyze-toggle-button--active,
+.analyze-toggle-button--active:hover:not(:disabled) {
+    background: var(--border-focus);
+    color: white;
+}
+
+.analysis-view-surface {
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 260ms cubic-bezier(0.65, 0, 0.35, 1);
+}
+
+.analysis-view-surface--visible {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+.analysis-chart-empty-state {
+    opacity: 0;
+    transition: opacity 260ms cubic-bezier(0.65, 0, 0.35, 1);
+}
+
+.analysis-chart-empty-state--visible {
+    opacity: 1;
+}
+
+/* The playback bar's range input (PlaybackBar.tsx uses Tailwind's arbitrary variants for its thumb) */
+.tnr-range {
+    -webkit-appearance: none;
+    appearance: none;
+}
+
+.tnr-range::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 12px;
+    height: 12px;
+    border-radius: 9999px;
+    background: var(--color-info);
+    cursor: pointer;
+}
+
+.tnr-range::-moz-range-thumb {
+    width: 12px;
+    height: 12px;
+    border: none;
+    border-radius: 9999px;
+    background: var(--color-info);
+    cursor: pointer;
+}
+
+/* A file being dragged over the window */
+.tnr-dropping::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: 60;
+    border: 2px dashed var(--color-info);
+    border-radius: 12px;
+    background: rgba(87, 148, 242, 0.06);
+    pointer-events: none;
+}

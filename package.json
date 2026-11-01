@@ -10,7 +10,16 @@
     "deploy": "wrangler deploy"
   },
   "devDependencies": {
+    "@tailwindcss/vite": "^4.3.3",
     "astro": "^7.4.2",
+    "tailwindcss": "^4.3.3",
     "wrangler": "^4.151.0"
+  },
+  "dependencies": {
+    "@astrojs/react": "^7.1.2",
+    "lucide-react": "^1.66.0",
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1",
+    "react-select": "^5.10.2"
   }
 }
