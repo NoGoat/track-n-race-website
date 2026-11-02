@@ -4,9 +4,10 @@
 // series-coloured y labels, and the playback cursor.
 import { useEffect, useRef, useState } from 'react'
 import { useSize } from './TrackMap'
+import { canvasDpr, useCanvasBoost } from './camera'
 import {
-    METRIC_BY_ID, blendColor, channelAt, indexAtTime, timeAtDistance,
-    type LapInfo, type SeriesConfig,
+    COMBINED_BY_ID, METRIC_BY_ID, TYRE_CORNERS, blendColor, channelAt, cornerKeyOf, indexAtTime, seriesLineColor, seriesMemberIds,
+    seriesScaleDef, timeAtDistance, type LapInfo, type SeriesConfig,
 } from './lib'
 
 const Y_TICKS = [0, 0.25, 0.5, 0.75, 1]
@@ -40,6 +41,9 @@ export interface ChartProps {
     quiet?: boolean
 }
 
+/** The run reads where a metric's chart is, to look at it */
+export const chartHooks: { panelRect: ((metricId: string) => DOMRect | null) | null } = { panelRect: null }
+
 const fmtDistance = (m: number) => `${(m / 1000).toFixed(m < 10000 ? 2 : 1)} km`
 function niceTicks(min: number, max: number, count: number): number[] {
     const raw = (max - min) / Math.max(1, count)
@@ -48,6 +52,27 @@ function niceTicks(min: number, max: number, count: number): number[] {
     const out: number[] = []
     for (let v = Math.ceil(min / step) * step; v <= max + 1e-9; v += step) out.push(v)
     return out
+}
+
+/** A series' y range: the metric's own, grown to fit the laps where they run past it (the app's expanding
+ *  fixed ranges); fuel tops out at the laps' most fuel + 1 kg */
+function seriesRange(item: SeriesConfig, laps: (LapInfo | null)[]): [number, number] {
+    const def = seriesScaleDef(item.metricId)!
+    let lo = Infinity, hi = -Infinity
+    for (const id of seriesMemberIds(item)) {
+        const member = METRIC_BY_ID.get(id)!
+        for (const lap of laps) {
+            if (!lap) continue
+            for (let i = 0; i < lap.trace.d.length; i++) {
+                const v = member.value(lap.trace, i)
+                if (v < lo) lo = v
+                if (v > hi) hi = v
+            }
+        }
+    }
+    if (!(hi >= lo)) return [def.min, def.max]
+    if (def.fitMax) return [def.min, Math.ceil(hi) + 1]
+    return [Math.min(def.min, Math.floor(lo)), Math.max(def.max, Math.ceil(hi))]
 }
 
 /** Delta per sample, reset at each sector start when Sector Delta is on. */
@@ -75,10 +100,23 @@ export default function Charts(props: ChartProps) {
     const [tooltip, setTooltip] = useState<{ x: number; y: number; rows: { label: string; color: string; a: string; b: string | null }[]; title: string } | null>(null)
     const propsRef = useRef(props)
     propsRef.current = props
+    const boost = useCanvasBoost()
+    // A metric's panel on screen, its axis labels and sector ticks included
+    chartHooks.panelRect = metricId => {
+        const g = geometryRef.current, canvas = baseRef.current
+        if (!g || !canvas) return null
+        const index = g.panels.findIndex((p: SeriesConfig) => p.metricId === metricId)
+        if (index < 0) return null
+        const r = g.panelRects[stacked ? index : 0]
+        const box = canvas.getBoundingClientRect()
+        const scale = box.width / (canvas.offsetWidth || box.width)
+        const bottom = index === g.panels.length - 1 || !stacked ? g.plotBottom + 18 : r.bottom + 4
+        return new DOMRect(box.left, box.top + (r.top - 4) * scale, box.width, (bottom - r.top + 4) * scale)
+    }
 
     const { series, current, comparison, delta, stacked, sectorBoundaries, sectorDelta, trackLength, xRange } = props
     const sectorEnds = current ? [current.s1EndM, current.s2EndM, trackLength] : [trackLength / 3, (trackLength * 2) / 3, trackLength]
-    const panels = series.filter(item => item.visible && (item.metricId !== 'delta' || (!!comparison && !!delta)))
+    const panels = series.filter(item => item.visible && (item.metricId === 'delta' ? !!comparison && !!delta : seriesMemberIds(item).length > 0))
     const hasVisible = panels.length > 0 && !!current
 
     // A lap arriving draws in from the left
@@ -92,7 +130,7 @@ export default function Charts(props: ChartProps) {
     useEffect(() => {
         const canvas = baseRef.current
         if (!canvas || !width || !height) return
-        const dpr = Math.min(window.devicePixelRatio || 1, 2)
+        const dpr = canvasDpr(width, height)
         canvas.width = Math.round(width * dpr)
         canvas.height = Math.round(height * dpr)
         const ctx = canvas.getContext('2d')!
@@ -119,6 +157,7 @@ export default function Charts(props: ChartProps) {
         // Labels sit at quarter steps of the range, so it rounds up to a step with one decimal at each tick
         const deltaRange = Math.max(0.2, Math.ceil((delta?.max ?? 0.5) / 0.2) * 0.2)
         const dPts = deltaPoints(delta, sectorEnds, sectorDelta)
+        const ranges = new Map(panels.filter(p => p.metricId !== 'delta').map(p => [p.metricId, seriesRange(p, [current, comparison])]))
         geometryRef.current = { plotLeft, plotRight, plotTop, plotBottom, xMin, xMax, panelRects, panels, deltaRange, dPts }
 
         // Grid
@@ -150,13 +189,19 @@ export default function Charts(props: ChartProps) {
                     ctx.stroke()
                 }
             } else {
-                const def = METRIC_BY_ID.get(item.metricId)!
-                const norm = (v: number) => (v - def.min) / (def.max - def.min)
-                for (const [lap, role] of [[comparison, 'comparison'], [current, 'current']] as const) {
+                const [min, max] = ranges.get(item.metricId)!
+                const norm = (v: number) => (v - min) / (max - min)
+                // A combined card draws each picked corner, every comparison line under the current ones
+                const members = seriesMemberIds(item)
+                for (const [lap, role, id] of [
+                    ...members.map(id => [comparison, 'comparison', id] as const), ...members.map(id => [current, 'current', id] as const),
+                ]) {
                     if (!lap) continue
+                    const def = METRIC_BY_ID.get(id)!
+                    const color = seriesLineColor(item, id)
                     const t = lap.trace
                     ctx.beginPath()
-                    ctx.strokeStyle = role === 'comparison' ? blendColor(item.color) : item.color
+                    ctx.strokeStyle = role === 'comparison' ? blendColor(color) : color
                     ctx.lineWidth = role === 'comparison' ? 1.25 : 1.75
                     ctx.lineJoin = 'round'
                     let prevY = 0
@@ -187,10 +232,11 @@ export default function Charts(props: ChartProps) {
         for (const [item, r] of axisItems) {
             if (!item.showYAxis) continue
             const isDelta = item.metricId === 'delta'
-            const def = METRIC_BY_ID.get(item.metricId)
+            const def = seriesScaleDef(item.metricId)
+            const [min, max] = ranges.get(item.metricId) ?? [0, 1]
             for (const t of Y_TICKS) {
                 ctx.fillStyle = isDelta ? (t < 0.5 ? item.negativeColor ?? '#37872D' : t > 0.5 ? item.color : AXIS) : item.color
-                const text = isDelta ? `${((t - 0.5) * 2 * deltaRange).toFixed(1)}s` : def ? def.axisFormat(def.min + t * (def.max - def.min)) : ''
+                const text = isDelta ? `${((t - 0.5) * 2 * deltaRange).toFixed(1)}s` : def ? def.axisFormat(min + t * (max - min)) : ''
                 ctx.fillText(text, plotLeft - 4, r.bottom - t * (r.bottom - r.top))
             }
         }
@@ -201,13 +247,13 @@ export default function Charts(props: ChartProps) {
             ctx.moveTo(plotLeft, Math.round(r.bottom) + 0.5); ctx.lineTo(plotRight, Math.round(r.bottom) + 0.5)
         }
         ctx.stroke()
-    }, [comparison, current, delta, hasVisible, height, panels.map(p => `${p.metricId}${p.color}${p.negativeColor}${p.showYAxis}`).join('|'), sectorBoundaries, sectorDelta, stacked, trackLength, width, xRange?.[0], xRange?.[1]]) // eslint-disable-line react-hooks/exhaustive-deps
+    }, [comparison, current, delta, hasVisible, height, panels.map(p => `${p.metricId}${p.color}${p.negativeColor}${p.showYAxis}${p.corners}${JSON.stringify(p.cornerColors)}`).join('|'), sectorBoundaries, sectorDelta, stacked, trackLength, width, xRange?.[0], xRange?.[1], boost]) // eslint-disable-line react-hooks/exhaustive-deps
 
     // The moving layer: playback cursors and the hover crosshair
     useEffect(() => {
         const canvas = overlayRef.current
         if (!canvas || !width || !height) return
-        const dpr = Math.min(window.devicePixelRatio || 1, 2)
+        const dpr = canvasDpr(width, height)
         canvas.width = Math.round(width * dpr)
         canvas.height = Math.round(height * dpr)
         const ctx = canvas.getContext('2d')!
@@ -243,7 +289,7 @@ export default function Charts(props: ChartProps) {
         }
         frame = requestAnimationFrame(loop)
         return () => cancelAnimationFrame(frame)
-    }, [height, width])
+    }, [height, width, boost])
 
     const handleMove = (event: React.MouseEvent<HTMLDivElement>) => {
         const g = geometryRef.current
@@ -261,14 +307,20 @@ export default function Charts(props: ChartProps) {
             const i = Math.round(indexAtTime(lap.trace, timeAtDistance(lap.trace, d)))
             return def.format(def.value(lap.trace, i))
         }
-        const rows = shown.filter(Boolean).map(item => {
+        const rows = shown.filter(Boolean).flatMap(item => {
             if (item.metricId === 'delta') {
                 const pt = g.dPts.find(([pd]: [number, number]) => pd >= d)
                 const v = pt ? pt[1] : null
-                return { label: 'Delta', color: v !== null && v < 0 ? item.negativeColor ?? '#37872D' : item.color, a: v === null ? '—' : `${v > 0 ? '+' : ''}${v.toFixed(3)} s`, b: null }
+                return [{ label: 'Delta', color: v !== null && v < 0 ? item.negativeColor ?? '#37872D' : item.color, a: v === null ? '—' : `${v > 0 ? '+' : ''}${v.toFixed(3)} s`, b: null }]
             }
-            const def = METRIC_BY_ID.get(item.metricId)!
-            return { label: def.label, color: item.color, a: valueAt(current, item.metricId), b: comparison ? valueAt(comparison, item.metricId) : null }
+            const combined = COMBINED_BY_ID.get(item.metricId)
+            return seriesMemberIds(item).map(id => {
+                const corner = combined && TYRE_CORNERS.find(c => c.key === cornerKeyOf(item.metricId, id))
+                return {
+                    label: corner ? `${combined.shortLabel} ${corner.label}` : METRIC_BY_ID.get(id)!.label, color: seriesLineColor(item, id),
+                    a: valueAt(current, id), b: comparison ? valueAt(comparison, id) : null,
+                }
+            })
         })
         setTooltip({ x, y, rows, title: `${Math.round(d).toLocaleString('en-US')} m` })
     }

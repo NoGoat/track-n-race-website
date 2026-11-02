@@ -10,13 +10,16 @@ import {
 } from 'lucide-react'
 import Select, { buildSelectStyles, displayOnlySelectComponents, portalTarget, selectComponents, SELECT_MENU_ANIMATION_MS } from './select'
 import Charts from './Charts'
-import MapPane from './MapPane'
+import { toCamera } from './camera'
+import ColorPicker from './ColorPicker'
+import MapPane, { mapHooks } from './MapPane'
 import PlaybackBar from './PlaybackBar'
 import { useClock } from './clock'
 import { useApp, type AnalyzeConfig } from './ctx'
 import {
-    METRICS, METRIC_BY_ID, compoundColor, compoundName, fmtDelta, fmtLap, indexAtTime, channelAt,
-    DEFAULT_DELTA_NEGATIVE_COLOR, DEFAULT_DELTA_POSITIVE_COLOR, type TourData,
+    COMBINED_BY_ID, METRICS, METRIC_BY_ID, METRIC_CATEGORIES, TYRE_CORNERS, TYRE_ROWS, compoundColor, compoundName, fmtDelta, fmtLap,
+    indexAtTime, channelAt, cornerKeyOf, sanitizeCorners, seriesLineColor, seriesScaleDef,
+    DEFAULT_DELTA_NEGATIVE_COLOR, DEFAULT_DELTA_POSITIVE_COLOR, type SeriesConfig, type TourData,
 } from './lib'
 
 const ANALYZE_TOGGLE_BUTTON_CLASS = 'analyze-toggle-button flex h-8 min-w-0 flex-1 items-center justify-center rounded focus-visible:outline-none disabled:pointer-events-none disabled:opacity-35'
@@ -112,16 +115,6 @@ function AnalyzeDriverField({ id, value, options, displayOnly = false, isDisable
     </div>
 }
 
-/** A colour swatch that opens the system colour picker (the app's ColorPicker trigger) */
-function ColorPicker({ label, color, onChange, className = 'w-5 h-5 rounded border border-[var(--border)] cursor-pointer shrink-0 shadow-inner' }: {
-    label: string; color: string; onChange: (c: string) => void; className?: string
-}) {
-    return <label className={`relative ${className}`} style={{ backgroundColor: color }} title={label}>
-        <input type="color" value={color} onChange={e => onChange(e.target.value)} aria-label={label}
-            className="absolute inset-0 h-full w-full cursor-pointer opacity-0" />
-    </label>
-}
-
 function AnalyzeComparisonGroup({ title, colorPicker, showColorPicker, driverValue, lapValue, driverOptions, driverDisplayOnly = false, children }: {
     title: string; colorPicker: ReactNode; showColorPicker: boolean; driverValue: any; lapValue: LapOption | null; driverOptions: any[]
     driverDisplayOnly?: boolean; children: ReactNode
@@ -164,36 +157,118 @@ function AnalyzeComparisonGroup({ title, colorPicker, showColorPicker, driverVal
 }
 
 // ── Metric picker (AnalyzeMetricPicker.tsx) ─────────────────────────────────
-function AnalyzeMetricPicker({ selectedIds, onToggle }: { selectedIds: Set<string>; onToggle: (id: string) => void }) {
+const PICKER_WIDTH = 266
+const CORNER_METRIC_IDS = new Set(TYRE_ROWS.flatMap(row => TYRE_CORNERS.map(corner => `${row.idPrefix}-${corner.key}`)))
+const CORNER_TERMS = TYRE_CORNERS.map(corner => corner.label).join(' ')
+// Every token must appear somewhere, so "rear ride" and "ride rear" both find Rear Ride Height
+const matchesQuery = (query: string, haystack: string) => !query || query.split(/\s+/).every(token => haystack.toLowerCase().includes(token))
+
+// Each category is a divider-separated block of toggle chips. Per-corner tyre metrics form a matrix: FL / FR / RL / RR
+// pick corners, ALL picks or clears all four, and COM switches the row between a card per corner and one combined card.
+function AnalyzeMetricPicker({ selectedIds, combinedCorners, forceOpen, onToggle, onToggleTyreCorner, onToggleTyreAllCorners, onToggleTyreCombined }: {
+    selectedIds: Set<string>; combinedCorners: Map<string, string[]>; forceOpen: boolean
+    onToggle: (id: string) => void
+    onToggleTyreCorner: (idPrefix: string, cornerKey: string) => void
+    onToggleTyreAllCorners: (idPrefix: string) => void
+    onToggleTyreCombined: (idPrefix: string) => void
+}) {
     const [phase, setPhase] = useState<'closed' | 'open' | 'closing'>('closed')
     const [query, setQuery] = useState('')
     const buttonRef = useRef<HTMLButtonElement>(null)
     const panelRef = useRef<HTMLDivElement>(null)
-    const [position, setPosition] = useState({ left: 0, top: 0, width: 300 })
+    const [position, setPosition] = useState({ left: 0, top: 0, width: PICKER_WIDTH, maxHeight: 400 })
     const open = phase === 'open'
     const close = () => { if (phase === 'open') setPhase('closing') }
+    const openPanel = () => {
+        // Right-aligned to the button, so the panel opens back over the sidebar; placed in the camera's coordinates
+        const screen = buttonRef.current!.getBoundingClientRect()
+        const r = toCamera(screen)
+        const width = PICKER_WIDTH
+        setPosition({ left: Math.max(8, r.left + r.width - width), top: r.top + r.height + 4, width, maxHeight: Math.max(160, (innerHeight - screen.bottom - 12) / r.scale) })
+        setQuery('')
+        setPhase('open')
+    }
+    // The run opens and closes the picker itself
+    const forced = useRef(false)
+    useEffect(() => {
+        if (forceOpen) { forced.current = true; openPanel() }
+        else if (forced.current) { forced.current = false; setPhase(p => p === 'open' ? 'closing' : p) }
+    }, [forceOpen]) // eslint-disable-line react-hooks/exhaustive-deps
     useEffect(() => {
         if (phase !== 'closing') return
         const t = setTimeout(() => setPhase('closed'), SELECT_MENU_ANIMATION_MS)
         return () => clearTimeout(t)
     }, [phase])
     useEffect(() => {
-        if (!open) return
+        if (!open || forceOpen) return
         const onDown = (e: PointerEvent) => {
             if (!panelRef.current?.contains(e.target as Node) && !buttonRef.current?.contains(e.target as Node)) close()
         }
+        const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') { buttonRef.current?.focus(); close() } }
         document.addEventListener('pointerdown', onDown)
-        return () => document.removeEventListener('pointerdown', onDown)
+        document.addEventListener('keydown', onKey)
+        return () => { document.removeEventListener('pointerdown', onDown); document.removeEventListener('keydown', onKey) }
     })
-    const matches = METRICS.filter(m => m.label.toLowerCase().includes(query.trim().toLowerCase()))
+
+    const q = query.trim().toLowerCase()
+    const tiles = new Map(METRIC_CATEGORIES.map(entry => [entry,
+        METRICS.filter(m => m.group === entry && !CORNER_METRIC_IDS.has(m.id) && matchesQuery(q, `${entry} ${m.label} ${m.unit}`))]))
+    const tyreRows = TYRE_ROWS.filter(row => matchesQuery(q, `tyres tires ${row.label} all com combined ${CORNER_TERMS}`))
+    const sections = METRIC_CATEGORIES.filter(entry => (tiles.get(entry)?.length ?? 0) > 0 || (entry === 'Tyres' && tyreRows.length > 0))
+    // Enter charts the first visible metric that is not charted yet
+    const addFirstMatch = () => {
+        const next = sections.flatMap(entry => (tiles.get(entry) ?? []).map(m => m.id)).find(id => !selectedIds.has(id))
+        if (next) onToggle(next)
+    }
+
+    const chip = (id: string, label: string) => {
+        const on = selectedIds.has(id)
+        return <button key={id} type="button" data-tour={`metric-${id}`} aria-pressed={on} title={`${on ? 'Remove' : 'Add'} ${label}`} onClick={() => onToggle(id)}
+            className={`h-6 px-2 rounded border text-[10px] whitespace-nowrap transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[var(--color-info)] ${on
+                ? 'border-[var(--border-focus)] bg-[var(--border-focus)] text-white'
+                : 'border-[var(--border)] text-[var(--text-secondary)] hover:border-[var(--border-focus)] hover:text-[var(--text-primary)]'}`}>{label}</button>
+    }
+    const tyreCell = (key: string, title: string, on: boolean, onClick: () => void) =>
+        <button key={key} type="button" aria-pressed={on} title={title} aria-label={title} onClick={onClick}
+            className={`w-[22px] h-5 rounded border transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[var(--color-info)] ${on
+                ? 'border-[var(--border-focus)] bg-[var(--border-focus)]'
+                : 'border-[var(--border)] hover:border-[var(--border-focus)] hover:bg-[var(--bg-hover)]'}`} />
+    const columnLabel = (label: string) => <span key={label} className="w-[22px] text-center text-[8px] tracking-wider text-[var(--text-secondary)]">{label}</span>
+    const tyreMatrix = () => <div className="grid grid-cols-[auto_repeat(6,22px)] gap-x-1 gap-y-1 items-center justify-start">
+        <span />
+        {columnLabel('COM')}
+        {TYRE_CORNERS.map(corner => columnLabel(corner.label))}
+        {columnLabel('ALL')}
+        {tyreRows.flatMap(row => {
+            const corners = combinedCorners.get(`${row.idPrefix}-all`)
+            const combined = corners !== undefined
+            const picked = TYRE_CORNERS.map(corner => combined ? corners.includes(corner.key) : selectedIds.has(`${row.idPrefix}-${corner.key}`))
+            const allPicked = picked.every(Boolean)
+            return [
+                <span key={`${row.idPrefix}-label`} className={`pr-2 text-[10px] whitespace-nowrap ${picked.some(Boolean) ? 'text-[var(--text-primary)]' : 'text-[var(--text-secondary)]'}`}>{row.label}</span>,
+                tyreCell(`${row.idPrefix}-all`, combined ? `Show ${row.label} corners as separate graphs` : `Show ${row.label} corners together in one graph`,
+                    combined, () => onToggleTyreCombined(row.idPrefix)),
+                ...TYRE_CORNERS.map((corner, index) => tyreCell(`${row.idPrefix}-${corner.key}`, `${picked[index] ? 'Remove' : 'Add'} ${row.label} ${corner.label}`,
+                    picked[index], () => onToggleTyreCorner(row.idPrefix, corner.key))),
+                tyreCell(`${row.idPrefix}-every`, `${allPicked ? 'Remove' : 'Add'} all ${row.label} corners`, allPicked, () => onToggleTyreAllCorners(row.idPrefix)),
+            ]
+        })}
+    </div>
+    // The tyre matrix and the whole-car tyre averages are separate blocks
+    const blocks = sections.flatMap(entry => {
+        const entryTiles = tiles.get(entry) ?? []
+        const out: { key: string; label: string; content: ReactNode }[] = []
+        if (entry === 'Tyres' && tyreRows.length > 0) out.push({ key: 'Tyres-corners', label: 'Tyres by corner', content: tyreMatrix() })
+        if (entryTiles.length > 0) out.push({
+            key: entry, label: entry === 'Tyres' ? 'Tyre averages' : entry,
+            content: <div className="flex flex-wrap gap-1">{entryTiles.map(m => chip(m.id, m.label))}</div>,
+        })
+        return out
+    })
+
     return <>
-        <button ref={buttonRef} type="button" title="Add Metrics" aria-label="Add Metrics" aria-haspopup="dialog" aria-expanded={open}
-            onClick={() => {
-                if (open) { close(); return }
-                const r = buttonRef.current!.getBoundingClientRect()
-                setPosition({ left: Math.max(8, r.right - 300), top: r.bottom + 4, width: 300 })
-                setPhase('open')
-            }}
+        <button ref={buttonRef} type="button" data-tour="metrics-button" title="Add Metrics" aria-label="Add Metrics" aria-haspopup="dialog" aria-expanded={open}
+            onClick={() => open ? close() : openPanel()}
             className={`w-7 h-7 rounded flex items-center justify-center shrink-0 transition-colors hover:text-[var(--text-primary)] hover:bg-[var(--bg-hover)] ${open ? 'text-[var(--text-primary)] bg-[var(--bg-hover)]' : 'text-[var(--text-secondary)]'}`}
         ><Plus size={15} /></button>
         {phase !== 'closed' && createPortal(<div ref={panelRef} role="dialog" aria-label="Add Metrics"
@@ -202,20 +277,16 @@ function AnalyzeMetricPicker({ selectedIds, onToggle }: { selectedIds: Set<strin
             <div className="p-2 border-b border-[var(--border)] shrink-0">
                 <div className="relative">
                     <Search size={12} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-[var(--text-secondary)] pointer-events-none" />
-                    <input value={query} onChange={e => setQuery(e.target.value)} placeholder="Filter metrics" aria-label="Filter metrics" autoFocus
+                    {/* The run's opening doesn't focus the search, so a phone's keyboard stays down */}
+                    <input value={query} onChange={e => setQuery(e.target.value)} onKeyDown={e => { if (e.key === 'Enter') addFirstMatch() }}
+                        placeholder="Filter metrics" aria-label="Filter metrics" autoFocus={!forceOpen}
                         className="h-7 w-full rounded border border-[var(--border)] bg-[var(--bg-input)] pl-7 pr-2.5 text-[11px] text-[var(--text-primary)] outline-none transition-colors placeholder:text-[var(--text-secondary)] placeholder:opacity-80 focus:border-[var(--border-focus)]" />
                 </div>
             </div>
             <div className="pb-1 overflow-y-auto">
-                {matches.length > 0 ? <div role="group" aria-label="Driving" className="px-3 py-2.5">
-                    <div className="flex flex-wrap gap-1">{matches.map(m => {
-                        const on = selectedIds.has(m.id)
-                        return <button key={m.id} type="button" aria-pressed={on} title={`${on ? 'Remove' : 'Add'} ${m.label}`} onClick={() => onToggle(m.id)}
-                            className={`h-6 px-2 rounded border text-[10px] whitespace-nowrap transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[var(--color-info)] ${on
-                                ? 'border-[var(--border-focus)] bg-[var(--border-focus)] text-white'
-                                : 'border-[var(--border)] text-[var(--text-secondary)] hover:border-[var(--border-focus)] hover:text-[var(--text-primary)]'}`}>{m.label}</button>
-                    })}</div>
-                </div> : <div className="px-2 py-4 text-center text-[11px] text-[var(--text-secondary)]">No metrics match “{query.trim()}”</div>}
+                {blocks.map((block, index) => <div key={block.key} role="group" aria-label={block.label}
+                    className={`px-3 py-2.5 ${index > 0 ? 'border-t border-[var(--border)]' : ''}`}>{block.content}</div>)}
+                {sections.length === 0 && <div className="px-2 py-4 text-center text-[11px] text-[var(--text-secondary)]">No metrics match “{query.trim()}”</div>}
             </div>
         </div>, portalTarget())}
     </>
@@ -326,10 +397,63 @@ export default memo(function Screen() {
         next.splice(next.findIndex(s => s.metricId === target), 0, config.series.find(s => s.metricId === draggedMetric)!)
         updateSeries(next)
     }
-    const toggleMetric = (id: string) => {
-        if (config.series.some(s => s.metricId === id)) updateSeries(config.series.filter(s => s.metricId !== id))
-        else updateSeries([...config.series, { metricId: id, color: METRIC_BY_ID.get(id)!.defaultColor, visible: true, showYAxis: true }])
+    /** Charts or removes metrics; charting a corner takes it off its row's combined card */
+    const setMetricsSelected = (ids: string[], selected: boolean) => {
+        if (!selected) { updateSeries(config.series.filter(s => !ids.includes(s.metricId))); return }
+        const charted = new Set(config.series.map(s => s.metricId))
+        const added = ids.filter(id => !charted.has(id) && METRIC_BY_ID.has(id))
+        const owners = new Set(added.flatMap(id => [...COMBINED_BY_ID.values()].filter(c => c.memberIds.includes(id)).map(c => c.id)))
+        if (added.length) updateSeries([...config.series.filter(s => !owners.has(s.metricId)),
+            ...added.map(id => ({ metricId: id, color: METRIC_BY_ID.get(id)!.defaultColor, visible: true, showYAxis: true }))])
     }
+    const toggleMetric = (id: string) => setMetricsSelected([id], !config.series.some(s => s.metricId === id))
+    // With a row combined, its corners are picked on the combined card; otherwise each corner is its own card
+    const toggleTyreCorner = (idPrefix: string, cornerKey: string) => {
+        const combined = config.series.find(s => s.metricId === `${idPrefix}-all`)
+        if (!combined) { toggleMetric(`${idPrefix}-${cornerKey}`); return }
+        const corners = combined.corners ?? []
+        const next = corners.includes(cornerKey) ? corners.filter(k => k !== cornerKey) : sanitizeCorners([...corners, cornerKey])
+        updateSeries(config.series.map(s => s === combined ? { ...s, corners: next } : s))
+    }
+    // Picks every corner of a row, or clears them all when all four are picked
+    const toggleTyreAllCorners = (idPrefix: string) => {
+        const combined = config.series.find(s => s.metricId === `${idPrefix}-all`)
+        if (combined) {
+            const all = sanitizeCorners(combined.corners ?? []).length === TYRE_CORNERS.length
+            updateSeries(config.series.map(s => s === combined ? { ...s, corners: all ? [] : sanitizeCorners() } : s))
+            return
+        }
+        const ids = TYRE_CORNERS.map(c => `${idPrefix}-${c.key}`)
+        const charted = new Set(config.series.map(s => s.metricId))
+        setMetricsSelected(ids, !ids.every(id => charted.has(id)))
+    }
+    // Combining merges the row's charted corners into one card where the first of them sat; separating splits it back
+    const toggleTyreCombined = (idPrefix: string) => {
+        const combinedId = `${idPrefix}-all`
+        const combined = config.series.find(s => s.metricId === combinedId)
+        if (combined) {
+            const split = (combined.corners ?? []).map(key => {
+                const id = `${idPrefix}-${key}`
+                return { metricId: id, color: seriesLineColor(combined, id), visible: combined.visible, showYAxis: combined.showYAxis }
+            })
+            updateSeries(config.series.flatMap(s => s === combined ? split : [s]))
+            return
+        }
+        const memberIds = new Set(COMBINED_BY_ID.get(combinedId)!.memberIds)
+        const members = config.series.filter(s => memberIds.has(s.metricId))
+        const cornerColors = Object.fromEntries(members.flatMap(s => s.color !== METRIC_BY_ID.get(s.metricId)!.defaultColor ? [[s.metricId.slice(idPrefix.length + 1), s.color]] : []))
+        const merged: SeriesConfig = {
+            metricId: combinedId, color: COMBINED_BY_ID.get(combinedId)!.defaultColor,
+            visible: members.length === 0 || members.some(s => s.visible), showYAxis: members.length === 0 || members.some(s => s.showYAxis),
+            corners: sanitizeCorners(members.map(s => s.metricId.slice(idPrefix.length + 1))),
+            cornerColors: Object.keys(cornerColors).length ? cornerColors : undefined,
+        }
+        const insertAt = config.series.findIndex(s => memberIds.has(s.metricId))
+        const next = config.series.filter(s => !memberIds.has(s.metricId))
+        next.splice(insertAt < 0 ? next.length : insertAt, 0, merged)
+        updateSeries(next)
+    }
+    const combinedCorners = new Map(config.series.flatMap(s => COMBINED_BY_ID.has(s.metricId) ? [[s.metricId, s.corners ?? []] as const] : []))
     const allAxesEnabled = config.series.every(s => s.showYAxis)
     const zoomEnabled = fixed.enabled && !!app.primary
     const L = data?.trackLengthM ?? 1
@@ -353,7 +477,7 @@ export default memo(function Screen() {
         if (next && event) app.emit(event)
     }
     const mapColorPicker = (label: string, color: string, key: 'mapCurrentColor' | 'mapComparisonColor') =>
-        <ColorPicker label={label} color={color} onChange={c => set({ [key]: c } as Partial<AnalyzeConfig>)} className={`relative ${ANALYZE_COMPARISON_COLOR_CLASS}`} />
+        <ColorPicker label={label} color={color} onChange={c => set({ [key]: c } as Partial<AnalyzeConfig>)} triggerClassName={`relative ${ANALYZE_COMPARISON_COLOR_CLASS}`} />
     const labelInput = (id: string, placeholder: string, key: 'currentLabel' | 'compareLabel' | 'lapALabel' | 'lapBLabel') =>
         <AnalyzeLabelInput id={id} label="Name" placeholder={placeholder} value={config[key]} onChange={v => set({ [key]: v } as Partial<AnalyzeConfig>)} />
 
@@ -362,17 +486,21 @@ export default memo(function Screen() {
             <div className={`w-[315px] h-full flex flex-col ${config.collapsed ? 'invisible' : 'visible'}`}>
                 <div className="h-11 px-3 flex items-center gap-3 border-b border-[var(--border)] shrink-0">
                     <div className="flex-1 text-[11px] font-bold uppercase tracking-widest text-[var(--text-primary)]">Analysis</div>
-                    {rest && <div className="rv"><AnalyzeMetricPicker selectedIds={new Set(config.series.map(s => s.metricId))} onToggle={toggleMetric} /></div>}
+                    {(rest || shows('metrics')) && <div className="rv" data-tour="metrics"><AnalyzeMetricPicker selectedIds={new Set(config.series.map(s => s.metricId))}
+                        combinedCorners={combinedCorners} forceOpen={app.forcedMenu === 'metrics'} onToggle={toggleMetric}
+                        onToggleTyreCorner={toggleTyreCorner} onToggleTyreAllCorners={toggleTyreAllCorners} onToggleTyreCombined={toggleTyreCombined} /></div>}
                 </div>
 
-                {shows('comparison') && <div className="p-3 border-b border-[var(--border)] space-y-3 shrink-0" data-tour="sidebar-controls">
+                {shows('comparison') && <div data-tour="sidebar-controls"
+                    // Its bottom line shows once Toggle Y-Axes closes the block, fading in (the border keeps its place)
+                    className={`p-3 border-b space-y-3 shrink-0 transition-[border-color] duration-500 ${rest || shows('series') ? 'border-[var(--border)]' : 'border-[var(--border)] border-b-transparent'}`}>
                     {(shows('split') || rest) && <div className="flex gap-2" data-tour="views">
                         {rest && <button type="button" aria-label="Graphs" aria-pressed={primaryView === 'graph'} title="Graphs" onClick={() => view('graph')}
-                            className={`rv ${ANALYZE_TOGGLE_BUTTON_CLASS} ${primaryView === 'graph' ? 'analyze-toggle-button--active' : ''}`}><LineChart size={15} /></button>}
+                            className={`rv rv-grow ${ANALYZE_TOGGLE_BUTTON_CLASS} ${primaryView === 'graph' ? 'analyze-toggle-button--active' : ''}`}><LineChart size={15} /></button>}
                         {shows('split') && <button type="button" data-tour="split-button" aria-label="Split Mode" aria-pressed={primaryView === 'split'} title="Split Mode" disabled={!playbackFilename || !allowed('split')}
-                            onClick={() => view('split')} className={`rv ${ANALYZE_TOGGLE_BUTTON_CLASS} ${primaryView === 'split' ? 'analyze-toggle-button--active' : ''}`}><Columns2 size={15} /></button>}
+                            onClick={() => view('split')} className={`rv rv-grow ${ANALYZE_TOGGLE_BUTTON_CLASS} ${primaryView === 'split' ? 'analyze-toggle-button--active' : ''}`}><Columns2 size={15} /></button>}
                         {(rest || shows('map')) && <button type="button" data-tour="map-button" aria-label="Map" aria-pressed={primaryView === 'map'} title="Map" disabled={!playbackFilename || !allowed('split')}
-                            onClick={() => view('map')} className={`rv ${ANALYZE_TOGGLE_BUTTON_CLASS} ${primaryView === 'map' ? 'analyze-toggle-button--active' : ''}`}><MapIcon size={15} /></button>}
+                            onClick={() => view('map')} className={`rv rv-grow ${ANALYZE_TOGGLE_BUTTON_CLASS} ${primaryView === 'map' ? 'analyze-toggle-button--active' : ''}`}><MapIcon size={15} /></button>}
                     </div>}
                     <div className="grid grid-cols-4 gap-2" data-tour="toggles">
                         {rest && <button type="button" aria-label="Individual Graphs" aria-pressed={config.individualGraphs} title="Individual Graphs" onClick={() => toggle('individualGraphs')}
@@ -403,7 +531,11 @@ export default memo(function Screen() {
                             <Select<any> inputId="analysis-map-coloring" forceOpen={app.forcedMenu === 'layer'}
                                 value={MAP_COLORING_OPTIONS.find(o => o.value === config.mapColoring) ?? MAP_COLORING_OPTIONS[0]}
                                 options={layerOptions} classNames={{ option: (state: any) => fresh === `layer:${state.data.value}` ? 'rv-opt' : '' }}
-                                onChange={(o: any) => { const v = o?.value ?? 'none'; set({ mapColoring: v }); app.emit(`layer:${v}`) }}
+                                onChange={(o: any) => {
+                                    const v = o?.value ?? 'none'
+                                    if (v !== config.mapColoring) mapHooks.crossfade?.()
+                                    set({ mapColoring: v }); app.emit(`layer:${v}`)
+                                }}
                                 styles={lapSelectStyles} components={selectComponents} isSearchable={false} />
                         </div>
                     </div>}
@@ -443,19 +575,20 @@ export default memo(function Screen() {
                             </AnalyzeComparisonGroup>
                         </div>}
                     </div>}
-                    {rest && <button type="button" onClick={() => updateSeries(config.series.map(item => ({ ...item, showYAxis: !allAxesEnabled })))} className={`rv ${BUTTON_CLASS} w-full`}>
+                    {(rest || shows('series')) && <button type="button" onClick={() => updateSeries(config.series.map(item => ({ ...item, showYAxis: !allAxesEnabled })))} className={`rv ${BUTTON_CLASS} w-full`}>
                         <span>Toggle Y-Axes</span>
                     </button>}
                 </div>}
 
-                {rest && <div className="rv flex-1 min-h-0 overflow-y-auto p-2 pr-[2px] [scrollbar-gutter:stable] space-y-1" data-tour="series">
+                {(rest || shows('series')) && <div className="rv flex-1 min-h-0 overflow-y-auto p-2 pr-[2px] [scrollbar-gutter:stable] space-y-1" data-tour="series">
                     {config.series.length === 0 && <div className="p-4 text-center text-[10px] text-[var(--text-secondary)]">No metrics selected</div>}
                     {config.series.map((item, index) => {
                         const isDelta = item.metricId === 'delta'
-                        const def = METRIC_BY_ID.get(item.metricId)
-                        const label = isDelta ? 'Delta' : def!.label
+                        const combined = COMBINED_BY_ID.get(item.metricId)
+                        const def = seriesScaleDef(item.metricId)
+                        const label = isDelta ? 'Delta' : combined ? `${combined.shortLabel} · Combined` : def!.label
                         const patch = (p: Partial<typeof item>) => updateSeries(config.series.map(e => e.metricId === item.metricId ? { ...e, ...p } : e))
-                        return <div key={item.metricId} draggable onDragStart={() => setDraggedMetric(item.metricId)} onDragEnd={() => setDraggedMetric(null)}
+                        return <div key={item.metricId} data-tour={`series-${item.metricId}`} draggable onDragStart={() => setDraggedMetric(item.metricId)} onDragEnd={() => setDraggedMetric(null)}
                             onDragOver={e => e.preventDefault()} onDrop={() => dropMetric(item.metricId)}
                             className={`flex items-center gap-1.5 px-1.5 py-1.5 rounded border border-transparent hover:border-[var(--border)] hover:bg-[var(--bg-hover)] ${draggedMetric === item.metricId ? 'opacity-40' : ''}`}>
                             <GripVertical size={13} className="text-[var(--text-secondary)] cursor-grab shrink-0" />
@@ -464,9 +597,18 @@ export default memo(function Screen() {
                                     <ColorPicker label="Positive delta" color={item.color} onChange={c => patch({ color: c })} />
                                     <ColorPicker label="Negative delta" color={item.negativeColor ?? DEFAULT_DELTA_NEGATIVE_COLOR} onChange={c => patch({ negativeColor: c })} />
                                 </div>
-                                : <ColorPicker label={label} color={item.color} onChange={c => patch({ color: c })} />}
+                                // A combined card's swatches: one per corner, corners not on the card disabled
+                                : combined ? <div className="flex gap-1 shrink-0">{combined.memberIds.map(id => {
+                                    const key = cornerKeyOf(item.metricId, id)!
+                                    const picked = item.corners?.includes(key) ?? false
+                                    const corner = TYRE_CORNERS.find(c => c.key === key)!.label
+                                    return <span key={id} title={corner} className={`flex ${picked ? '' : 'grayscale opacity-30'}`}>
+                                        <ColorPicker label={`${label} ${corner}`} color={seriesLineColor(item, id)} disabled={!picked} onChange={c => patch({ cornerColors: { ...item.cornerColors, [key]: c } })} />
+                                    </span>
+                                })}</div>
+                                : <ColorPicker label={label} color={item.color} forceOpen={app.forcedMenu === `color:${item.metricId}`} onChange={c => patch({ color: c })} />}
                             <div className="flex-1 min-w-0">
-                                <div className="text-[10px] text-[var(--text-primary)] truncate">{label}</div>
+                                <div className="text-[10px] truncate" style={{ color: combined ? item.color : 'var(--text-primary)' }}>{label}</div>
                                 <div className="text-[8px] uppercase tracking-wider text-[var(--text-secondary)] truncate">
                                     {isDelta ? 'Time · + / −' : `${def!.group}${def!.unit ? ` · ${def!.unit}` : ''}`}
                                 </div>
@@ -479,7 +621,8 @@ export default memo(function Screen() {
                                 <button title={item.visible ? 'Hide series' : 'Show series'} onClick={() => patch({ visible: !item.visible })}
                                     className={`p-1 hover:text-[var(--text-primary)] ${item.visible ? 'text-[var(--text-secondary)]' : 'text-[var(--text-inactive)]'}`}><Eye size={11} /></button>
                                 <button title={isDelta ? 'Reset colors' : 'Reset color'} className="p-1 text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
-                                    onClick={() => patch(isDelta ? { color: DEFAULT_DELTA_POSITIVE_COLOR, negativeColor: DEFAULT_DELTA_NEGATIVE_COLOR } : { color: def!.defaultColor })}><RotateCcw size={11} /></button>
+                                    onClick={() => patch(isDelta ? { color: DEFAULT_DELTA_POSITIVE_COLOR, negativeColor: DEFAULT_DELTA_NEGATIVE_COLOR }
+                                        : combined ? { color: combined.defaultColor, cornerColors: undefined } : { color: def!.defaultColor })}><RotateCcw size={11} /></button>
                                 {isDelta
                                     ? <button disabled title="Delta cannot be removed" className="p-1 text-[var(--text-inactive)] opacity-30 cursor-not-allowed"><Trash2 size={11} /></button>
                                     : <button title="Remove metric" onClick={() => toggleMetric(item.metricId)} className="p-1 text-[var(--text-secondary)] hover:text-[#d44252]"><Trash2 size={11} /></button>}

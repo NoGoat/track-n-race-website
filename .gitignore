@@ -3,3 +3,5 @@ node_modules/
 .dev.vars*
 dist/
 .astro/
+# Video masters from tools/record-analysis-video.mjs
+recordings/

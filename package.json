@@ -7,7 +7,9 @@
     "dev:astro": "astro dev",
     "build": "astro build",
     "preview": "astro build && wrangler dev",
-    "deploy": "wrangler deploy"
+    "deploy": "wrangler deploy",
+    "record:analysis": "node tools/record-analysis-video.mjs",
+    "capture:analysis": "node tools/capture-analysis-video.mjs"
   },
   "devDependencies": {
     "@tailwindcss/vite": "^4.3.3",
@@ -17,6 +19,7 @@
   },
   "dependencies": {
     "@astrojs/react": "^7.1.2",
+    "@uiw/react-color-chrome": "^2.10.3",
     "lucide-react": "^1.66.0",
     "react": "^19.3.1",
     "react-dom": "^19.3.1",

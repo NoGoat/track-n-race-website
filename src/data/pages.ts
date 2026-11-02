@@ -53,8 +53,7 @@ export const pages = {
         path: "/analysis/",
         title: "Analysis Map Tour — Track N Race 1.7.0",
         description: "Try the Track N Race 1.7.0 Analysis map on two real races: Track Dominance, Driver Inputs, Speed, ERS Usage and ERS Harvest layers, braking points and the data comparison panel.",
-        // Not in the navbar or sitemap until 1.7.0 ships
-        robots: "noindex, follow",
+        robots: "index, follow",
     },
     credits: {
         path: "/credits/",

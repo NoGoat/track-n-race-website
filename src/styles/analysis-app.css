@@ -151,6 +151,36 @@
 .tnr-traffic i:nth-child(2) { background: #febc2e; }
 .tnr-traffic i:nth-child(3) { background: #28c840; }
 
+/* --- Colour picker (components/ColorPicker.tsx): the Chrome picker's fields match Settings inputs --- */
+.analyze-color-picker .w-color-interactive.w-color-saturation {
+    border-radius: 6px 6px 0 0 !important;
+}
+.analyze-color-picker .w-color-editable-input input {
+    height: 2rem !important;
+    padding: 0 0.75rem !important;
+    border: 1px solid var(--border-muted) !important;
+    border-radius: 0.5rem !important;
+    outline: none !important;
+    background: var(--bg-input) !important;
+    box-shadow: none !important;
+    color: var(--text-primary) !important;
+    font-family: inherit !important;
+    font-size: 0.75rem !important;
+    font-variant-numeric: tabular-nums;
+    transition: border-color 150ms ease;
+}
+.analyze-color-picker .w-color-editable-input input:focus {
+    border-color: var(--border-focus) !important;
+}
+.analyze-color-picker svg[viewBox="0 0 1024 1024"] {
+    display: none !important;
+}
+.analyze-color-format-icon {
+    width: 16px !important;
+    height: 16px !important;
+    flex: 0 0 16px;
+}
+
 /* --- react-select menus (lib/selectStyles.ts) --- */
 @keyframes selectMenuEnterBottom {
     from { clip-path: inset(0 0 99.99% 0 round 6px); }

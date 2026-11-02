@@ -3,12 +3,11 @@
 // playback bar in Comparison mode. Markup, classes and wording ported as written.
 import { memo, useEffect, useId, useMemo, useRef, useState, type ReactNode } from 'react'
 import { AlertTriangle, GripVertical } from 'lucide-react'
-import TrackMap, { useSize, type TrackMapMarker, type TrackMark } from './TrackMap'
+import TrackMap, { trackFit, useSize, type TrackMapMarker, type TrackMark } from './TrackMap'
 import {
     channelAt, dominancePaint, ersPaint, fmtKw, harvestPaint, indexAtTime, inputsPaint, rampGradient, speedPaint,
     ERS_RAMP_DARK, HARVEST_RAMP_DARK, INPUT_COLORS_DARK, INPUT_STATE_LABELS, SPEED_RAMP_DARK, SUPERCLIP_COLOR_DARK,
-    type LapInfo, type TourData, type TrackPaint,
-} from './lib'
+    type LapInfo, type TourData, type TrackPaint, reducedMotion } from './lib'
 
 export type MapColoring = 'none' | 'dominance' | 'ers' | 'harvest' | 'inputs' | 'speed'
 
@@ -17,7 +16,9 @@ export const mapHooks: {
     marks: TrackMark[]; zoneCount: number; apexStart: number; map: any; pane: HTMLElement | null
     /** Moves the Data Comparison panel, as a drag would (0-1 across and down the map) */
     movePanel: ((position: { x: number; y: number }) => void) | null
-} = { marks: [], zoneCount: 0, apexStart: 0, map: null, pane: null, movePanel: null }
+    /** Call just before the map's layer changes: the map as it is now fades away over the new one */
+    crossfade: (() => void) | null
+} = { marks: [], zoneCount: 0, apexStart: 0, map: null, pane: null, movePanel: null, crossfade: null }
 
 /** libtnrp's result for `mode` over these laps; with one lap, its half of any pair. */
 export function resolveMapResult(data: TourData, mode: string, current: number | null, comparison: number | null): any | null {
@@ -484,6 +485,65 @@ export default memo(function MapPane({
     mapHooks.apexStart = brakingMarks?.length ?? 0
     mapHooks.map = map
     mapHooks.pane = currentPaneRef.current
+    // A layer change: copies of the maps as they are (their canvases' pixels included) cover them, then move onto
+    // where the new maps lay their track, and fade to show the new paint. One map becoming two splits into both; two
+    // becoming one merge into it; the same count simply dissolves.
+    mapHooks.crossfade = () => {
+        const maps = mapsRef.current
+        if (!maps || reducedMotion()) return
+        const box = maps.getBoundingClientRect(), k = box.width / (maps.offsetWidth || box.width) || 1
+        const local = (el: HTMLElement) => {
+            const r = el.getBoundingClientRect()
+            return { x: (r.left - box.left) / k, y: (r.top - box.top) / k, w: el.offsetWidth, h: el.offsetHeight }
+        }
+        const oldPanes = [...maps.querySelectorAll<HTMLElement>('[data-map-pane]')]
+        if (!oldPanes.length) return
+        const ghost = document.createElement('div')
+        ghost.className = 'tour-map-ghost'
+        const copies = oldPanes.map(pane => {
+            const copy = pane.cloneNode(true) as HTMLElement
+            copy.querySelectorAll('[data-tour]').forEach(el => el.removeAttribute('data-tour'))
+            const from = pane.querySelectorAll('canvas'), to = copy.querySelectorAll('canvas')
+            to.forEach((canvas, i) => { if (from[i]?.width) canvas.getContext('2d')?.drawImage(from[i], 0, 0) })
+            const at = local(pane)
+            Object.assign(copy.style, { position: 'absolute', left: `${at.x}px`, top: `${at.y}px`, width: `${at.w}px`, height: `${at.h}px`, flex: 'none', transformOrigin: '0 0' })
+            return { copy, at }
+        })
+        // Each new map takes a copy of an old one (one old map is copied for both new ones)
+        const count = Math.max(oldPanes.length, 2)
+        const sources = Array.from({ length: count }, (_, i) => copies[Math.min(i, copies.length - 1)])
+        sources.forEach((source, i) => {
+            const node = i < copies.length && copies[i] === source ? source.copy : source.copy.cloneNode(true) as HTMLElement
+            if (node !== source.copy) {
+                const from = source.copy.querySelectorAll('canvas'), to = node.querySelectorAll('canvas')
+                to.forEach((canvas, j) => { if (from[j]?.width) canvas.getContext('2d')?.drawImage(from[j], 0, 0) })
+            }
+            ghost.append(node)
+            sources[i] = { copy: node, at: source.at }
+        })
+        maps.append(ghost)
+        // Once the new layer has laid out, each copy moves onto its new map's track and fades
+        requestAnimationFrame(() => requestAnimationFrame(() => {
+            if (!ghost.isConnected) return
+            const newPanes = [...maps.querySelectorAll<HTMLElement>('[data-map-pane]')].filter(p => !ghost.contains(p))
+            const ease = 'cubic-bezier(0.65, 0, 0.35, 1)'
+            sources.forEach(({ copy, at }, i) => {
+                const pane = newPanes[Math.min(i, newPanes.length - 1)]
+                if (i >= Math.max(oldPanes.length, newPanes.length)) { copy.remove(); return }
+                const to = pane ? local(pane) : at
+                const a = trackFit(map, at.w, at.h), b = trackFit(map, to.w, to.h)
+                const s = a && b ? b.scale / a.scale : 1
+                const tx = to.x - at.x + (b && a ? b.ox - s * a.ox : 0), ty = to.y - at.y + (b && a ? b.oy - s * a.oy : 0)
+                copy.animate([{ transform: 'none' }, { transform: `translate(${tx}px, ${ty}px) scale(${s})` }],
+                    { duration: 650, easing: ease, fill: 'forwards' })
+                copy.animate([{ opacity: 1 }, { opacity: 1, offset: 0.65 }, { opacity: 0 }], { duration: 950, easing: 'ease-in-out', fill: 'forwards' })
+            })
+            // The cover behind the copies clears as they land, showing the new maps
+            ghost.animate([{ backgroundColor: getComputedStyle(ghost).backgroundColor }, { backgroundColor: 'transparent' }],
+                { duration: 350, delay: 450, easing: 'ease-out', fill: 'forwards' })
+            setTimeout(() => ghost.remove(), 1000)
+        }))
+    }
 
     const markersFor = (withCurrent: boolean, withComparison: boolean) => (): TrackMapMarker[] => {
         const elapsed = elapsedSource()
@@ -506,17 +566,17 @@ export default memo(function MapPane({
         <div ref={mapsRef} data-tour="maps" className="flex-1 min-h-0 relative">
             {separateMaps
                 ? <div className={`absolute inset-0 flex ${stackMaps ? 'flex-col' : ''}`}>
-                    <div ref={currentPaneRef} className="relative flex-1 min-w-0 min-h-0">
+                    <div ref={currentPaneRef} data-map-pane className="relative flex-1 min-w-0 min-h-0">
                         {mapEl}
                         {legend(currentUsage, currentHarvest, currentSpeed)}
                     </div>
                     <div className={`shrink-0 bg-[var(--border)] ${stackMaps ? 'h-px' : 'w-px'}`} />
-                    <div className="relative flex-1 min-w-0 min-h-0">
+                    <div data-map-pane className="relative flex-1 min-w-0 min-h-0">
                         {comparisonMapEl}
                         {legend(comparisonUsage, comparisonHarvest, comparisonSpeed)}
                     </div>
                 </div>
-                : <div ref={currentPaneRef} className="absolute inset-0">
+                : <div ref={currentPaneRef} data-map-pane className="absolute inset-0">
                     {mapEl}
                     {legend(currentUsage, currentHarvest, currentSpeed)}
                 </div>}

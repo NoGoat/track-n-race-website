@@ -15,7 +15,26 @@ import '../styles/pages/analysis.css';
 
     <main id="main" class="tour">
         <h1 class="visually-hidden">Track N Race 1.7.0: the new Analysis map</h1>
-        <p class="nojs-only tour-nojs">This page shows the Analysis screen of Track N Race 1.7.0 and needs JavaScript turned on.</p>
+        <!-- Without JavaScript: a recording of the run, in <noscript> so pages with JavaScript never download it. The 4K MP4
+             (public/assets/analysis-tour/analysis-tour-4k.mp4) is the master; the VP9 WebMs are made from it. Each WebM's
+             media query asks for the screen width × pixel density it covers, so the first that matches is the smallest one
+             sharp enough there; browsers without VP9 WebM fall back to the MP4. -->
+        <!-- TODO: Remember to update the video before the site goes live with the final version of the Analysis screen-->
+        <noscript>
+            <video class="tour-video" poster="/assets/analysis-tour/analysis-tour-4k-poster.jpg"
+                width="3840" height="2160" autoplay muted loop playsinline
+                aria-label="A recording of the Analysis screen of Track N Race 1.7.0 building itself: São Paulo's laps 58 and 71 compared in graphs, RPM added and recoloured, then the map with its layers, braking points and data panel">
+                <source src="/assets/analysis-tour/analysis-tour-720p.webm" type='video/webm; codecs="vp9"'
+                    media="(max-width: 1280px) and (max-resolution: 1dppx), (max-width: 640px) and (max-resolution: 2dppx), (max-width: 426px)">
+                <source src="/assets/analysis-tour/analysis-tour-1080p.webm" type='video/webm; codecs="vp9"'
+                    media="(max-width: 1920px) and (max-resolution: 1dppx), (max-width: 960px) and (max-resolution: 2dppx), (max-width: 640px)">
+                <source src="/assets/analysis-tour/analysis-tour-1440p.webm" type='video/webm; codecs="vp9"'
+                    media="(max-width: 2560px) and (max-resolution: 1dppx), (max-width: 1280px) and (max-resolution: 2dppx), (max-width: 853px)">
+                <source src="/assets/analysis-tour/analysis-tour-2160p.webm" type='video/webm; codecs="vp9"'>
+                <source src="/assets/analysis-tour/analysis-tour-4k.mp4" type="video/mp4">
+            </video>
+            <p class="tour-nojs">A recording of the Analysis screen of Track N Race 1.7.0. Turn on JavaScript to use it yourself.</p>
+        </noscript>
 
         <div class="js-only">
             <App client:only="react" />

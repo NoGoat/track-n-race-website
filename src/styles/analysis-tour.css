@@ -14,6 +14,18 @@
     padding: calc(var(--nav-h) + 24px) var(--gutter) 48px;
 }
 
+/* Without JavaScript (pages/analysis.astro): the run's 4K recording, framed like the window */
+.tour-video {
+    display: block;
+    width: 100%;
+    height: auto;
+    margin-bottom: 1rem;
+    border: 1px solid #23252e;
+    border-radius: 12px;
+    background: #0b0c10;
+    box-shadow: 0 40px 100px rgba(0, 0, 0, 0.65), 0 0 0 1px rgba(0, 0, 0, 0.6);
+}
+
 .tour-nojs {
     padding: 1rem 1.2rem;
     border: 1px solid var(--line-strong);
@@ -27,9 +39,49 @@
     scroll-margin-top: calc(var(--nav-h) + 16px);
 }
 
-/* The empty window fades in when the page opens (on the frame, as the window carries its own scale) */
+/* The run's camera (components/analysis/camera.ts, App.tsx): the window and its pop-ups zoom and pan on a stage. Zoomed
+   in, the stage leaves the page and fills the browser window below the site's header, the window centred on what
+   it shows with the page's background faded in around it; zoomed out it is back in the frame. The camera always has a transform, so the pop-ups' fixed positions are its own coordinates. */
+.tour-stage {
+    position: relative;
+    transition: background-color 0.6s ease;
+}
+
+/* Around the zoomed window, the page's background instead of the page */
+.tour-stage--backdrop {
+    background-color: var(--bg);
+}
+
+/* Its top is set to the bottom of the site's header, which stays above it */
+.tour-stage--full {
+    position: fixed;
+    inset: 0;
+    z-index: 999;
+    overflow: hidden;
+}
+
+.tour-camera {
+    position: relative;
+    transform-origin: 0 0;
+}
+
+.tour-camera-portal {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 0;
+    height: 0;
+}
+
+/* The empty window fades in when the page opens (on the frame, as the window carries its own scale). Opacity only,
+   and not held once it's done: a transform would hold the full-screen stage inside the frame, and an animation still
+   in effect would keep the frame a stacking context, under the site's header. */
 .tour-frame {
-    animation: rv-window 1.1s var(--ease) both;
+    animation: rv-fade 1.1s var(--ease) backwards;
+}
+
+@keyframes rv-fade {
+    from { opacity: 0; }
 }
 
 @keyframes rv-window {
@@ -62,6 +114,65 @@
     to { background-position: -120% 0; }
 }
 
+/* A view button arriving grows into its row, the others making room for it */
+.tnr-app .rv.rv-grow {
+    animation: rv-in 0.7s cubic-bezier(0.2, 0.9, 0.2, 1) both, rv-grow 0.7s cubic-bezier(0.2, 0.9, 0.2, 1) both;
+}
+
+@keyframes rv-grow {
+    from { flex-grow: 0; }
+}
+
+/* A map card (a braking or acceleration zone, an apex) pops in */
+.tnr-app [data-tour="map-tooltip"] {
+    transform-origin: top left;
+    animation: tour-card-in 0.28s cubic-bezier(0.2, 0.9, 0.2, 1) both;
+}
+
+@keyframes tour-card-in {
+    from { opacity: 0; transform: translateY(6px) scale(0.96); }
+}
+
+/* The maps as they were, covering the new layer, then moving onto it and fading (MapPane.tsx crossfade) */
+.tour-map-ghost {
+    position: absolute;
+    inset: 0;
+    z-index: 15;
+    pointer-events: none;
+    background: var(--bg-panel);
+}
+
+/* The run loading a file: in the title bar, the file's name wipes in and a line fills under it */
+.tnr-app .tour-load {
+    animation: rv-in 0.35s cubic-bezier(0.2, 0.9, 0.2, 1) both;
+}
+
+.tnr-app .tour-load__name {
+    animation: tour-load-name 0.6s cubic-bezier(0.2, 0.9, 0.2, 1) both;
+}
+
+@keyframes tour-load-name {
+    from { clip-path: inset(0 100% 0 0); }
+    to { clip-path: inset(0 0 0 0); }
+}
+
+.tnr-app .tour-load__bar {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: -4px;
+    height: 2px;
+    border-radius: 1px;
+    background: var(--color-info);
+    transform-origin: left;
+    animation: tour-load-bar 0.9s cubic-bezier(0.4, 0, 0.2, 1) both;
+}
+
+@keyframes tour-load-bar {
+    from { transform: scaleX(0); }
+    to { transform: scaleX(1); }
+}
+
 /* A control being used: a ring pulses out of it */
 .tnr-app .rv-press,
 .tnr-portal .rv-press {
@@ -71,6 +182,70 @@
 @keyframes rv-press {
     0% { box-shadow: 0 0 0 0 rgba(87, 148, 242, 0.75); filter: brightness(1.6); }
     100% { box-shadow: 0 0 0 10px rgba(87, 148, 242, 0); filter: none; }
+}
+
+/* The map layers' split view (components/analysis/App.tsx layerSplit): only the sidebar and the map show, each moved
+   into a pane of its own and set on a card */
+.tnr-window[data-split] {
+    visibility: hidden;
+}
+
+.tnr-window[data-split] aside,
+.tnr-window[data-split] [data-tour="maps"] {
+    visibility: visible;
+}
+
+.tnr-window .tour-pane {
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    background: var(--bg-panel);
+    box-shadow: 0 30px 80px rgba(0, 0, 0, 0.6);
+}
+
+/* The run tapping a spot on the map (a braking or acceleration zone) */
+.tour-tap {
+    position: absolute;
+    z-index: 10000;
+    width: 28px;
+    height: 28px;
+    margin: -14px 0 0 -14px;
+    border: 2px solid rgba(87, 148, 242, 0.9);
+    border-radius: 50%;
+    background: rgba(87, 148, 242, 0.25);
+    pointer-events: none;
+    animation: tour-tap 0.7s ease-out forwards;
+}
+
+@keyframes tour-tap {
+    from { transform: scale(0.4); opacity: 1; }
+    to { transform: scale(1.8); opacity: 0; }
+}
+
+/* The name of a sidebar icon button the run is about to use, under it or to its left; it fades in and out over its
+   duration */
+.tour-tip {
+    position: absolute;
+    z-index: 10000;
+    padding: 4px 8px;
+    border: 1px solid var(--border);
+    border-radius: 5px;
+    background: var(--bg-menu);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.45);
+    color: var(--text-primary);
+    font: 600 10px/1.2 "Cascadia Code", ui-monospace, monospace;
+    white-space: nowrap;
+    pointer-events: none;
+    transform: translate(var(--tip-x), var(--tip-y));
+    animation: tour-tip 1.8s ease both;
+}
+
+.tour-tip--below { --tip-x: -50%; --tip-y: 0px; --tip-from: 0px, -4px; }
+.tour-tip--left { --tip-x: -100%; --tip-y: -50%; --tip-from: 4px, 0px; }
+
+@keyframes tour-tip {
+    0% { opacity: 0; transform: translate(var(--tip-x), var(--tip-y)) translate(var(--tip-from)); }
+    12%, 82% { opacity: 1; transform: translate(var(--tip-x), var(--tip-y)); }
+    100% { opacity: 0; transform: translate(var(--tip-x), var(--tip-y)); }
 }
 
 /* A layer added to the open Layer menu */
@@ -120,7 +295,13 @@
     background: var(--bg);
 }
 
-.tour-mobile .tour-frame > .tnr-window {
+.tour-mobile .tour-stage,
+.tour-mobile .tour-camera {
+    position: absolute;
+    inset: 0;
+}
+
+.tour-mobile .tour-camera > .tnr-window {
     position: absolute;
     top: 0;
     left: 0;
@@ -182,6 +363,11 @@
     .tour-rotate,
     .tour-frame,
     .tnr-app .rv,
+    .tnr-app .rv.rv-grow,
+    .tnr-app .tour-load,
+    .tnr-app .tour-load__name,
+    .tnr-app .tour-load__bar,
+    .tnr-app [data-tour="map-tooltip"],
     .tnr-app .rv::after,
     .tnr-app .rv-press,
     .tnr-portal .rv-opt,

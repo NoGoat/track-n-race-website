@@ -3,6 +3,7 @@
 // painted by a map layer, with braking/apex marks and two labelled lap markers. Drawing code ported as written.
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import type { TrackPaint } from './lib'
+import { canvasDpr, useCanvasBoost } from './camera'
 
 const SECTOR_COLORS = ['#E8002D', '#0090D0', '#FFD700']
 const SLM_DRY_COLOR = '#46E396'
@@ -379,11 +380,12 @@ export default function TrackMap({ map, sectorColors = true, trackPaint = null, 
     const layout = useMemo(() => prep && width > 0 && height > 0 ? buildLayout(prep, width, height) : null, [prep, width, height])
     const sourceRef = useRef(markerSource)
     sourceRef.current = markerSource
+    const boost = useCanvasBoost()
 
     useEffect(() => {
         const canvas = bgRef.current
         if (!canvas || !prep || !layout) return
-        const dpr = Math.min(window.devicePixelRatio || 1, 2)
+        const dpr = canvasDpr(width, height)
         canvas.width = Math.round(width * dpr)
         canvas.height = Math.round(height * dpr)
         canvas.style.width = `${width}px`
@@ -391,7 +393,7 @@ export default function TrackMap({ map, sectorColors = true, trackPaint = null, 
         const ctx = canvas.getContext('2d')!
         ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
         pathsRef.current = renderBackground(ctx, width, height, prep, layout, sectorColors, trackPaint, trackMarks)
-    }, [height, layout, prep, sectorColors, trackMarks, trackPaint, width])
+    }, [height, layout, prep, sectorColors, trackMarks, trackPaint, width, boost])
 
     // New marks invalidate what was hovered
     useEffect(() => { setHovered(null); onMarkHover?.(null) }, [trackMarks]) // eslint-disable-line react-hooks/exhaustive-deps
@@ -399,7 +401,7 @@ export default function TrackMap({ map, sectorColors = true, trackPaint = null, 
     useEffect(() => {
         const canvas = fgRef.current
         if (!canvas || !prep || !layout || !map) return
-        const dpr = Math.min(window.devicePixelRatio || 1, 2)
+        const dpr = canvasDpr(width, height)
         canvas.width = Math.round(width * dpr)
         canvas.height = Math.round(height * dpr)
         canvas.style.width = `${width}px`
@@ -421,7 +423,7 @@ export default function TrackMap({ map, sectorColors = true, trackPaint = null, 
         }
         frame = requestAnimationFrame(loop)
         return () => cancelAnimationFrame(frame)
-    }, [height, layout, map, prep, width])
+    }, [height, layout, map, prep, width, boost])
 
     const handleMove = (event: React.MouseEvent<HTMLDivElement>) => {
         if (!trackMarks?.length) return
@@ -463,6 +465,12 @@ export default function TrackMap({ map, sectorColors = true, trackPaint = null, 
 }
 
 /** A mark's middle, in the map's CSS pixels: where the tour points at a braking zone or an apex. */
+/** How the track is fitted into a map of this size: canvas point = track point × scale + (ox, oy) */
+export function trackFit(map: any, width: number, height: number): { scale: number; ox: number; oy: number } | null {
+    if (!map || !width || !height) return null
+    return buildLayout(prepareMap(map), width, height)
+}
+
 export function markPoint(map: any, mark: TrackMark, width: number, height: number): Pt | null {
     if (!map || !width || !height) return null
     const prep = prepareMap(map)

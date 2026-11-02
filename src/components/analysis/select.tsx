@@ -1,13 +1,18 @@
 // react-select as the app uses it: lib/selectStyles.ts, lib/AnimatedSelect.tsx and lib/selectComponents.tsx.
-// Menus portal into a .tnr-portal element, which carries the app's theme tokens.
+// Menus portal into a .tnr-portal element, which carries the app's theme tokens: the one inside the run's camera
+// (camera.ts) once it is mounted, so they zoom and pan with the window.
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import Select, { components, type GroupBase, type Props, type StylesConfig } from 'react-select'
 import { ChevronDown, X } from 'lucide-react'
+import { cameraPortal, toCamera } from './camera'
 
 export const SELECT_MENU_ANIMATION_MS = 220
 
 let portalNode: HTMLElement | null = null
-export function portalTarget(): HTMLElement {
+/** Where the window's pop-ups render: inside the camera, or the page's portal before it mounts */
+export const portalTarget = (): HTMLElement => cameraPortal() ?? pagePortal()
+/** The page's own portal, for what covers the page rather than the window (dialogs) */
+export function pagePortal(): HTMLElement {
     if (!portalNode) {
         portalNode = document.createElement('div')
         portalNode.className = 'tnr-portal'
@@ -65,7 +70,13 @@ export function buildSelectStyles({ solidBg = false, controlHeight = 28, labelSt
             transformOrigin: state.placement === 'top' ? 'bottom center' : 'top center',
             animation: `${state.placement === 'top' ? 'selectMenuEnterTop' : 'selectMenuEnterBottom'} ${SELECT_MENU_ANIMATION_MS}ms cubic-bezier(0.2, 0, 0, 1) both`,
         }),
-        menuPortal: base => ({ ...base, zIndex: 9999 }),
+        // react-select places the portal from the control's screen rect (plus the page scroll when absolute); the
+        // portal sits in the camera, so that becomes the camera's coordinates
+        menuPortal: (base: any) => {
+            const top = base.top - (base.position === 'absolute' ? window.scrollY : 0)
+            const at = toCamera({ left: base.left, top, width: base.width, height: 0 })
+            return { ...base, position: 'absolute', left: at.left, top: at.top, width: at.width, zIndex: 9999 }
+        },
         menuList: base => ({ ...base, padding: 4, ...(scrollableMenu ? {} : { maxHeight: 'none', overflowY: 'visible' as const }) }),
         group: base => labelStyleGroupHeadings ? { ...base, paddingTop: 2, paddingBottom: 2 } : base,
         groupHeading: base => labelStyleGroupHeadings ? {
