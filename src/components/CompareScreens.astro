@@ -1,0 +1,109 @@
+---
+// The Frontends page's screen viewer: the screens grouped by area on the left, one screen at a time on the right in
+// two frontends picked with the Left / Right bar, as a slider or side by side. scripts/compare.js runs it.
+// Every pane carries all three captures (data-ui); .is-a and .is-b mark the two on show, .is-a being the left one.
+// Without JavaScript every screen is listed in turn with Electron and Native side by side (styles/compare.css).
+import ScreenPicture from './ScreenPicture.astro';
+import { screens } from '../data/screens';
+import { screenGroups, order, type ScreenUi } from '../data/compare';
+import { pad } from '../data/format';
+
+const UIS: ScreenUi[] = ['electron', 'qt', 'android'];
+const NAMES: Record<ScreenUi, string> = { electron: 'Electron', qt: 'Native', android: 'Android' };
+const SIZES = '(max-width: 960px) 100vw, 900px';
+const groupOf = (file: string) => screenGroups.find(g => g.screens.includes(file))!.title;
+---
+<div class="cmp-viewer">
+    <div class="cmp-rail" role="tablist" aria-label="Screens" aria-orientation="vertical">
+        {screenGroups.map(group => (
+            <Fragment>
+                <div class="cmp-rail-group" aria-hidden="true"><span class="eyebrow">{group.title}</span><span class="eyebrow">{pad(group.screens.length)}</span></div>
+                {group.screens.map(file => {
+                    const i = order.indexOf(file);
+                    const screen = screens[file];
+                    return (
+                        <button type="button" role="tab" class:list={['cmp-tab', { active: i === 0 }]} id={`cmp-tab-${file}`}
+                            aria-controls={`cmp-pane-${file}`} aria-selected={i === 0 ? 'true' : 'false'} tabindex={i === 0 ? 0 : -1}>
+                            <span class="module-num">{pad(i + 1)}</span>
+                            <span class="cmp-tab-name">{screen.name}</span>
+                            <span class="cmp-cov" aria-hidden="true">
+                                {UIS.map(ui => <i data-f={ui} class:list={{ off: ui === 'android' && !screen.android }}></i>)}
+                            </span>
+                        </button>
+                    );
+                })}
+            </Fragment>
+        ))}
+    </div>
+
+    <div class="cmp-stage">
+        <div class="cmp-controls js-only">
+            <div class="cmp-vsbar" role="group" aria-label="Frontends to compare">
+                {(['a', 'b'] as const).map(side => (
+                    <Fragment>
+                        {side === 'b' && (
+                            <button type="button" class="cmp-vs" data-swap aria-label="Swap sides">
+                                <span>VS</span>
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                    <path d="M17 3l4 4-4 4"></path><path d="M3 7h18"></path><path d="M7 21l-4-4 4-4"></path><path d="M21 17H3"></path>
+                                </svg>
+                            </button>
+                        )}
+                        <div class:list={['cmp-vside', { 'is-right': side === 'b' }]}>
+                            <span class="eyebrow">{side === 'a' ? 'Left' : 'Right'}</span>
+                            <div class="cmp-vtabs" role="group" aria-label={side === 'a' ? 'Left side' : 'Right side'}>
+                                {UIS.map(ui => (
+                                    <button type="button" class="cmp-vt" data-f={ui} data-side={side} data-val={ui}
+                                        aria-pressed={(side === 'a' && ui === 'electron') || (side === 'b' && ui === 'qt') ? 'true' : 'false'}>{NAMES[ui]}</button>
+                                ))}
+                            </div>
+                        </div>
+                    </Fragment>
+                ))}
+            </div>
+            <div class="cmp-seg" role="group" aria-label="View">
+                <button type="button" data-mode="slide" aria-pressed="true">Slide</button>
+                <button type="button" data-mode="side" aria-pressed="false">Side by side</button>
+            </div>
+        </div>
+
+        {order.map((file, i) => {
+            const screen = screens[file];
+            const lazy = i !== 0;
+            const crop = screen.width === 2492 ? 'cmp-frame is-trimmed' : 'cmp-frame';
+            return (
+                <figure class:list={['cmp-pane', { active: i === 0 }]} id={`cmp-pane-${file}`} role="tabpanel"
+                    aria-labelledby={`cmp-tab-${file}`} data-file={file} data-android={screen.android ? 'yes' : 'no'}>
+                    <div class="cmp-pane-head">
+                        <span class="eyebrow">{groupOf(file)} · {pad(i + 1)} / {pad(order.length)}</span>
+                        <h3 class="cmp-pane-title">{screen.name}</h3>
+                    </div>
+                    <div class="cmp-view is-side" style="--pos: 50%">
+                        <div class="cmp-layer is-a" data-ui="electron"><div class={crop}><ScreenPicture screen={screen} ui="electron" sizes={SIZES} lazy={lazy} /></div></div>
+                        <div class="cmp-layer is-b" data-ui="qt"><div class={crop}><ScreenPicture screen={screen} ui="qt" sizes={SIZES} lazy={lazy} /></div></div>
+                        <div class="cmp-layer" data-ui="android">
+                            {screen.android
+                                ? <div class="cmp-frame is-android"><ScreenPicture screen={screen} ui="android" sizes={SIZES} lazy /></div>
+                                : <div class="cmp-frame is-none"><span>{screen.name} isn't in the Android app</span></div>}
+                        </div>
+                        <div class="cmp-handle" aria-hidden="true"><span class="cmp-knob"></span></div>
+                        <input class="cmp-range" type="range" min="0" max="100" step="0.1" value="50"
+                            aria-label={`${screen.name}: slide between the two frontends`}>
+                    </div>
+                    <figcaption class="cmp-pane-foot">
+                        <p class="cmp-note">The Android app doesn't have this screen, so it's shown side by side.</p>
+                        <div class="cmp-names">
+                            {UIS.map(ui => {
+                                const has = ui !== 'android' || screen.android;
+                                const name = ui === 'android' ? screen.android?.name ?? screen.name : screen.name;
+                                return <span data-f={ui} class:list={{ off: !has }}><i class="cmp-dot"></i>{NAMES[ui]}: {has ? name : 'not in the app'}</span>;
+                            })}
+                        </div>
+                        <p class="module-desc" data-desc="desktop">{screen.desc}</p>
+                        {screen.android && <p class="module-desc" data-desc="android" hidden>{screen.android.desc}</p>}
+                    </figcaption>
+                </figure>
+            );
+        })}
+    </div>
+</div>

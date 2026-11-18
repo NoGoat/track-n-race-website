@@ -17,7 +17,8 @@ export const markDownloadStarted = (block, link) => {
     block.querySelector('[data-next-started]').hidden = false;
     block.querySelector('[data-next-retry]').hidden = false;
     block.querySelector('[data-next-retry] a').href = link.href;
-    // A desktop build says which OS that computer runs. The APK doesn't say whether the phone works alone
-    // or paired with a computer, so that's left for the user to answer.
-    block.querySelector('[data-next-setup]').href = app === 'android' ? '/setup/' : `/setup/?os=${os}`;
+    // A desktop build says which OS that computer runs, and brings up its first-launch steps (SmartScreen, chmod,
+    // Gatekeeper) above the questions. The APK doesn't say whether the phone works alone or paired with a computer,
+    // so that's left for the user to answer.
+    block.querySelector('[data-next-setup]').href = app === 'android' ? '/setup/' : `/setup/?os_instructions=${os}`;
 };

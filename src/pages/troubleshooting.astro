@@ -1,0 +1,462 @@
+---
+import Base from '../layouts/Base.astro';
+import PageHead from '../components/PageHead.astro';
+import { pages } from '../data/pages';
+import '../styles/pages/troubleshooting.css';
+import { icon } from '../data/setup';
+import OptionContent from '../components/OptionContent.astro';
+import FixCard from '../components/FixCard.astro';
+import FirewallFix from '../components/FirewallFix.astro';
+import AddressMethods from '../components/AddressMethods.astro';
+import ForwardSteps from '../components/ForwardSteps.astro';
+import ForwardPorts from '../components/ForwardPorts.astro';
+
+// Fixes for telemetry that doesn't reach Track N Race, one fold per problem, in sections that look like the Setup
+// page's steps. The Setup page links straight to single fixes (#fix-<id>) and passes ?for=<os> so the filter starts
+// on that setup (scripts/troubleshooting.js). Without JavaScript every fix shows and each still folds open.
+const filters = [
+    { value: 'all', label: 'Everything', desc: 'Every fix' },
+    { value: 'windows', label: 'Windows', icon: icon.windows },
+    { value: 'macos', label: 'macOS', icon: icon.apple },
+    { value: 'linux', label: 'Linux', icon: icon.tux },
+    { value: 'android', label: 'Android', desc: 'Direct mode', icon: icon.phone },
+];
+const DESKTOP: ('windows' | 'macos' | 'linux')[] = ['windows', 'macos', 'linux'];
+
+const jsonLd = {
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "BreadcrumbList",
+      "@id": "https://track-n-race.com/troubleshooting/#breadcrumb",
+      "itemListElement": [
+        { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://track-n-race.com/" },
+        { "@type": "ListItem", "position": 2, "name": "Setup Guide", "item": "https://track-n-race.com/setup/" },
+        { "@type": "ListItem", "position": 3, "name": "Troubleshooting", "item": "https://track-n-race.com/troubleshooting/" }
+      ]
+    },
+    {
+      "@type": "WebPage",
+      "@id": "https://track-n-race.com/troubleshooting/#webpage",
+      "url": "https://track-n-race.com/troubleshooting/",
+      "name": pages.troubleshooting.title,
+      "description": pages.troubleshooting.description,
+      "inLanguage": "en-US",
+      "isPartOf": { "@id": "https://track-n-race.com/#website" }
+    }
+  ]
+};
+---
+<Base jsonLd={jsonLd}>
+    <Fragment slot="head">
+        <PageHead page={pages.troubleshooting} />
+    </Fragment>
+
+    <main id="main">
+        <div class="setup-container">
+            <div class="page-header">
+                <h1 class="main-title">{pages.troubleshooting.heading}</h1>
+                <p class="subtitle">{pages.troubleshooting.intro} Setting up for the first time? Start with the <a href="/setup/" data-astro-prefetch>setup guide</a>.</p>
+            </div>
+
+            <!-- Filter (scripts/troubleshooting.js): the Setup page's question rail, then a search line -->
+            <form class="setup-quiz fix-filter js-only" id="fixFilter" aria-label="Filter fixes">
+                <fieldset class="quiz-question">
+                    <legend class="quiz-legend">
+                        <span class="quiz-num">01</span>
+                        <span class="quiz-title">What runs Track N Race?</span>
+                    </legend>
+                    <div class="fix-filter-main">
+                        <div class="quiz-options" data-count="5">
+                            {filters.map((f, i) => (
+                                <label class="quiz-option">
+                                    <input type="radio" name="for" value={f.value} checked={i === 0} />
+                                    <OptionContent label={f.label} desc={f.desc} icon={f.icon} />
+                                </label>
+                            ))}
+                        </div>
+                        <label class="fix-search">
+                            <Fragment set:html={icon.search} />
+                            <input type="search" id="fixSearch" placeholder="Or search: firewall, forwarding, QR code…" aria-label="Search the fixes" autocomplete="off" />
+                        </label>
+                    </div>
+                </fieldset>
+            </form>
+
+            <div class="setup-flow">
+                <!-- Nothing shows up -->
+                <section class="setup-step-card fix-section" id="nothing" data-fix-section aria-labelledby="sec-nothing">
+                    <div class="setup-step-card-header">
+                        <div class="setup-step-title-group">
+                            <div class="setup-step-badge">01 <span class="fix-count" data-fix-count></span></div>
+                            <h2 class="setup-step-title" id="sec-nothing">Nothing shows up</h2>
+                        </div>
+                    </div>
+                    <div class="fix-cards">
+                        <FixCard id="game" title="The game isn't sending anything" see="Check connection says “Waiting…” next to Telemetry.">
+                            <div><p class="fix-label">Why it happens</p><p class="step-desc">F1 games only send telemetry during a session, and only when UDP Telemetry is on.</p></div>
+                            <div><p class="fix-label">Fix it</p><ol class="task-list">
+                                <li>In the game, open <strong>Settings</strong> &rarr; <strong>Telemetry Settings</strong>.</li>
+                                <li>Check every setting matches the list below.</li>
+                                <li>Leave the menus and go on track or into the garage.</li>
+                            </ol></div>
+                            <div>
+                                <p class="fix-label">The game's Telemetry Settings</p>
+                                <div class="config-list">
+                                    <div class="config-item"><div class="config-info"><span class="config-label">UDP Telemetry</span></div><div class="config-value-group"><span class="code-pill green">On</span></div></div>
+                                    <div class="config-item"><div class="config-info"><span class="config-label">UDP Broadcast Mode</span></div><div class="config-value-group"><span class="code-pill">Off</span></div></div>
+                                    <div class="config-item"><div class="config-info"><span class="config-label">UDP IP Address</span><span class="config-subtext">Copy it from Track N Race. Use <code>127.0.0.1</code> if the game runs on the same PC, or your phone's address for Android Direct mode.</span></div><div class="config-value-group"><span class="code-pill">This PC's address</span></div></div>
+                                    <div class="config-item"><div class="config-info"><span class="config-label">UDP Port</span><span class="config-subtext">Unless you changed it in Track N Race.</span></div><div class="config-value-group"><span class="code-pill">20777</span></div></div>
+                                    <div class="config-item"><div class="config-info"><span class="config-label">UDP Send Rate</span><span class="config-subtext">Any of these works. 60Hz is the smoothest.</span></div><div class="config-value-group"><span class="code-pill">10Hz</span><span class="code-pill">20Hz</span><span class="code-pill">30Hz</span><span class="code-pill green">60Hz</span></div></div>
+                                    <div class="config-item"><div class="config-info"><span class="config-label">UDP Format</span><span class="config-subtext">F1 25 + 2026 Season Pack</span></div><div class="config-value-group"><span class="code-pill">2024</span><span class="code-pill">2025</span><span class="code-pill green">2026</span></div></div>
+                                    <div class="config-item"><div class="config-info"><span class="config-label">UDP Format</span><span class="config-subtext">F1 25</span></div><div class="config-value-group"><span class="code-pill">2024</span><span class="code-pill green">2025</span></div></div>
+                                    <div class="config-item"><div class="config-info"><span class="config-label">UDP Format</span><span class="config-subtext">F1 24. 2022 and 2023 aren't supported.</span></div><div class="config-value-group"><span class="code-pill green">2024</span></div></div>
+                                </div>
+                            </div>
+                            <p class="fix-done"><Fragment set:html={icon.check} /><span>Telemetry changes to <strong>Receiving</strong>, and the dashboard fills in.</span></p>
+                        </FixCard>
+
+                        <FixCard id="fw-windows" title="Windows Firewall is blocking Track N Race" see="Check connection shows Windows Firewall in red." for={['windows']}>
+                            <div><p class="fix-label">Why it happens</p><p class="step-desc">Windows blocks data from other devices until you allow an app. Clicking Cancel when Windows asks makes it add a rule that blocks Track N Race.</p></div>
+                            <div><p class="fix-label">What happened?</p><FirewallFix os="windows" /></div>
+                        </FixCard>
+
+                        <FixCard id="public-network" title="Check connection says your network is Public" see="“Wi-Fi is set as a Public network.” next to Network." for={['windows']}>
+                            <div><p class="fix-label">Why it happens</p><p class="step-desc">Windows blocks more on networks it calls Public. Track N Race's firewall rule covers Public networks too, so you don't need to change your network settings.</p></div>
+                            <div><p class="fix-label">Fix it</p><ol class="task-list">
+                                <li>Look at the Windows Firewall row above it. <strong>Allowed</strong>? Nothing to do.</li>
+                                <li>Red? Click <strong>Allow through firewall</strong>, then <strong>Yes</strong> when Windows asks about Windows PowerShell.</li>
+                            </ol></div>
+                            <p class="step-desc">Using Paired mode? On a Public network the phone may not list the desktop under Nearby desktops. Tap <strong>Scan desktop QR</strong> instead: the QR code carries the address.</p>
+                            <p class="fix-done"><Fragment set:html={icon.check} /><span>Windows Firewall shows <strong>Allowed</strong>, and Telemetry changes to <strong>Receiving</strong> once you're on track.</span></p>
+                        </FixCard>
+
+                        <FixCard id="fw-mac" title="The macOS firewall is blocking Track N Race" see="You clicked Deny when macOS asked about incoming connections." for={['macos']}>
+                            <div><p class="fix-label">Why it happens</p><p class="step-desc">The macOS firewall is off by default. When it's on, it asks once whether each app may accept incoming connections.</p></div>
+                            <div><p class="fix-label">Fix it</p><FirewallFix os="macos" /></div>
+                        </FixCard>
+
+                        <FixCard id="fw-linux" title="Your Linux firewall is blocking port 20777" see="Nothing arrives, and ufw or firewalld is on. Track N Race can't check this on Linux." for={['linux']}>
+                            <div><p class="fix-label">Fix it</p><FirewallFix os="linux" /></div>
+                        </FixCard>
+
+                        <FixCard id="address" title="The game is sending to the wrong address" see="The game's UDP IP Address is different from This PC's address in Track N Race." for={DESKTOP}>
+                            <div><p class="fix-label">Why it happens</p><p class="step-desc">The game needs the address of the computer running Track N Race. VPNs and virtual machines add extra addresses that look similar.</p></div>
+                            <div><p class="fix-label">Fix it</p><ol class="task-list">
+                                <li>In Track N Race, open <strong>Settings</strong> &rarr; <strong>Network</strong> in Electron, or <strong>Settings</strong> &rarr; <strong>Connection</strong> in Native.</li>
+                                <li>Under <strong>This PC's address</strong>, click <strong>Copy</strong> beside the ticked one marked <strong>Console or another PC</strong>.</li>
+                                <li>In the game, put it in <strong>UDP IP Address</strong>.</li>
+                            </ol></div>
+                            <details class="fix-fold">
+                                <summary>Find it without the app</summary>
+                                <div class="fix-fold-body fix-tabscope" data-tabscope>
+                                    <div class="fix-tabs js-only" role="tablist" aria-label="Computer">
+                                        <button type="button" role="tab" data-tab="windows" aria-selected="true">Windows</button>
+                                        <button type="button" role="tab" data-tab="macos" aria-selected="false">macOS</button>
+                                        <button type="button" role="tab" data-tab="linux" aria-selected="false">Linux</button>
+                                    </div>
+                                    <div class="fix-pane" data-pane="windows"><p class="fix-pane-label nojs-only">Windows</p><AddressMethods os="windows" /></div>
+                                    <div class="fix-pane" data-pane="macos"><p class="fix-pane-label nojs-only">macOS</p><AddressMethods os="macos" /></div>
+                                    <div class="fix-pane" data-pane="linux"><p class="fix-pane-label nojs-only">Linux</p><AddressMethods os="linux" /></div>
+                                </div>
+                            </details>
+                            <p class="fix-done"><Fragment set:html={icon.check} /><span>Telemetry changes to <strong>Receiving</strong> once you're on track.</span></p>
+                        </FixCard>
+
+                        <FixCard id="address-changed" title="It worked before, but stopped" see="Nothing changed, but after a restart the dashboard stays empty.">
+                            <div><p class="fix-label">Why it happens</p><p class="step-desc">Routers can give a device a new address after a restart. The game keeps sending to the old one.</p></div>
+                            <div><p class="fix-label">Fix it</p><ol class="task-list">
+                                <li>Check the address again: <strong>This PC's address</strong> in Track N Race, or the menu on the phone.</li>
+                                <li>If it changed, update <strong>UDP IP Address</strong> in the game.</li>
+                            </ol></div>
+                            <p class="step-desc">To stop it changing, reserve an address for that device in your router's settings. Search your router's instructions for <strong>DHCP reservation</strong>.</p>
+                        </FixCard>
+
+                        <FixCard id="port" title="Another app is using port 20777" see="Check connection shows Port 20777 in red: “The port could not be opened.”" for={DESKTOP}>
+                            <div><p class="fix-label">Why it happens</p><p class="step-desc">Only one app can listen on a port, and other telemetry tools use 20777 too.</p></div>
+                            <div><p class="fix-label">Fix it</p><ol class="task-list">
+                                <li>Close any other telemetry app, then restart Track N Race.</li>
+                                <li>Or click <strong>Change port</strong>, pick another number, and set the same port in the game.</li>
+                            </ol></div>
+                            <p class="step-desc">Need the other app running too? Give it a different port and have Track N Race forward to it. See <a href="#fix-port-shared">Your wheel or other app stopped getting data</a>.</p>
+                            <p class="fix-done"><Fragment set:html={icon.check} /><span>The Port row says <strong>Listening</strong>.</span></p>
+                        </FixCard>
+
+                        <FixCard id="format" title="Data arrives, but some values are missing or wrong" see="The dashboard fills in, but some panels stay empty or show odd numbers." for={DESKTOP}>
+                            <div><p class="fix-label">Why it happens</p><p class="step-desc">Each game year sends a different format. If Track N Race is forced to read the wrong one, some values come out wrong.</p></div>
+                            <div><p class="fix-label">Fix it</p><ol class="task-list">
+                                <li>Electron: open <strong>Settings</strong> &rarr; <strong>Protocol</strong> and set <strong>Protocol Version Override</strong> to <strong>Auto</strong>.</li>
+                                <li>Native: open <strong>Settings</strong> &rarr; <strong>Connection</strong> and set <strong>Use format</strong> to <strong>Auto</strong>.</li>
+                                <li>In the game, pick the newest <strong>UDP Format</strong> it offers: <code>2026</code> with the 2026 Season Pack, <code>2025</code> for F1 25, <code>2024</code> for F1 24.</li>
+                            </ol></div>
+                        </FixCard>
+                    </div>
+                </section>
+
+                <!-- Other telemetry apps: UDP forwarding and port clashes -->
+                <section class="setup-step-card fix-section" id="other-apps" data-fix-section aria-labelledby="sec-other-apps">
+                    <div class="setup-step-card-header">
+                        <div class="setup-step-title-group">
+                            <div class="setup-step-badge">02 <span class="fix-count" data-fix-count></span></div>
+                            <h2 class="setup-step-title" id="sec-other-apps">Other telemetry apps</h2>
+                        </div>
+                    </div>
+                    <div class="fix-cards">
+                        <FixCard id="forwarding" title="You want Track N Race and another app at the same time" see="Your wheel's rev lights, a dash, a motion rig or another telemetry app needs the game's data too.">
+                            <div><p class="fix-label">Why it happens</p><p class="step-desc">The game sends its telemetry to one address and one port, so only one app gets it.</p></div>
+                            <div><p class="fix-label">How UDP forwarding works</p><p class="step-desc">The game sends to Track N Race. Track N Race sends a copy of every packet, exactly as the game sent it, to up to 15 other apps, on the same device or others. Only live data is forwarded. Playing back a recording doesn't send anything.</p></div>
+                            <div><p class="fix-label">Turn it on</p><ForwardSteps /></div>
+                            <div><p class="fix-label">Pick the address and port</p><ForwardPorts /></div>
+                            <p class="step-desc">Does the other app have its own forwarding? You can do it the other way round instead: leave the game pointed at it, and forward from it to Track N Race on a free port. Then set that port in Track N Race.</p>
+                            <p class="fix-done"><Fragment set:html={icon.check} /><span>Both apps fill in once you're on track.</span></p>
+                        </FixCard>
+
+                        <FixCard id="port-shared" title="Your wheel or other app stopped getting data" see="Since Track N Race was set up, the other app stays empty, or the two take turns.">
+                            <div><p class="fix-label">Why it happens</p><p class="step-desc">Both apps are listening on the same port on one device, usually <code>20777</code>. Only one app can have a port. The second one fails to start listening, or both start and only one gets the data.</p></div>
+                            <div><p class="fix-label">Fix it</p><ol class="task-list">
+                                <li>Leave the game sending to Track N Race on <code>20777</code>.</li>
+                                <li>In the other app's settings, change the port it listens on to a free one, like <code>20778</code>.</li>
+                                <li>In Track N Race, turn on forwarding and add a channel to <code>127.0.0.1</code>, port <code>20778</code>. See <a href="#fix-forwarding">the steps for each app</a>.</li>
+                            </ol></div>
+                            <p class="step-desc">The other app is on another device? It can keep <code>20777</code>. Use that device's address in the channel instead.</p>
+                            <p class="fix-done"><Fragment set:html={icon.check} /><span>Both apps fill in once you're on track.</span></p>
+                        </FixCard>
+
+                        <FixCard id="forward-nothing" title="The app you forward to gets nothing" see="Track N Race fills in, but the other app stays empty.">
+                            <div><p class="fix-label">Check each of these</p><ol class="task-list">
+                                <li>Forwarding is on, and you clicked <strong>Apply &amp; Restart</strong>. On Android it's <strong>Apply</strong>, in the Minimal Recorder <strong>Apply network</strong>.</li>
+                                <li>The channel's port is the port the other app listens on. Check the other app's settings.</li>
+                                <li>Other app on the same device: the address is <code>127.0.0.1</code>, and the port isn't the one Track N Race uses.</li>
+                                <li>Other app on another device: the address is that device's, on the same network, and its firewall allows the app.</li>
+                                <li>You're on track or in the garage. The game sends nothing from the menus, and recordings being played back aren't forwarded.</li>
+                                <li>On Android: <strong>Source</strong> is <strong>Direct UDP</strong>. In Paired mode, forward from the desktop app.</li>
+                            </ol></div>
+                        </FixCard>
+
+                        <FixCard id="forward-refused" title="Track N Race won't accept a forwarding channel" see="“Enter valid IPv4 destinations and ports. Forwarding back to this listener would create a packet loop.”">
+                            <div><p class="fix-label">Why it happens</p><p class="step-desc">A channel needs a numeric IPv4 address, like <code>192.168.1.50</code>, and a port from 1 to 65535. Names like <code>my-pc.local</code> and IPv6 addresses don't work. Track N Race also refuses a channel that points at its own port, since every packet would come straight back to it.</p></div>
+                            <div><p class="fix-label">Fix it</p><ol class="task-list">
+                                <li>Type the address as numbers. Find it with <strong>This PC's address</strong> in Track N Race on that computer, or in the other app's settings.</li>
+                                <li>For an app on the same device, use a port other than Track N Race's, like <code>20778</code>.</li>
+                            </ol></div>
+                            <p class="fix-warn"><Fragment set:html={icon.warning} /><span>Don't forward to an app that forwards back to Track N Race. Track N Race can't spot that loop, and the packets go round and round.</span></p>
+                        </FixCard>
+                    </div>
+                </section>
+
+                <!-- Your network -->
+                <section class="setup-step-card fix-section" id="network" data-fix-section aria-labelledby="sec-network">
+                    <div class="setup-step-card-header">
+                        <div class="setup-step-title-group">
+                            <div class="setup-step-badge">03 <span class="fix-count" data-fix-count></span></div>
+                            <h2 class="setup-step-title" id="sec-network">Your network</h2>
+                        </div>
+                    </div>
+                    <p class="step-callout step-callout-danger fix-danger">
+                        <Fragment set:html={icon.warning} />
+                        <span><span class="visually-hidden">Warning: </span>Only change router settings on a network that's your own. On a school, work, hotel or café network, ask whoever runs it.</span>
+                    </p>
+                    <div class="fix-cards">
+                        <FixCard id="same-network" title="The two devices are on different networks" see="Their addresses don't share the same first three numbers.">
+                            <div><p class="fix-label">Why it happens</p><p class="step-desc">The game can only reach Track N Race on the same local network.</p></div>
+                            <div><p class="fix-label">Fix it</p><ol class="task-list">
+                                <li>Find the computer's address: <strong>This PC's address</strong> in Track N Race.</li>
+                                <li>Find the console's. PlayStation: <strong>Settings</strong> &rarr; <strong>Network</strong> &rarr; <strong>Connection Status</strong> &rarr; <strong>View Connection Status</strong>. Xbox: <strong>Settings</strong> &rarr; <strong>General</strong> &rarr; <strong>Network settings</strong> &rarr; <strong>Advanced settings</strong>.</li>
+                                <li>Compare the first three numbers. On most home networks they match.</li>
+                            </ol></div>
+                            <p class="step-desc">They don't match? Connect both devices to the same router, then check guest Wi-Fi and mesh Wi-Fi below.</p>
+                        </FixCard>
+
+                        <FixCard id="guest" title="One device is on guest Wi-Fi" see="Your router has a second Wi-Fi name, often ending in “Guest”.">
+                            <div><p class="fix-label">Why it happens</p><p class="step-desc">Guest networks usually stop devices from seeing each other.</p></div>
+                            <div><p class="fix-label">Fix it</p><ol class="task-list"><li>Connect both devices to your main Wi-Fi.</li></ol></div>
+                        </FixCard>
+
+                        <FixCard id="ap-isolation" title="Your router keeps devices apart (AP isolation)" see="Both are on the same Wi-Fi, every check is green, and still nothing arrives.">
+                            <div><p class="fix-label">Why it happens</p><p class="step-desc">AP isolation lets each device reach the internet but not each other. It's meant for cafés and offices, but some routers turn it on at home too.</p></div>
+                            <div>
+                                <p class="fix-label">What your router may call it</p>
+                                <p class="fix-names"><span>AP Isolation</span><span>Client Isolation</span><span>Wireless Isolation</span><span>Station Isolation</span><span>Allow devices to see each other (off)</span></p>
+                            </div>
+                            <div><p class="fix-label">Fix it</p><ol class="task-list">
+                                <li>Open your router's settings. See <a href="#fix-router-lookup">Finding your router's instructions</a>.</li>
+                                <li>Look in the Wi-Fi or Wireless settings, sometimes under Advanced.</li>
+                                <li>Turn it off for the network you play on, and save. The Wi-Fi may drop for a minute.</li>
+                            </ol></div>
+                        </FixCard>
+
+                        <FixCard id="mesh" title="Mesh Wi-Fi keeps devices apart" see="It works in one room but not another, or only when both are on Wi-Fi.">
+                            <div><p class="fix-label">Why it happens</p><p class="step-desc">Some mesh systems block devices on different units, or run as a second network behind your internet provider's router.</p></div>
+                            <div><p class="fix-label">Fix it</p><ol class="task-list">
+                                <li>Connect both devices to the same unit, or plug the computer into the unit nearest the console.</li>
+                                <li>Mesh behind your provider's router? Put one of them in <strong>Bridge</strong> or <strong>AP mode</strong>, so there's only one network.</li>
+                                <li>Check the mesh app for an isolation setting.</li>
+                            </ol></div>
+                        </FixCard>
+
+                        <FixCard id="router-lookup" title="Finding your router's instructions" see="Every brand names and places these settings differently.">
+                            <div><p class="fix-label">How</p><ol class="task-list">
+                                <li>Find the brand and model on the router's sticker.</li>
+                                <li>Open its settings: the brand's phone app, or the <strong>Default Gateway</strong> address in a browser. On Windows, <code>ipconfig</code> shows it.</li>
+                                <li>Search the maker's support site for your model and the setting, for example <code>&lt;brand&gt; &lt;model&gt; AP isolation</code>.</li>
+                                <li>Router from your internet provider? Their help pages or support can change it for you.</li>
+                            </ol></div>
+                            <p class="fix-warn"><Fragment set:html={icon.warning} /><span>Write a setting down before you change it, so you can put it back.</span></p>
+                        </FixCard>
+                    </div>
+                </section>
+
+                <!-- Android -->
+                <section class="setup-step-card fix-section" id="android" data-fix-section aria-labelledby="sec-android">
+                    <div class="setup-step-card-header">
+                        <div class="setup-step-title-group">
+                            <div class="setup-step-badge">04 <span class="fix-count" data-fix-count></span></div>
+                            <h2 class="setup-step-title" id="sec-android">Android</h2>
+                        </div>
+                    </div>
+                    <div class="fix-cards">
+                        <FixCard id="nearby" title="Android hasn't let Track N Race listen" see="The app says “Allow Nearby devices for Track N Race to receive telemetry and pair over Wi-Fi”." for={['android']}>
+                            <div><p class="fix-label">Fix it</p><ol class="task-list">
+                                <li>Open Android's <strong>Settings</strong> &rarr; <strong>Apps</strong> &rarr; <strong>Track N Race</strong> &rarr; <strong>Permissions</strong>.</li>
+                                <li>Allow <strong>Nearby devices</strong>.</li>
+                                <li>Go back to Track N Race.</li>
+                            </ol></div>
+                            <p class="fix-done"><Fragment set:html={icon.check} /><span>The message goes away, and data arrives once you're on track.</span></p>
+                        </FixCard>
+
+                        <FixCard id="vpn" title="The phone is on mobile data or a VPN" see="The address in the app's menu isn't your Wi-Fi address." for={['android']}>
+                            <div><p class="fix-label">Fix it</p><ol class="task-list">
+                                <li>Connect the phone to the same Wi-Fi as the console or PC.</li>
+                                <li>Turn off any VPN.</li>
+                                <li>Check the address in the app's menu again, and update the game.</li>
+                            </ol></div>
+                        </FixCard>
+
+                        <FixCard id="background" title="Data stops after you close the app" see="The dashboard stops updating after you swipe Track N Race away or stop it from its notification." for={['android']}>
+                            <div><p class="fix-label">Why it happens</p><p class="step-desc">The listener keeps running in the background, with the screen off or in other apps, until you stop it from its notification or close the app from the Recents menu.</p></div>
+                            <div><p class="fix-label">Fix it</p><ol class="task-list">
+                                <li>Open Track N Race again to restart the listener.</li>
+                                <li>To leave the app, press Home or switch apps instead of closing it from Recents.</li>
+                            </ol></div>
+                        </FixCard>
+                    </div>
+                </section>
+
+                <!-- Paired mode -->
+                <section class="setup-step-card fix-section" id="paired" data-fix-section aria-labelledby="sec-paired">
+                    <div class="setup-step-card-header">
+                        <div class="setup-step-title-group">
+                            <div class="setup-step-badge">05 <span class="fix-count" data-fix-count></span></div>
+                            <h2 class="setup-step-title" id="sec-paired">Paired mode</h2>
+                        </div>
+                    </div>
+                    <div class="fix-cards">
+                        <FixCard id="not-found" title="The phone can't find the desktop" see="Your computer isn't listed under Nearby desktops.">
+                            <div><p class="fix-label">Why it happens</p><p class="step-desc">Some networks block the discovery Paired mode uses, especially guest Wi-Fi and networks set as Public.</p></div>
+                            <div><p class="fix-label">Fix it</p><ol class="task-list">
+                                <li>On the desktop, click <strong>Pair a device</strong>.</li>
+                                <li>On the phone, tap <strong>Scan desktop QR</strong> and scan the code. The QR carries the address, so discovery isn't needed.</li>
+                            </ol></div>
+                        </FixCard>
+
+                        <FixCard id="wont-connect" title="Found, but won't connect" see="The phone sees the desktop, but pairing never finishes.">
+                            <div><p class="fix-label">Why it happens</p><p class="step-desc">Paired mode connects on TCP port 20779 on the computer, and its firewall can block it.</p></div>
+                            <div class="fix-tabscope" data-tabscope>
+                                <p class="fix-label">Fix it</p>
+                                <div class="fix-tabs js-only" role="tablist" aria-label="Computer">
+                                    <button type="button" role="tab" data-tab="windows" aria-selected="true">Windows</button>
+                                    <button type="button" role="tab" data-tab="macos" aria-selected="false">macOS</button>
+                                    <button type="button" role="tab" data-tab="linux" aria-selected="false">Linux</button>
+                                </div>
+                                <div class="fix-pane" data-pane="windows"><p class="fix-pane-label nojs-only">Windows</p><p class="step-desc">Open <strong>Check connection</strong> and click <strong>Allow through firewall</strong>. Its rule covers Paired mode too.</p></div>
+                                <div class="fix-pane" data-pane="macos"><p class="fix-pane-label nojs-only">macOS</p><p class="step-desc">Allow incoming connections for Track N Race in <strong>System Settings</strong> &rarr; <strong>Network</strong> &rarr; <strong>Firewall</strong> &rarr; <strong>Options</strong>.</p></div>
+                                <div class="fix-pane" data-pane="linux"><p class="fix-pane-label nojs-only">Linux</p><div class="command-box"><code>sudo ufw allow 20779/tcp</code><button class="copy-action-btn" type="button" data-copy="sudo ufw allow 20779/tcp"><Fragment set:html={icon.copy} /><span class="copy-label">Copy</span></button></div></div>
+                            </div>
+                        </FixCard>
+
+                        <FixCard id="pairing-closed" title="“Pairing is not open on the desktop”" see="The phone shows this when you scan or type the code.">
+                            <div><p class="fix-label">Why it happens</p><p class="step-desc">The pairing window only stays open for two minutes.</p></div>
+                            <div><p class="fix-label">Fix it</p><ol class="task-list">
+                                <li>On the desktop, click <strong>Pair a device</strong> again.</li>
+                                <li>Scan the new QR code, or type the new 8-character code.</li>
+                            </ol></div>
+                        </FixCard>
+
+                        <FixCard id="wrong-desktop" title="“This is not the desktop this phone paired with”" see="The phone shows this when it reconnects.">
+                            <div><p class="fix-label">Why it happens</p><p class="step-desc">Track N Race was reinstalled on the computer, so it's a new desktop to the phone.</p></div>
+                            <div><p class="fix-label">Fix it</p><ol class="task-list">
+                                <li>On the phone, tap <strong>Forget paired desktop</strong>.</li>
+                                <li>Pair again.</li>
+                            </ol></div>
+                        </FixCard>
+
+                        <FixCard id="camera" title="The phone can't scan the QR code" see="It says “Camera permission is required to scan the desktop QR code”.">
+                            <div><p class="fix-label">Fix it</p><ol class="task-list">
+                                <li>Allow <strong>Camera</strong> for Track N Race in Android's app settings.</li>
+                                <li>Or pick your computer under <strong>Nearby desktops</strong> and type the 8-character code.</li>
+                            </ol></div>
+                        </FixCard>
+
+                        <FixCard id="mac-keychain" title="Paired mode won't turn on on a Mac" see="Enable paired mode doesn't stay on." for={['macos']}>
+                            <div><p class="fix-label">Why it happens</p><p class="step-desc">Track N Race keeps pairing keys in the macOS keychain, which needs your permission.</p></div>
+                            <div><p class="fix-label">Fix it</p><ol class="task-list">
+                                <li>Open <strong>Settings</strong> &rarr; <strong>Paired Devices</strong>.</li>
+                                <li>Turn on <strong>Allow keychain access</strong> and restart Track N Race.</li>
+                                <li>Enter your login password when macOS asks. It asks because the app isn't signed with an Apple certificate.</li>
+                            </ol></div>
+                        </FixCard>
+                    </div>
+                </section>
+
+                <!-- Opening Track N Race -->
+                <section class="setup-step-card fix-section" id="opening" data-fix-section aria-labelledby="sec-opening">
+                    <div class="setup-step-card-header">
+                        <div class="setup-step-title-group">
+                            <div class="setup-step-badge">06 <span class="fix-count" data-fix-count></span></div>
+                            <h2 class="setup-step-title" id="sec-opening">Opening Track N Race</h2>
+                        </div>
+                    </div>
+                    <div class="fix-cards">
+                        <FixCard id="smartscreen" title="“Windows protected your PC”" see="A blue SmartScreen window appears when you run the .exe." for={['windows']}>
+                            <div><p class="fix-label">Why it happens</p><p class="step-desc">Track N Race isn't code-signed, so Windows asks once per version.</p></div>
+                            <div><p class="fix-label">Fix it</p><ol class="task-list">
+                                <li>Click <strong>More info</strong>.</li>
+                                <li>Click <strong>Run anyway</strong>.</li>
+                            </ol></div>
+                            <p class="step-desc">Edge says the file isn't commonly downloaded? In the downloads list, click <strong>…</strong> &rarr; <strong>Keep</strong> &rarr; <strong>Show more</strong> &rarr; <strong>Keep anyway</strong>.</p>
+                        </FixCard>
+
+                        <FixCard id="mac-blocked" title="macOS won't open Track N Race" see="“Track N Race” Not Opened, or it says the app is damaged." for={['macos']}>
+                            <div><p class="fix-label">Why it happens</p><p class="step-desc">Track N Race isn't signed with an Apple Developer certificate, so macOS blocks the first launch.</p></div>
+                            <div><p class="fix-label">Fix it</p><ol class="task-list">
+                                <li>Drag Track N Race into <strong>Applications</strong> and open it. When macOS blocks it, click <strong>Done</strong>.</li>
+                                <li>Open <strong>System Settings</strong> &rarr; <strong>Privacy &amp; Security</strong> and click <strong>Open Anyway</strong>.</li>
+                                <li>Open Track N Race again, click <strong>Open Anyway</strong> and enter your password.</li>
+                            </ol></div>
+                            <div>
+                                <p class="fix-label">Says the app is damaged?</p>
+                                <div class="command-box"><code>xattr -dr com.apple.quarantine "/Applications/Track N Race.app"</code><button class="copy-action-btn" type="button" data-copy='xattr -dr com.apple.quarantine "/Applications/Track N Race.app"'><Fragment set:html={icon.copy} /><span class="copy-label">Copy</span></button></div>
+                            </div>
+                        </FixCard>
+
+                        <FixCard id="linux-appimage" title="The AppImage won't start" see="Double-clicking it does nothing." for={['linux']}>
+                            <div><p class="fix-label">Fix it</p><ol class="task-list">
+                                <li>Mark it executable, in the folder you downloaded it to:</li>
+                            </ol>
+                            <div class="command-box"><code>chmod +x Track-N-Race-*.AppImage</code><button class="copy-action-btn" type="button" data-copy="chmod +x Track-N-Race-*.AppImage"><Fragment set:html={icon.copy} /><span class="copy-label">Copy</span></button></div></div>
+                            <p class="step-desc">Still nothing? AppImages need FUSE 2. Install <code>libfuse2</code>, or <code>libfuse2t64</code> on Ubuntu 24.04 and later.</p>
+                        </FixCard>
+                    </div>
+                </section>
+            </div>
+
+            <p class="fix-empty js-only" id="fixEmpty" hidden>No fixes match. Try another word, or pick Everything.</p>
+        </div>
+        <!-- Copy results, read out by screen readers (scripts/copy.js) -->
+        <p class="visually-hidden" id="copyStatus" role="status"></p>
+    </main>
+
+    <script>
+        import '../scripts/troubleshooting.js';
+    </script>
+</Base>

@@ -1,0 +1,27 @@
+---
+// One problem on the Troubleshooting page (pages/troubleshooting.astro): a fold with the problem in plain words and
+// what you'll see, which opens to the fix. Each has its own link (#fix-<id>), which opens it
+// (scripts/troubleshooting.js). "for" lists the setups it applies to, for the page's filter.
+type For = 'windows' | 'macos' | 'linux' | 'android';
+interface Props {
+    id: string;
+    title: string;
+    see: string;
+    for?: For[];
+}
+const ALL: For[] = ['windows', 'macos', 'linux', 'android'];
+const LABELS: Record<For, string> = { windows: 'Windows', macos: 'macOS', linux: 'Linux', android: 'Android' };
+const { id, title, see } = Astro.props;
+const forList = Astro.props.for ?? ALL;
+---
+<details class="fix-card" id={`fix-${id}`} data-for={forList.join(' ')}>
+    <summary>
+        <span class="fix-card-text">
+            <span class="fix-card-title">{title}</span>
+            <span class="fix-card-see">{see}</span>
+        </span>
+        <span class="fix-card-tags">{forList.length <= 2 && forList.map(os => <span>{LABELS[os]}</span>)}</span>
+        <span class="fix-card-mark" aria-hidden="true"></span>
+    </summary>
+    <div class="fix-card-body"><slot /></div>
+</details>

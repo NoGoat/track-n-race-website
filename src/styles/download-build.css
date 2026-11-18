@@ -4,7 +4,7 @@
    Setup link at the end of the Download page (components/DownloadNext.astro).
    ========================================================================== */
 /* The Setup link: text on the left, the button on the right, folding under it when there's no room */
-.download-next {
+.download-next-row {
     display: flex;
     flex-wrap: wrap;
     align-items: center;
@@ -23,10 +23,9 @@
 }
 
 .download-next-title {
-    margin-top: 0.35rem;
-    font-size: 1.05rem;
+    margin-top: 0.3rem;
+    font-size: 1.1rem;
     font-weight: 600;
-    line-height: 1.3;
     letter-spacing: -0.02em;
 }
 
@@ -63,33 +62,24 @@
     white-space: nowrap;
 }
 
-/* A build's name, description and data rows */
-.download-build-name {
-    margin-top: 0.35rem;
-    font-size: 1.1rem;
-    font-weight: 600;
-    letter-spacing: -0.02em;
-}
-
+/* A build's description and data rows */
 .download-build-desc {
-    margin-top: 0.4rem;
-    font-size: 0.85rem;
-    line-height: 1.55;
+    font-size: 0.975rem;
+    line-height: 1.65;
     color: var(--text-2);
 }
 
-/* Data rows in the mono label style; margin-top: auto lines them up across columns */
-.download-build-specs {
-    margin-top: auto;
-    padding-top: 1.25rem;
-}
-
+/* Data rows: mono label on the left, value on the right, a hairline above the first and under each */
 .download-build-specs div {
     display: flex;
-    align-items: baseline;
+    align-items: center;
     justify-content: space-between;
     gap: 1rem;
-    padding: 0.5rem 0;
+    padding: 0.55rem 0;
+    border-bottom: 1px solid var(--line);
+}
+
+.download-build-specs div:first-child {
     border-top: 1px solid var(--line);
 }
 
@@ -102,9 +92,29 @@
 }
 
 .download-build-specs dd {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
     font-family: var(--font-mono);
     font-size: 0.8rem;
     color: var(--text);
+}
+
+/* Memory use as three segments, lit in the frontend's colour (styles/download.css sets --build) */
+.dl-meter {
+    display: flex;
+    gap: 3px;
+}
+
+.dl-meter i {
+    width: 12px;
+    height: 4px;
+    border-radius: 1px;
+    background: var(--surface-3);
+}
+
+.dl-meter i.on {
+    background: var(--build, var(--text-2));
 }
 
 /* The download itself, full card width. styles/download.css gives it the primary button's white fill. */

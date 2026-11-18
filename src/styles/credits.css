@@ -1,6 +1,6 @@
 /* ==========================================================================
    Credits — library browser
-   Grouped project list beside a sticky license reader (module-switcher pattern).
+   Header with at-a-glance rows, then a grouped project list beside an open license reader.
    ========================================================================== */
 /* Credits fits one screen, footer included: the body is exactly the window height
    (640px minimum), the footer keeps its natural height and the credits section takes
@@ -46,22 +46,55 @@ body.page-fit main {
     font-size: 0.925rem;
 }
 
-/* Stack colours reuse the app trace colours from the home page carousel */
-[data-stack="core"] { --stack: #f9d923; }
-[data-stack="electron"] { --stack: #4a8cf2; }
-[data-stack="qt"] { --stack: #4cbb4c; }
+/* Label left, value right: the data-row style of the download columns */
+.reader-specs div {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 0.5rem 0;
+    border-bottom: 1px solid var(--line);
+}
+
+.reader-specs div:first-child {
+    border-top: 1px solid var(--line);
+}
+
+.reader-specs dt {
+    flex-shrink: 0;
+    font-family: var(--font-mono);
+    font-size: 0.66rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text-3);
+}
+
+.reader-specs dd {
+    min-width: 0;
+    margin: 0;
+    font-family: var(--font-mono);
+    font-size: 0.8rem;
+    color: var(--text);
+}
+
+/* Stacks in the frontend colours (home page frontends, download columns). Core is shared by every build,
+   so it keeps the app's ERS yellow */
+[data-stack="core"] { --stack: var(--trace-yellow); }
+[data-stack="electron"] { --stack: var(--trace-periwinkle); }
+[data-stack="qt"] { --stack: var(--trace-lilac); }
+[data-stack="android"] { --stack: var(--trace-mint); }
 
 /* height: 0 + flex-grow means the browser takes exactly the leftover space and its
-   28-row list never props it open; min-height is the floor the page scrolls beyond */
+   long list never props it open; min-height is the floor the page scrolls beyond */
 .library {
     flex: 1 1 0;
     height: 0;
     min-height: 250px;
     display: grid;
-    grid-template-columns: 300px minmax(0, 1fr);
+    grid-template-columns: 280px minmax(0, 1fr);
     grid-template-rows: minmax(0, 1fr);
-    gap: 2.5rem;
-    margin-top: 1.5rem;
+    column-gap: 3.5rem;
+    margin-top: 1.75rem;
 }
 
 .library-list {
@@ -74,7 +107,7 @@ body.page-fit main {
 }
 
 .library-group + .library-group {
-    margin-top: 1.25rem;
+    margin-top: 1.5rem;
 }
 
 .library-group-title {
@@ -84,11 +117,26 @@ body.page-fit main {
     gap: 0.6rem;
     padding-bottom: 0.5rem;
     font-family: var(--font-mono);
-    font-size: 0.7rem;
+    font-size: 0.68rem;
     font-weight: 500;
     letter-spacing: 0.08em;
     text-transform: uppercase;
     color: var(--text-2);
+}
+
+/* The stack's dash, like the bullets of the feature lists */
+.library-group-name {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6rem;
+}
+
+.library-group-name::before {
+    content: "";
+    width: 10px;
+    height: 2px;
+    border-radius: 1px;
+    background: var(--stack);
 }
 
 .library-count {
@@ -104,7 +152,7 @@ body.page-fit main {
     border-bottom: 1px solid var(--line);
 }
 
-/* Same row language as the Frontends page's module list: red bar marks the active item */
+/* The site's active mark: a 2px bar, here in the project's stack colour */
 .library-item {
     position: relative;
     display: flex;
@@ -112,7 +160,7 @@ body.page-fit main {
     justify-content: space-between;
     gap: 1rem;
     width: 100%;
-    padding: 0.42rem 0 0.42rem 1rem;
+    padding: 0.45rem 0 0.45rem 1rem;
     background: transparent;
     border: none;
     color: var(--text-2);
@@ -132,7 +180,7 @@ body.page-fit main {
     top: 50%;
     width: 2px;
     height: 0;
-    background: var(--accent);
+    background: var(--stack);
     transform: translateY(-50%);
     transition: height 0.2s var(--ease);
 }
@@ -156,7 +204,7 @@ body.page-fit main {
 .library-spdx {
     flex-shrink: 0;
     font-family: var(--font-mono);
-    font-size: 0.72rem;
+    font-size: 0.7rem;
     color: var(--text-3);
 }
 
@@ -164,88 +212,93 @@ body.page-fit main {
     color: var(--text-2);
 }
 
-/* Reader fills the browser's height (250px minimum); only the license text scrolls inside */
+/* Reader: open, no card. The head and the text sit between hairlines and only the text scrolls */
 .library-reader {
+    position: relative;
     min-height: 250px;
+    min-width: 0;
     display: flex;
     flex-direction: column;
-    border: 1px solid var(--line);
-    border-radius: var(--radius-lg);
-    background: var(--surface);
-    overflow: hidden;
+}
+
+/* The column divider, drawn down the middle of the gap. It starts at the header's rule (across the library's
+   1.75rem top margin), so the two lines meet */
+.library-reader::before {
+    content: "";
+    position: absolute;
+    top: -1.75rem;
+    bottom: 0;
+    left: -1.75rem;
+    border-left: 1px solid var(--line);
 }
 
 .reader-head {
     display: flex;
-    align-items: flex-start;
+    align-items: flex-end;
     justify-content: space-between;
-    gap: 1rem;
-    padding: 1.1rem 1.4rem 1rem;
-    border-bottom: 1px solid var(--line);
+    gap: 2rem;
+    padding-bottom: 1.25rem;
 }
 
 .reader-title {
     display: flex;
     flex-direction: column;
-    gap: 0.4rem;
+    gap: 0.45rem;
     min-width: 0;
 }
 
-.reader-name {
-    font-size: 1.35rem;
-    font-weight: 600;
-    line-height: 1.15;
-    letter-spacing: -0.03em;
-}
-
-.reader-meta {
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-    font-family: var(--font-mono);
-    font-size: 0.72rem;
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
-    color: var(--text-3);
-}
-
 .reader-stack {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.5rem;
+    font-family: var(--font-mono);
+    font-size: 0.68rem;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--stack);
 }
 
-.reader-stack::before {
-    content: "";
-    width: 3px;
-    height: 11px;
-    border-radius: 1px;
-    background: var(--stack);
+.reader-name {
+    font-size: 1.6rem;
+    font-weight: 600;
+    line-height: 1.1;
+    letter-spacing: -0.035em;
+    overflow-wrap: anywhere;
 }
 
-.reader-spdx {
-    color: var(--text);
+.reader-specs {
+    flex: 0 0 320px;
+    min-width: 0;
+    margin: 0;
 }
 
 .reader-link {
-    flex-shrink: 0;
     display: inline-flex;
     align-items: center;
-    gap: 0.4rem;
-    height: 32px;
-    padding: 0 0.75rem;
-    border: 1px solid var(--line-strong);
-    border-radius: var(--radius-sm);
-    color: var(--text-2);
-    font-size: 0.8rem;
-    font-weight: 500;
+    gap: 0.35rem;
+    max-width: 100%;
+    color: var(--text);
     text-decoration: none;
-    transition: color var(--fast), border-color var(--fast);
+    transition: color var(--fast);
 }
 
 .reader-link:hover {
-    color: var(--text);
-    border-color: var(--line-hover);
+    color: var(--stack);
+}
+
+.reader-link svg {
+    flex-shrink: 0;
+    color: var(--text-3);
+    transition: color var(--fast);
+}
+
+.reader-link:hover svg {
+    color: currentColor;
+}
+
+.reader-site {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 .reader-text {
@@ -253,7 +306,9 @@ body.page-fit main {
     min-height: 0;
     overflow-y: auto;
     margin: 0;
-    padding: 1.1rem 1.4rem 1.4rem;
+    padding: 1.1rem 0 1.4rem;
+    border-top: 1px solid var(--line);
+    border-bottom: 1px solid var(--line);
     white-space: pre-wrap;
     font-family: var(--font-mono);
     font-size: 0.78rem;
@@ -264,7 +319,7 @@ body.page-fit main {
     transition: opacity 0.15s var(--ease);
 }
 
-/* Focusable to scroll it from the keyboard; the ring goes inside the reader's frame */
+/* Focusable to scroll it from the keyboard; the ring goes inside the text's frame */
 .reader-text:focus-visible {
     outline-offset: -2px;
 }
@@ -273,14 +328,40 @@ body.page-fit main {
     opacity: 0.4;
 }
 
+/* Mid widths: the reader's rows go under the project name */
+@media (max-width: 1100px) {
+    .reader-head {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 0.9rem;
+    }
+
+    .reader-specs {
+        flex-basis: auto;
+    }
+}
+
+/* Phone-only parts: the stack tabs and each stack's one-line description */
+.stack-tabs,
+.library-group-desc {
+    display: none;
+}
+
 @media (max-width: 860px) {
-    /* Credits: the list becomes a scrolling strip of project tabs above the reader */
+    /* Credits on phones: the list is the page, one stack at a time under the site's underline tabs, and a project
+       opens in the bottom sheet (.license-sheet, below). The page scrolls like any other. */
+    body.page-fit {
+        height: auto;
+        min-height: 100vh;
+        min-height: 100dvh;
+    }
+
     .section.attributions-section {
-        padding: calc(var(--nav-h) + 28px) var(--gutter) 16px;
+        padding: calc(var(--nav-h) + 28px) var(--gutter) 48px;
     }
 
     .attributions-section .page-header {
-        padding-bottom: 1rem;
+        padding-bottom: 1.25rem;
     }
 
     .attributions-section .page-header .section-desc {
@@ -289,92 +370,121 @@ body.page-fit main {
     }
 
     .library {
-        grid-template-columns: minmax(0, 1fr);
-        grid-template-rows: auto minmax(0, 1fr);
-        gap: 1rem;
-        min-height: calc(250px + 2.6rem + 1rem);   /* reader floor + project strip + gap */
-        margin-top: 0.75rem;
+        display: block;
+        flex: none;
+        height: auto;
+        min-height: 0;
+        margin-top: 1.25rem;
+    }
+
+    .library-reader::before {
+        display: none;
     }
 
     .library-list {
-        display: flex;
-        align-items: center;
-        gap: 1.5rem;
-        overflow-x: auto;
-        overflow-y: hidden;
-        scrollbar-width: none;
-        margin-right: calc(var(--gutter) * -1);
-        padding-right: var(--gutter);
-        box-shadow: inset 0 -1px 0 var(--line);
+        overflow: visible;
+        padding-right: 0;
     }
 
-    .library-list::-webkit-scrollbar {
+    /* Setup's and the Gallery's tabs, the picked one underlined in its stack's colour */
+    .stack-tabs {
+        display: flex;
+    }
+
+    .no-js .stack-tabs {
         display: none;
     }
 
-    .library-group {
-        display: flex;
+    .stack-tab {
+        flex: 1 1 0;
+        min-width: 0;
+        display: inline-flex;
         align-items: center;
-        gap: 1rem;
-        flex-shrink: 0;
+        justify-content: center;
+        gap: 0.3rem;
+        min-height: 44px;
+        padding: 0 0.2rem;
+        background: transparent;
+        border: 0;
+        border-bottom: 1px solid var(--line-strong);
+        color: var(--text-2);
+        font-family: var(--font-sans);
+        font-size: 0.9rem;
+        cursor: pointer;
+        transition: color var(--fast), border-color var(--fast);
     }
 
-    .library-group + .library-group {
+    .stack-tab:hover {
+        color: var(--text);
+    }
+
+    .stack-tab[aria-pressed="true"] {
+        color: var(--text);
+        border-bottom-color: var(--stack);
+    }
+
+    .stack-tab:focus-visible {
+        outline-offset: -2px;
+    }
+
+    .stack-tab-count {
+        font-family: var(--font-mono);
+        font-size: 0.65rem;
+        color: var(--text-3);
+    }
+
+    /* With the script, only the picked stack shows and its tab names it; without it, every stack is listed */
+    .js .library-group:not(.is-shown),
+    .js .library-group-title {
+        display: none;
+    }
+
+    .js .library-group + .library-group {
         margin-top: 0;
     }
 
-    .library-group-title {
-        padding: 0;
-        font-size: 0.65rem;
-        white-space: nowrap;
+    .library-group-desc {
+        display: block;
+        padding: 1rem 0 0.6rem;
+        font-size: 0.82rem;
+        color: var(--text-3);
     }
 
-    .library-items {
-        display: flex;
-        gap: 1rem;
-        border-top: none;
+    .js .library-items {
+        border-top-color: var(--line);
     }
 
-    .library-items li {
-        border-bottom: none;
-    }
-
+    /* Full-width rows, each with its stack's dash; the sheet shows which one is open, so no active bar */
     .library-item {
-        width: auto;
-        padding: 0.65rem 0;
-        border-bottom: 1px solid transparent;
-        white-space: nowrap;
+        align-items: center;
+        min-height: 48px;
+        padding: 0.5rem 0 0.5rem 1.4rem;
+        color: var(--text);
+        font-size: 0.92rem;
     }
 
     .library-item::before,
-    .library-spdx {
-        display: none;
-    }
-
-    .library-item.active {
-        border-bottom-color: var(--accent);
-    }
-
-    .library-name {
-        overflow: visible;
+    .library-item.active::before {
+        width: 10px;
+        height: 1px;
+        transition: none;
     }
 
     .reader-head {
-        padding: 0.9rem 1rem 0.8rem;
+        gap: 0.7rem;
+        padding-bottom: 0.8rem;
     }
 
     .reader-name {
-        font-size: 1.1rem;
+        font-size: 1.25rem;
     }
 
-    .reader-link {
-        height: 30px;
-        padding: 0 0.6rem;
-        font-size: 0.75rem;
+    .reader-specs div {
+        padding: 0.4rem 0;
     }
 
     .reader-text {
-        padding: 0.9rem 1rem 1rem;
+        padding: 0.9rem 0 1rem;
         font-size: 0.72rem;
         line-height: 1.65;
     }
@@ -423,26 +533,143 @@ body.page-fit main {
     }
 }
 
-/* On phones the list is the project strip: with no reader under it, it wraps instead of scrolling */
+/* On phones every stack is listed in turn, its title and description over it, each row keeping its dash */
 @media (max-width: 860px) {
-    .no-js .library-list {
-        flex-direction: column;
-        align-items: stretch;
-        gap: 1rem;
-        overflow: visible;
-        margin-right: 0;
-        padding-right: 0;
-        box-shadow: none;
+    .no-js .library-item.active::before {
+        height: 1px;
     }
+}
 
-    .no-js .library-group {
-        flex-wrap: wrap;
-        align-items: baseline;
-        flex-shrink: 1;
-    }
+/* ==========================================================================
+   License sheet (phones): the reader slides up from the bottom. The license pop-up's overlay and surface
+   (styles/site.css), opened and closed by scripts/dialog.js, which adds .active a frame after opening and closes
+   the dialog 200ms after taking it off.
+   The overlay's tint and blur are what animate, never its opacity: opacity would fade the panel along with it
+   (it sat half see-through all the way up and down), and a blur under a changing opacity pops in at the end.
+   Opening eases out (fast, then settling); closing eases in and is done inside the 200ms.
+   ========================================================================== */
+.license-sheet {
+    position: fixed;
+    inset: 0;
+    z-index: 10000;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    width: 100%;
+    max-width: none;
+    height: 100%;
+    max-height: none;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    /* clip, not just hidden: a hidden box can still be scrolled by the browser. showModal() focuses the first
+       control in the panel while it's still pushed below the screen, which scrolled the dialog to bring it into
+       view, so the panel jumped to the top and then slid back down as the slide-up ran. clip can't be scrolled. */
+    overflow: hidden;
+    overflow: clip;
+    background: rgba(5, 5, 6, 0);
+    backdrop-filter: blur(0);
+    -webkit-backdrop-filter: blur(0);
+    color: var(--text);
+    transition: background-color 0.2s ease-in, backdrop-filter 0.2s ease-in, -webkit-backdrop-filter 0.2s ease-in;
+}
 
-    .no-js .library-items {
-        flex-wrap: wrap;
-        gap: 0 1rem;
+.license-sheet:not([open]) {
+    display: none;
+}
+
+.license-sheet.active {
+    background: rgba(5, 5, 6, 0.8);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+    transition-duration: 0.25s;
+    transition-timing-function: ease-out;
+}
+
+.license-sheet::backdrop {
+    background: transparent;
+}
+
+.sheet-panel {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    height: 85vh;
+    height: 85dvh;
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+    background: var(--surface);
+    border-top: 1px solid var(--line-strong);
+    border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+    box-shadow: 0 -24px 64px rgba(0, 0, 0, 0.6);
+    transform: translateY(100%);
+    transition: transform 0.18s cubic-bezier(0.4, 0, 1, 1);
+    will-change: transform;
+}
+
+.license-sheet.active .sheet-panel {
+    transform: none;
+    transition: transform 0.32s var(--ease);
+}
+
+/* While a drag follows the finger (scripts/credits.js) */
+.license-sheet.active .sheet-panel.is-dragging {
+    transition: none;
+}
+
+/* The handle: drag it down to close */
+.sheet-grab {
+    flex-shrink: 0;
+    display: flex;
+    justify-content: center;
+    padding: 10px 0 14px;
+    cursor: grab;
+    touch-action: none;
+}
+
+.sheet-grab::before {
+    content: "";
+    width: 36px;
+    height: 4px;
+    border-radius: 2px;
+    background: var(--line-hover);
+}
+
+/* The pop-up's close button, at a touch size */
+.modal-close.sheet-close {
+    position: absolute;
+    top: 18px;
+    right: calc(var(--gutter) - 8px);
+    z-index: 1;
+    width: 40px;
+    height: 40px;
+}
+
+.sheet-body {
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    padding: 0 var(--gutter);
+}
+
+.license-sheet .library-reader {
+    flex: 1;
+    min-height: 0;
+}
+
+/* Room for the close button beside the stack and name */
+.license-sheet .reader-title {
+    padding-right: 2.75rem;
+}
+
+.license-sheet .reader-text {
+    overscroll-behavior: contain;
+    border-bottom: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .license-sheet,
+    .sheet-panel {
+        transition: none;
     }
 }

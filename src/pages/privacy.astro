@@ -31,9 +31,9 @@ const jsonLd = {
       "@id": "https://track-n-race.com/privacy/#webpage",
       "url": "https://track-n-race.com/privacy/",
       "name": "Privacy Policy — Track N Race Android App, Desktop App & Website",
-      "description": "Privacy Policy for the Track N Race Android app, Desktop app and website describing how they handle telemetry data, device permissions, local storage, update checks, website download counts, and user privacy.",
+      "description": "Privacy Policy for the Track N Race Android app, Desktop app and website describing how they handle telemetry data, device permissions, local storage, update checks and app updates, website download counts, and user privacy.",
       "inLanguage": "en-US",
-      "dateModified": "2026-11-01",
+      "dateModified": "2026-11-18",
       "isPartOf": { "@id": "https://track-n-race.com/#website" }
     }
   ]
@@ -50,7 +50,7 @@ const jsonLd = {
             <div class="page-header">
                 <h1 class="main-title">Privacy <span class="gradient-text">Policy</span></h1>
                 <p class="subtitle">Covers the Track N Race Android app, Desktop app and website.</p>
-                <p class="privacy-last-updated">Last Updated: <time datetime="2026-11-01">November 1, 2026</time></p>
+                <p class="privacy-last-updated">Last Updated: <time datetime="2026-11-18">November 18, 2026</time></p>
             </div>
 
             <!-- Policy Body -->
@@ -77,8 +77,8 @@ const jsonLd = {
                             </div>
                         </dl>
                         <p>The Android App and the Desktop App are referred to together as the "Apps." The Apps, together with the Website, are referred to as the "Services."</p>
-                        <p>The Apps are designed to operate without a backend server or cloud-based data processing infrastructure. We do not operate a service that collects telemetry, account information, or other personal information from the Apps. Communications required for their core functionality take place between compatible devices on the user's local network. The limited exceptions, such as optional update checks in the Desktop App, are described in this Policy.</p>
-                        <p>The Website collects a small amount of anonymous usage information, described in Section 6.</p>
+                        <p>The Apps are designed to operate without a backend server or cloud-based data processing infrastructure. We do not operate a service that collects telemetry, account information, or other personal information from the Apps. Communications required for their core functionality take place between compatible devices on the user's local network. The limited exception is the Apps' optional update checks and the update downloads that follow them, described in Section 4.2.</p>
+                        <p>The update service keeps anonymous counts of update checks, described in Section 4.2, and the Website collects a small amount of anonymous usage information, described in Section 6.</p>
                         <p>By using the Services, you acknowledge the practices described in this Privacy Policy.</p>
                     </div>
                 </section>
@@ -110,8 +110,9 @@ const jsonLd = {
                             <li>Application preferences and configuration.</li>
                             <li>Pairing information and reconnection credentials for paired devices.</li>
                             <li>Optional telemetry session recordings.</li>
-                            <li>Files you choose to create, such as spreadsheet exports or screenshots.</li>
+                            <li>Files you choose to create, such as spreadsheet or Parquet exports and screenshots.</li>
                             <li>Diagnostic logs and crash dumps (Desktop App, see Section 4.3).</li>
+                            <li>Downloaded app updates, kept temporarily until they are installed (see Section 4.2).</li>
                             <li>Other data necessary for the Apps to function.</li>
                         </ul>
                         <p>This information remains under your control, subject to file system permissions, operating system behavior, and any actions you take to export or share it.</p>
@@ -139,7 +140,7 @@ const jsonLd = {
                                 <span class="privacy-permission-value">Camera access is used for real-time QR code recognition. Camera frames are processed on the device and are not intended to be saved as photographs or video recordings or transmitted over a network by the Android App.</span>
                             </div>
                         </div>
-                        <p>You may revoke camera permission through Android settings. QR-based pairing will not be available while camera access is denied, although other functionality may remain available.</p>
+                        <p>Camera access is optional. You can also pair by entering the pairing code shown by the Desktop App, which does not use the camera. The code is checked through a cryptographic exchange and is not itself sent over the network. You may revoke camera permission through Android settings. QR-based pairing will not be available while camera access is denied, but code pairing and other functionality remain available.</p>
 
                         <h3 class="privacy-subsection-title">3.2 Network and Wi-Fi Access</h3>
                         <div class="privacy-permission-block">
@@ -149,16 +150,17 @@ const jsonLd = {
                                     <code>android.permission.INTERNET</code>,
                                     <code>android.permission.ACCESS_NETWORK_STATE</code>,
                                     <code>android.permission.ACCESS_WIFI_STATE</code>,
-                                    and any applicable local-network permissions supported by the targeted Android version.
+                                    <code>android.permission.ACCESS_LOCAL_NETWORK</code> (on Android versions that require it),
+                                    and any other applicable local-network permissions supported by the targeted Android version.
                                 </span>
                             </div>
                             <div class="privacy-permission-row">
                                 <span class="privacy-permission-label">Purpose</span>
-                                <span class="privacy-permission-value">Network access supports receiving racing simulation telemetry over the local network (including UDP packets on the configured port, which defaults to <code>20777</code> where applicable), discovering compatible Desktop Apps through mDNS/DNS-SD, and exchanging telemetry, pairing information, and control messages with a paired Desktop App over local WebSocket connections.</span>
+                                <span class="privacy-permission-value">Network access supports receiving racing simulation telemetry over the local network (including UDP packets on the configured port, which defaults to <code>20777</code> where applicable), discovering compatible Desktop Apps through mDNS/DNS-SD, and exchanging telemetry, pairing information, and control messages with a paired Desktop App over local WebSocket connections. Internet access is also used for optional update checks and update downloads, described in Section 4.2.</span>
                             </div>
                             <div class="privacy-permission-row">
                                 <span class="privacy-permission-label">Data handling</span>
-                                <span class="privacy-permission-value">The Android App is designed to exchange operational data between compatible devices on the user's local network. It does not intentionally transmit telemetry or pairing information to an external Track N Race backend, cloud service, advertising network, or analytics service.</span>
+                                <span class="privacy-permission-value">The Android App is designed to exchange operational data between compatible devices on the user's local network. It does not transmit telemetry or pairing information to the update service or to any cloud service, advertising network, or analytics service.</span>
                             </div>
                         </div>
                         <p>The Android App's network functionality depends on the configuration of the user's network and compatible devices.</p>
@@ -171,37 +173,87 @@ const jsonLd = {
                             </div>
                             <div class="privacy-permission-row">
                                 <span class="privacy-permission-label">Purpose</span>
-                                <span class="privacy-permission-value">The Android App may use a wake lock or an appropriate Wi-Fi performance lock, where supported, to reduce power-saving interruptions that could affect network reliability during an active session.</span>
+                                <span class="privacy-permission-value">The Android App may use a wake lock or an appropriate Wi-Fi performance lock, where supported, to reduce power-saving interruptions that could affect network reliability during an active session, both while the Android App is on screen and while the background listener described in Section 3.4 is running.</span>
                             </div>
                         </div>
                         <p>This permission is used to support the Android App's operation and is not used to collect personal information.</p>
+
+                        <h3 class="privacy-subsection-title">3.4 Background Listener and Notifications</h3>
+                        <div class="privacy-permission-block">
+                            <div class="privacy-permission-row">
+                                <span class="privacy-permission-label">Permissions</span>
+                                <span class="privacy-permission-value">
+                                    <code>android.permission.FOREGROUND_SERVICE</code>,
+                                    <code>android.permission.FOREGROUND_SERVICE_SPECIAL_USE</code>,
+                                    <code>android.permission.POST_NOTIFICATIONS</code>
+                                </span>
+                            </div>
+                            <div class="privacy-permission-row">
+                                <span class="privacy-permission-label">Purpose</span>
+                                <span class="privacy-permission-value">When you leave the Android App during a telemetry session, a foreground service keeps receiving telemetry, and recording if recording is on, so the session is not interrupted. While it runs, Android shows an ongoing notification with the listener's status and a control to stop it. Notifications are also used to tell you when the Android App has been updated.</span>
+                            </div>
+                            <div class="privacy-permission-row">
+                                <span class="privacy-permission-label">Data handling</span>
+                                <span class="privacy-permission-value">The background listener handles the same local-network telemetry as the Android App on screen, as described in Section 3.2. It does not collect additional information.</span>
+                            </div>
+                        </div>
+                        <p>You can stop the listener from its notification or by closing the Android App from the recent apps screen. You can turn off notifications through Android settings.</p>
+
+                        <h3 class="privacy-subsection-title">3.5 Installing Updates</h3>
+                        <div class="privacy-permission-block">
+                            <div class="privacy-permission-row">
+                                <span class="privacy-permission-label">Permission</span>
+                                <code class="privacy-permission-value">android.permission.REQUEST_INSTALL_PACKAGES</code>
+                            </div>
+                            <div class="privacy-permission-row">
+                                <span class="privacy-permission-label">Purpose</span>
+                                <span class="privacy-permission-value">Lets the Android App install a verified update of itself when you choose "Update now" (see Section 4.2). Android asks you to allow this the first time.</span>
+                            </div>
+                            <div class="privacy-permission-row">
+                                <span class="privacy-permission-label">Data handling</span>
+                                <span class="privacy-permission-value">The permission is used only to install Track N Race updates. It is not used to install other apps or to collect information about the apps on your device.</span>
+                            </div>
+                        </div>
+                        <p>If you do not allow it, you can still download updates yourself from the release page.</p>
                     </div>
                 </section>
 
                 <!-- Section 4 -->
                 <section class="privacy-section" id="desktop-app">
-                    <h2 class="privacy-section-title">4. Desktop App Network Use and Diagnostics</h2>
+                    <h2 class="privacy-section-title">4. Network Use, Updates and Diagnostics</h2>
                     <div class="privacy-section-content">
-                        <h3 class="privacy-subsection-title">4.1 Local Network</h3>
+                        <h3 class="privacy-subsection-title">4.1 Desktop App Local Network</h3>
                         <p>The Desktop App listens for racing simulation telemetry over UDP on the configured port (which defaults to <code>20777</code> where applicable). When pairing with the Android App is used, the Desktop App advertises itself on the local network through mDNS/DNS-SD and accepts local WebSocket connections from paired devices. This traffic stays on your local network.</p>
 
-                        <h3 class="privacy-subsection-title">4.2 Update Checks</h3>
+                        <h3 class="privacy-subsection-title">4.2 Update Checks and Updates</h3>
                         <div class="privacy-permission-block">
                             <div class="privacy-permission-row">
-                                <span class="privacy-permission-label">Builds</span>
-                                <span class="privacy-permission-value">Electron and Native. The Minimal build does not check for updates.</span>
+                                <span class="privacy-permission-label">Apps</span>
+                                <span class="privacy-permission-value">The Android App and the Electron and Native Desktop App builds. The Minimal build does not check for updates.</span>
                             </div>
                             <div class="privacy-permission-row">
-                                <span class="privacy-permission-label">What happens</span>
-                                <span class="privacy-permission-value">At most once every 24 hours, on launch, the Desktop App asks GitHub's public API (<code>api.github.com</code>) for the version number of the latest Track N Race release and tells you if a newer one is available.</span>
+                                <span class="privacy-permission-label">Update check</span>
+                                <span class="privacy-permission-value">Each time the App starts, it asks the Track N Race update service at <code>api.track-n-race.com</code> whether a newer release is available. The request contains only which App it is (Android, Electron or Native), the operating system, the processor architecture, the package type (for example installer or AppImage), and the installed version. If you choose "Remind me later," the App does not check again for a day.</span>
+                            </div>
+                            <div class="privacy-permission-row">
+                                <span class="privacy-permission-label">Fallback</span>
+                                <span class="privacy-permission-value">If the update service cannot be reached, the App instead asks GitHub's public API (<code>api.github.com</code>), at most once every 24 hours, for the version number of the latest Track N Race release.</span>
+                            </div>
+                            <div class="privacy-permission-row">
+                                <span class="privacy-permission-label">Downloading updates</span>
+                                <span class="privacy-permission-value">If you choose to update, the App downloads the new release from <code>downloads.track-n-race.com</code> and checks it against a digitally signed release manifest. It is installed when you choose to restart. Builds that cannot install updates themselves open the release page instead. The download is stored temporarily on your device and removed the next time the App starts.</span>
                             </div>
                             <div class="privacy-permission-row">
                                 <span class="privacy-permission-label">Data handling</span>
-                                <span class="privacy-permission-value">The request does not include telemetry, settings, recordings, or any identifier created by the Desktop App. As with any internet request, GitHub receives your IP address and standard request information, which GitHub handles under its own privacy statement. The developer does not receive this request.</span>
+                                <span class="privacy-permission-value">Update checks and downloads do not include telemetry, settings, recordings, pairing information, or any identifier created by the Apps. As with any internet request, your IP address and standard request information are processed by Cloudflare, which runs the update service and serves the downloads, and, for the fallback check, by GitHub. Each handles this information under its own privacy policy.</span>
+                            </div>
+                            <div class="privacy-permission-row">
+                                <span class="privacy-permission-label">Update check counts</span>
+                                <span class="privacy-permission-value">So that we can see which versions and platforms are in use, the update service counts each check using Cloudflare Workers Analytics Engine, as the Website does for downloads (Section 6.2). When a downloaded update is ready and you choose to restart to install it, the App also tells the update service, so that the update can be counted. Each count records only the information sent with the request (which App, operating system, architecture, package type, and installed version), the answer given or the version being installed, your country as determined by Cloudflare, and whether the request came from the Apps or from another program. No IP address, user agent, or other identifier is stored with these counts, and they cannot be linked to an individual user or device. Cloudflare retains this data for a limited period, currently three months.</span>
                             </div>
                             <div class="privacy-permission-row">
                                 <span class="privacy-permission-label">Your choice</span>
-                                <span class="privacy-permission-value">Update checks can be turned off in the Desktop App's settings.</span>
+                                <span class="privacy-permission-value">Update checks, and with them update check and install counts, can be turned off in each App's settings. Updates are only downloaded and installed when you choose to.</span>
                             </div>
                         </div>
 
@@ -232,7 +284,7 @@ const jsonLd = {
                         <h3 class="privacy-subsection-title">6.2 Download and Event Counts</h3>
                         <p>The Website counts clicks on its download buttons using Cloudflare Workers Analytics Engine, so that we can see which builds and platforms people use. Each count records only:</p>
                         <ul class="privacy-list">
-                            <li>What was clicked: the build (Electron, Native or Minimal) or the release page.</li>
+                            <li>What was clicked: the build (Electron, Native, Minimal or Android) or the release page.</li>
                             <li>The platform: the operating system of the chosen download.</li>
                             <li>The Website page the click came from.</li>
                             <li>Your country, as determined by Cloudflare from the request.</li>
@@ -259,11 +311,11 @@ const jsonLd = {
                         <dl class="privacy-dl">
                             <div class="privacy-dl-row">
                                 <dt>GitHub</dt>
-                                <dd>Hosts the source code and release downloads, and answers the Desktop App's update checks.</dd>
+                                <dd>Hosts the source code and the release downloads linked from the Website, and answers the Apps' fallback update checks.</dd>
                             </div>
                             <div class="privacy-dl-row">
                                 <dt>Cloudflare</dt>
-                                <dd>Hosts the Website, stores its anonymous download and event counts, and runs the Turnstile check before the contact email is shown.</dd>
+                                <dd>Hosts the Website, stores its anonymous download and event counts, runs the Turnstile check before the contact email is shown, and runs the Apps' update service, stores its anonymous update check and install counts, and serves the update downloads.</dd>
                             </div>
                         </dl>
                         <p>This Privacy Policy does not claim to govern information collected independently by third-party websites, operating systems, network providers, or other services outside our control.</p>
@@ -274,7 +326,7 @@ const jsonLd = {
                 <section class="privacy-section" id="disclosure">
                     <h2 class="privacy-section-title">8. Disclosure and Sharing of Information</h2>
                     <div class="privacy-section-content">
-                        <p>The developer does not sell, rent, or disclose personal information to third parties. The Apps are designed without a backend collection service, and the Website's download and event counts contain no personal information.</p>
+                        <p>The developer does not sell, rent, or disclose personal information to third parties. The Apps are designed without a backend collection service, and the anonymous update check counts and the Website's download and event counts contain no personal information.</p>
                         <p>Information may be exchanged between your own compatible devices as necessary for the Apps' functionality. You may also choose to export, transfer, or share recordings, diagnostic files, or other locally stored files yourself.</p>
                         <p>Information that you voluntarily disclose or transfer outside the Apps may become subject to the privacy practices of the recipient or service involved.</p>
                     </div>
@@ -304,8 +356,12 @@ const jsonLd = {
                                 <dd>Uninstall the Desktop App and delete its application data folder. Launch diagnostics are also replaced automatically each time the Desktop App starts.</dd>
                             </div>
                             <div class="privacy-dl-row">
-                                <dt>Website counts</dt>
-                                <dd>Download and event counts are anonymous and cannot be linked to you, so they cannot be retrieved or deleted for an individual. Cloudflare deletes them at the end of its retention period.</dd>
+                                <dt>Downloaded updates</dt>
+                                <dd>Removed automatically the next time the App starts after the update.</dd>
+                            </div>
+                            <div class="privacy-dl-row">
+                                <dt>Update check and Website counts</dt>
+                                <dd>Update check counts and the Website's download and event counts are anonymous and cannot be linked to you, so they cannot be retrieved or deleted for an individual. Cloudflare deletes them at the end of its retention period.</dd>
                             </div>
                         </dl>
                         <p>Uninstalling an App or clearing its data is not guaranteed to delete files that you previously exported or saved outside the App's managed storage.</p>
@@ -340,7 +396,8 @@ const jsonLd = {
                         <p>You can exercise control over the information processed by the Services by:</p>
                         <ul class="privacy-list">
                             <li>Revoking Android App permissions through Android settings.</li>
-                            <li>Turning off update checks in the Desktop App's settings.</li>
+                            <li>Turning off update checks in the Apps' settings, and choosing whether to download and install updates.</li>
+                            <li>Stopping the Android App's background listener, or turning off its notifications.</li>
                             <li>Choosing whether to enable optional session recording.</li>
                             <li>Removing paired devices.</li>
                             <li>Deleting locally stored recordings, diagnostic files, and application data.</li>

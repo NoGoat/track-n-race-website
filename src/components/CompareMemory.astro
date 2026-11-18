@@ -1,0 +1,102 @@
+---
+// The Frontends page's memory section: every scenario as a group of columns on one scale that ends at the largest
+// value, with the same figures as a table. scripts/compare.js switches between the two; without JavaScript both show.
+// Styles in styles/compare.css.
+import { builds, buildNames, shortNames, memory } from '../data/compare';
+
+const fmt = (n: number) => n.toLocaleString('en-US');
+// One true scale: the axis ends at the largest value in the data, with ticks at round steps below it
+const max = Math.max(...memory.flatMap(m => m.mb).filter((x): x is number => x != null));
+const step = 250;
+const ticks = Array.from({ length: Math.floor(max / step) + 1 }, (_, k) => k * step);
+const pct = (n: number) => `${(n / max) * 100}%`;
+// The headline differences, worked out from the figures
+const [liveE, liveN, liveM] = memory[1].mb as number[];
+const [peakE, peakN] = memory[4].mb as number[];
+const less = (a: number, b: number) => Math.round((1 - b / a) * 100);
+---
+<div class="cmp-mem-top">
+    <div class="cmp-legend">
+        {builds.map(build => <span data-f={build}><i></i>{buildNames[build]}</span>)}
+    </div>
+    <div class="cmp-seg js-only" role="group" aria-label="Memory view">
+        <button type="button" data-mem-view="chart" aria-pressed="true">Chart</button>
+        <button type="button" data-mem-view="table" aria-pressed="false">Table</button>
+    </div>
+</div>
+
+<div class="cmp-chart" data-mem="chart" role="img" aria-label="RAM use in megabytes for each build across five scenarios, as columns. The same figures are in the table.">
+    <div class="cmp-cols" aria-hidden="true">
+        <div class="cmp-yaxis">
+            <div class="cmp-area">{ticks.map(t => <span style={`bottom:${pct(t)}`}>{fmt(t)}</span>)}</div>
+        </div>
+        <div class="cmp-plot">
+            <div class="cmp-area">
+                {ticks.slice(1).map(t => <span class="cmp-gridline" style={`bottom:${pct(t)}`}></span>)}
+                <div class="cmp-groups">
+                    {memory.map(m => (
+                        <div class="cmp-group">
+                            {builds.map((build, i) => {
+                                const v = m.mb[i];
+                                return v == null
+                                    ? <div class="cmp-col is-na" data-f={build}><span>n/a</span></div>
+                                    : <div class="cmp-col" data-f={build} style={`height:${pct(v)}`}><span>{fmt(v)}</span></div>;
+                            })}
+                        </div>
+                    ))}
+                </div>
+            </div>
+        </div>
+        <span></span>
+        <div class="cmp-xlabels">
+            {memory.map(m => {
+                const [e, n] = m.mb as number[];
+                return (
+                    <div>
+                        <p>{m.label}<small>{m.when}</small></p>
+                        <p class="cmp-delta"><b>Native −{less(e, n)}%</b> · {fmt(e - n)} MB</p>
+                    </div>
+                );
+            })}
+        </div>
+    </div>
+</div>
+
+<div class="cmp-table-scroll" data-mem="table" tabindex="0">
+    <table class="cmp-table">
+        <thead>
+            <tr><th scope="col">Scenario</th>{builds.map(build => <th scope="col" data-f={build}><i class="cmp-dot"></i>{shortNames[build]}</th>)}</tr>
+        </thead>
+        <tbody>
+            {memory.map(m => (
+                <tr><th scope="row">{m.label}</th>{m.mb.map(v => v == null ? <td class="na">—</td> : <td>{fmt(v)} MB</td>)}</tr>
+            ))}
+        </tbody>
+    </table>
+</div>
+
+<div class="cmp-callouts">
+    <div class="cmp-callout"><p class="cmp-fig">{less(liveE, liveN)}<small>% less</small></p><p><b>Native vs Electron</b> at the end of a live race: {fmt(liveN)} MB against {fmt(liveE)} MB.</p></div>
+    <div class="cmp-callout"><p class="cmp-fig">{fmt(peakE - peakN)}<small> MB saved</small></p><p><b>Native's peak while reviewing</b> is {fmt(peakN)} MB, where Electron reaches {fmt(peakE)} MB.</p></div>
+    <div class="cmp-callout"><p class="cmp-fig">{less(liveE, liveM)}<small>% less</small></p><p><b>Minimal Recorder vs Electron</b> in a live race: {fmt(liveM)} MB against {fmt(liveE)} MB, because it has no screens.</p></div>
+</div>
+
+<details class="cmp-method">
+    <summary><span class="cmp-fold-icon" aria-hidden="true"></span>How this was measured</summary>
+    <!-- scripts/compare.js slides this open and shut -->
+    <div class="cmp-fold-body">
+        <p>
+            RAM is private memory on Windows 11, measured with the 92-minute S&atilde;o Paulo Grand Prix: its UDP data was
+            recorded once, then played back into each app at real speed by a script. Live figures are on Overview with
+            Current Lap, while recording to a file. Reviewing is the recording opened near the end of the race with All
+            Laps on every page. The Minimal Recorder doesn't play recordings back, so it has no reviewing figures.
+        </p>
+        <p>
+            <b>Android.</b> Measured on a Samsung Galaxy M12 (4 GB, Android 13) with the same race, played over Wi-Fi
+            into the phone at real speed. Live figures are on Drive with Current Lap, while recording. Reviewing is the
+            phone's own recording of the race opened near the end, with All Laps on every chart page. Android reports PSS rather than Windows private
+            memory, and the engine is newer than the one the desktop figures were taken with, so treat it as a sense of
+            scale.
+        </p>
+    </div>
+</details>

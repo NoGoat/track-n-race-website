@@ -23,7 +23,10 @@ const OG_ALT = 'Track N Race overview dashboard showing live speed, RPM and ERS 
 <meta name="theme-color" content="#09090b">
 
 <!-- Open Graph / Facebook -->
-<meta property="og:type" content={page.type ?? 'article'}>
+<meta property="og:type" content={page.type ?? 'website'}>
+{page.type === 'article' && page.published && <meta property="article:published_time" content={page.published}>}
+{page.type === 'article' && page.published && <meta property="article:modified_time" content={page.published}>}
+{page.type === 'article' && <meta property="article:author" content="NoGoat">}
 <meta property="og:site_name" content="Track N Race">
 <meta property="og:locale" content="en_US">
 <meta property="og:url" content={url}>

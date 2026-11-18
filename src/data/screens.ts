@@ -1,4 +1,4 @@
-// Every app screen with screenshots in both frontends, under public/assets/screenshots/ (Electron) and
+// Every app screen with screenshots in both frontends, under src/assets/screenshots/ (Electron) and
 // .../qt/ (Qt). Each has a .webp at full size plus .avif copies at the listed widths, named <file>-<width>.avif.
 // Screens the Android app also has carry an `android` entry, under .../android/.
 // Used by the Gallery and the Frontends page.
@@ -52,6 +52,13 @@ const list: Screen[] = [
         desc: "If you don't want graphs, you can swap them out for tables.",
         alt: "Overview screen with the charts swapped for data tables of speed, RPM, ERS and tyre temperatures",
         width: 2624, height: 1624, widths: FULL, qtWidths: FULL,
+        // TODO: Android screenshot. Capture it and add it as src/assets/screenshots/android/overview_table.webp,
+        // plus overview_table-1280.avif, overview_table-1920.avif and overview_table-2560.avif (and the .png source).
+        // Check the caption and alt text against the capture.
+        android: {
+            desc: "Swap the Drive tab's graphs for tables, if that's how you'd rather read it.",
+            alt: "Android Drive tab with the graphs swapped for data tables",
+        },
     },
     {
         file: "other_drivers", name: "View Other Drivers",
@@ -68,6 +75,13 @@ const list: Screen[] = [
         desc: "Enable or disable cards based on your needs.",
         alt: "Layout editor for choosing which sections appear on the overview screen",
         width: 2624, height: 1624, widths: FULL, qtWidths: FULL,
+        // TODO: Android screenshot. Capture it and add it as src/assets/screenshots/android/editor.webp,
+        // plus editor-1280.avif, editor-1920.avif and editor-2560.avif (and the .png source).
+        // Check the caption and alt text against the capture.
+        android: {
+            desc: "Pick which cards the Drive tab shows.",
+            alt: "Android layout editor for choosing which cards appear on the Drive tab",
+        },
     },
     {
         file: "inputs", name: "Inputs",
@@ -158,6 +172,14 @@ const list: Screen[] = [
         desc: "View previous lap and sector times for all drivers.",
         alt: "Lap times popup from the standings, listing every lap with sector splits and the fastest lap and sectors highlighted",
         width: 2624, height: 1624, widths: FULL, qtWidths: FULL,
+        // TODO: Android screenshot. Capture it and add it as src/assets/screenshots/android/previous_lap_times.webp,
+        // plus previous_lap_times-1280.avif, previous_lap_times-1920.avif and previous_lap_times-2560.avif (and the
+        // .png source). Check the caption and alt text against the capture.
+        android: {
+            name: "Driver Lap Times",
+            desc: "Every lap and sector for any driver, from the timing tower.",
+            alt: "Android driver lap times listing every lap with sector splits and the fastest lap and sectors highlighted",
+        },
     },
     {
         file: "strategy", name: "Race Strategy",

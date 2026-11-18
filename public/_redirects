@@ -1,0 +1,4 @@
+# Cloudflare static asset redirects (https://developers.cloudflare.com/workers/static-assets/redirects/)
+# The Frontends page moved from /electron-vs-qt/ when Android joined it
+/electron-vs-qt /frontends/ 301
+/electron-vs-qt/ /frontends/ 301

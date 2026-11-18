@@ -1,5 +1,5 @@
 # Cloudflare static asset headers (https://developers.cloudflare.com/workers/static-assets/headers/)
-# Anything not listed (HTML, the .tnrd SVGs, licenses) keeps Cloudflare's default:
+# Anything not listed (HTML, licenses, robots.txt, the sitemap and manifest) keeps Cloudflare's default:
 # browsers re-check every load and get a cheap 304 when nothing changed.
 # Keep these patterns from overlapping: if two rules match, their Cache-Control values are merged.
 
@@ -12,20 +12,23 @@
   Strict-Transport-Security: max-age=31536000
   Referrer-Policy: strict-origin-when-cross-origin
   Permissions-Policy: camera=(), microphone=(), geolocation=(), payment=(), usb=(), serial=(), bluetooth=(), hid=()
+  Content-Security-Policy: frame-ancestors 'self'; object-src 'none'; base-uri 'self'
+# The rest of the Content Security Policy (scripts, styles, images, media, fetches) is a <meta> tag Astro writes into
+# each page with hashes of its inline scripts (astro.config.mjs). A <meta> CSP can't set frame-ancestors, so that one
+# is here. Both policies apply; a request has to pass each.
 
-# Styles and scripts built by Astro: their names carry a hash of their content, so a changed file gets a new name
+# Everything Astro builds or copies from src/assets/: styles, scripts, fonts, screenshots, the header logo, the .tnrd
+# SVGs and the Analysis tour's data, poster and recording. Each name carries a hash of the file's content, so a changed
+# file gets a new name (and the pages point to it), and a browser can keep any one of them for a year without asking.
+# Browsers keep video in their normal HTTP cache (often only the ranges that played) and evict it like anything else
+# under storage pressure, so a year here doesn't pile files up on disk.
 /_astro/*
   Cache-Control: public, max-age=31536000, immutable
 
-# Fonts never change in place; rename the file if one is ever replaced
-/assets/fonts/*
-  Cache-Control: public, max-age=31536000, immutable
-
-# Images: a week without re-checking, then up to 30 more days served from cache while refreshing in the background.
-# A replaced image can take up to a week to reach returning visitors.
-/assets/screenshots/*
-  Cache-Control: public, max-age=604800, stale-while-revalidate=2592000
-
+# Files that keep a fixed address because something outside the pages asks for them by name: link previews
+# (og-image), site.webmanifest's icons, the search result logo, browsers' own favicon and apple-touch-icon requests.
+# A week without re-checking, then up to 30 more days served from cache while refreshing in the background, so a
+# replaced one can take up to a week to reach returning visitors. Give a new one a new name if that matters.
 /assets/icons/*
   Cache-Control: public, max-age=604800, stale-while-revalidate=2592000
 

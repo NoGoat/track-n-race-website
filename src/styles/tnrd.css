@@ -145,7 +145,7 @@
     justify-content: center;
     gap: 0.5rem;
     padding: 0.85rem 0.5rem;
-    color: var(--text-3);
+    color: var(--text-2);
     text-decoration: none;
     transition: color var(--fast);
 }
@@ -177,10 +177,6 @@
     font-weight: 500;
 }
 
-.fmt-rail-link.active .fmt-rail-v {
-    color: var(--accent);
-}
-
 /* Without JavaScript (html.no-js, layouts/Base.astro) scripts/tnrd.js can't follow the scrolling, so the rail marks
    the version last jumped to instead: its section is the :target. Kept apart from the rules above, so a browser
    without :has() drops only these. */
@@ -202,16 +198,6 @@
 .no-js:has(#v6:target) .fmt-rail-link[href="#v6"]::after,
 .no-js:has(#compare:target) .fmt-rail-link[href="#compare"]::after {
     transform: scaleX(1);
-}
-
-.no-js:has(#v1:target) .fmt-rail-link[href="#v1"] .fmt-rail-v,
-.no-js:has(#v2:target) .fmt-rail-link[href="#v2"] .fmt-rail-v,
-.no-js:has(#v3:target) .fmt-rail-link[href="#v3"] .fmt-rail-v,
-.no-js:has(#v4:target) .fmt-rail-link[href="#v4"] .fmt-rail-v,
-.no-js:has(#v5:target) .fmt-rail-link[href="#v5"] .fmt-rail-v,
-.no-js:has(#v6:target) .fmt-rail-link[href="#v6"] .fmt-rail-v,
-.no-js:has(#compare:target) .fmt-rail-link[href="#compare"] .fmt-rail-v {
-    color: var(--accent);
 }
 
 .fmt-rail-d {
@@ -401,7 +387,7 @@
 
 .fmt-seg.is-data i,
 .fmt-row.is-data i {
-    color: rgba(255, 255, 255, 0.78);
+    color: rgba(255, 255, 255, 0.85);
 }
 
 /* Separate compressed chunks inside one segment */

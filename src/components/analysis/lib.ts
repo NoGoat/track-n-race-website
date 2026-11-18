@@ -10,30 +10,50 @@ export interface Trace {
     sfl: number[]; sfr: number[]; srl: number[]; srr: number[]; ifl: number[]; ifr: number[]; irl: number[]; irr: number[]
     bfl: number[]; bfr: number[]; brl: number[]; brr: number[]; wfl: number[]; wfr: number[]; wrl: number[]; wrr: number[]
 }
+/** [lap, seconds, pit, visual compound, actual compound, start session time] */
+export type LapTime = [number, number, number, number, number, number]
 export interface LapInfo {
-    lap: number; time: number; s1: number; s2: number; s3: number
+    lap: number
+    /** The lap's key in TourData.laps, maps and deltas: the player's lap number, or `<driver index>:<lap>` */
+    key: string
+    driver: number
+    time: number; s1: number; s2: number; s3: number
     compound: number; actual: number; start: number; tyreAge: number; fuel: number
     s1EndM: number; s2EndM: number; topSpeed: number; trace: Trace
 }
+export interface DriverInfo {
+    index: number; name: string; number: number; player: boolean
+    teamId: number; teamName: string; teamColor: string
+    fastestLap: number | null
+    lapTimes: LapTime[]
+}
+/** A recording as tools/analysis-data.mjs writes it from the app's engine */
 export interface TourData {
     id: string; file: string; track: string; trackId: number; session: string; trackLengthM: number
+    /** The player's laps on the page, which the session clock plays */
     featured: number[]
-    /** [lap, seconds, pit, visual compound, actual compound, start session time] */
-    lapTimes: [number, number, number, number, number, number][]
-    laps: Record<number, LapInfo>
+    /** The run's Lap A (the player) and Lap B (the rival), as lap keys */
+    tour: { lapA: string; lapB: string }
+    /** The player's laps */
+    lapTimes: LapTime[]
+    laps: Record<string, LapInfo>
+    /** By `<lap key>-<lap key>` */
     maps: Record<string, Record<string, any>>
     deltas: Record<string, { max: number; samples: [number, number, number][] }>
+    /** The player */
     driver: { name: string; number: number; index: number }
+    /** The player, then the rival whose laps are on the page */
+    drivers: DriverInfo[]
     fastestLap: number | null
     sessionTotal: number
-    rotation: number; chunks: number; format: string; bytes: number
+    rotation: number; format: string; bytes: number
 }
 
 export const FILES = [
-    { id: 'interlagos', track: 'São Paulo', trackId: 16, size: '4.8 MB', laps: 71,
-        name: 'f1_26_16_s__o_paulo_grand_prix_race_2026-10-19T10-55-14-088Z-driver.tnrd' },
-    { id: 'spa', track: 'Spa-Francorchamps', trackId: 10, size: '4.2 MB', laps: 44,
-        name: 'f1_26_10_belgian_grand_prix_race_2026-10-17T16-37-19-562Z-driver.tnrd' },
+    { id: 'interlagos', track: 'São Paulo', trackId: 16, size: '77.8 MB', laps: 71,
+        name: 'f1_26_16_s__o_paulo_grand_prix_race_2026-10-19T10-55-14-088Z-all.tnrd' },
+    { id: 'spa', track: 'Spa-Francorchamps', trackId: 10, size: '66.1 MB', laps: 44,
+        name: 'f1_26_10_belgian_grand_prix_race_2026-10-17T16-37-19-562Z-all.tnrd' },
 ] as const
 
 const cache = new Map<string, Promise<any>>()
@@ -46,8 +66,16 @@ export function fetchJson(path: string): Promise<any> {
     }
     return cache.get(path)!
 }
-export const loadRecording = (id: string): Promise<TourData> => fetchJson(`/assets/analysis-tour/${id}.json`)
-export const loadTrackMap = (trackId: number): Promise<any> => fetchJson(`/assets/analysis-tour/track_${trackId}.json`)
+// The tour's data files (src/assets/analysis-tour/) by name, as hashed URLs: ?url keeps the ~2 MB of JSON out of the
+// bundle, and a new export gets a new address so returning visitors never see a cached old one
+const DATA = import.meta.glob('/src/assets/analysis-tour/*.json', { eager: true, query: '?url', import: 'default' }) as Record<string, string>
+const dataUrl = (name: string): string => {
+    const url = DATA[`/src/assets/analysis-tour/${name}`]
+    if (!url) throw new Error(`No src/assets/analysis-tour/${name}`)
+    return url
+}
+export const loadRecording = (id: string): Promise<TourData> => fetchJson(dataUrl(`${id}.json`))
+export const loadTrackMap = (trackId: number): Promise<any> => fetchJson(dataUrl(`track_${trackId}.json`))
 
 export const clamp = (v: number, lo: number, hi: number) => Math.max(lo, Math.min(hi, v))
 export const reducedMotion = () => typeof matchMedia !== 'undefined' && matchMedia('(prefers-reduced-motion: reduce)').matches
@@ -252,7 +280,8 @@ const ERS_STEPS = 20
 const SPEED_STEPS = 50
 export const ERS_RAMP_DARK = ['#3B528B', '#7CF5D0'] as const
 export const HARVEST_RAMP_DARK = ['#5E2A4F', '#FF8FC7'] as const
-export const SPEED_RAMP_DARK = ['#4C2A9A', '#FCE36B'] as const
+// Speed runs from the slowest to the fastest speed on show: raspberry to periwinkle
+export const SPEED_RAMP_DARK = ['#C8577F', '#767AC9'] as const
 export const SUPERCLIP_COLOR_DARK = '#8C9CF0'
 export const INPUT_STATE_LABELS = ['Coasting', 'Partial', 'Full throttle', 'Braking'] as const
 export const INPUT_COLORS_DARK = ['#8B8D98', '#FFB224', '#30A46C', '#E5484D'] as const
@@ -261,6 +290,12 @@ const HARVEST_COLORS = rampColors(HARVEST_RAMP_DARK, ERS_STEPS)
 const SPEED_COLORS = rampColors(SPEED_RAMP_DARK, SPEED_STEPS)
 
 export interface TrackPaint { translucent: boolean; colorAt: (fraction: number) => string | null }
+
+/** The Analysis map's deepest zoom (1 is the whole circuit) */
+export const MAP_ZOOM_MAX = 16
+export const formatM = (m: number) => `${Math.round(m).toLocaleString('en-US')} m`
+/** Laps this close through a braking zone count as level */
+export const BRAKING_LEVEL_S = 0.01
 
 const binOf = (fraction: number, length: number, binM: number, bins: number) =>
     Math.min(bins - 1, Math.max(0, Math.floor(fraction * length / binM)))

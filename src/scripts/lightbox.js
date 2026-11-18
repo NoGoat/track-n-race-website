@@ -87,10 +87,9 @@ if (lightbox && lightboxImg) {
                 .find(el => el.getClientRects().length > 0);
             if (img && img.src) {
                 lastTrigger = btn;
-                // Open the lossless full-size PNG that sits next to every screenshot's WebP
-                // (e.g. overview.webp -> overview.png); the compressed card image shows meanwhile.
-                const fullPng = img.src.replace(/\.[a-z0-9]+(?=$|[?#])/i, '.png');
-                openLightbox(fullPng, img.currentSrc || img.src, img.alt);
+                // Open the lossless full-size PNG (data-full; hashed names mean it can't be worked out from the
+                // WebP's), with the compressed card image showing meanwhile
+                openLightbox(img.dataset.full || img.currentSrc || img.src, img.currentSrc || img.src, img.alt);
             }
         });
     });

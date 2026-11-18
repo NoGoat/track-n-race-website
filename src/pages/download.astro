@@ -9,6 +9,8 @@ import DownloadHeader from '../components/DownloadHeader.astro';
 import { platforms, platformQuestion, dives } from '../data/downloads';
 import OptionContent from '../components/OptionContent.astro';
 
+const warnIcon = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>';
+
 const jsonLd = {
   "@context": "https://schema.org",
   "@graph": [
@@ -58,46 +60,48 @@ const jsonLd = {
 
     <main id="main">
         <!-- Download: pick a platform, read a short guide to its builds and download one, then the Setup link.
-             The full comparison (table and screen by screen) is the Frontends page, /electron-vs-qt/. -->
+             The full comparison (table and screen by screen) is the Frontends page, /frontends/. -->
         <section id="download" class="section download-section">
             <DownloadHeader />
+        </section>
 
-            <!-- The checked platform's guide shows (styles/download.css), so picking one works without JavaScript too.
-                 scripts/download-page.js starts on this device's platform and fills in the download links. -->
-            <div class="dl-flow" id="downloadFlow">
-                <fieldset class="quiz-question">
-                    <legend class="quiz-legend">
-                        <span class="quiz-num">01</span>
-                        <span class="quiz-title">{platformQuestion}</span>
-                    </legend>
-                    <div class="quiz-options" data-count="4">
-                        {platforms.map(p => (
-                            <label class="quiz-option" data-os={p.os}>
-                                <input type="radio" name="platform" value={p.os} />
-                                <OptionContent label={p.label} desc={p.desc} icon={p.icon} />
-                            </label>
-                        ))}
-                    </div>
+        <!-- The checked platform's guide shows (styles/download.css), so picking one works without JavaScript too.
+             scripts/download-page.js starts on this device's platform and fills in the download links.
+             iOS and iPadOS have no build, so no platform is preselected for them: the notice above the tabs
+             (hidden until the script finds an iPhone, iPod or iPad) names the device and points at the platforms below.
+             The tabs are a sticky rail like the TNRD page's: scripts/sticky-bar.js adds .is-stuck, and under the navbar
+             it runs edge to edge with the navbar's background, border and shadow. -->
+        <div class="dl-flow" id="downloadFlow">
+            <p class="dl-badge dl-ios-warning" data-tone="warn" role="note" hidden>
+                <Fragment set:html={warnIcon} />
+                <span>Track N Race is not supported on <span class="dl-ios-name">iOS</span>. Check out these platforms instead.</span>
+            </p>
+            <div class="dl-bar">
+                <fieldset class="dl-tabs">
+                    <legend class="visually-hidden">{platformQuestion}</legend>
+                    {platforms.map(p => (
+                        <label class="dl-tab" data-os={p.os}>
+                            <input type="radio" name="platform" value={p.os} />
+                            <OptionContent label={p.label} desc={p.desc} icon={p.icon} />
+                        </label>
+                    ))}
                 </fieldset>
-
-                {dives.map(dive => (
-                    <section class="quiz-question dl-dive" data-for={dive.for.join(' ')}>
-                        <div class="quiz-legend">
-                            <span class="quiz-num">02</span>
-                            <h2 class="quiz-title">{dive.title}</h2>
-                        </div>
-                        <DiveBody dive={dive} oses={dive.for} />
-                    </section>
-                ))}
             </div>
 
-            <!-- The end of the flow: always shown, and says which download started once one is clicked -->
+            {dives.map(dive => (
+                <section class="dl-dive" data-for={dive.for.join(' ')} aria-labelledby={`dive-${dive.for.join('-')}`}>
+                    <h2 class="dl-dive-title" id={`dive-${dive.for.join('-')}`}>{dive.title}</h2>
+                    <DiveBody dive={dive} oses={dive.for} />
+                </section>
+            ))}
 
+            <!-- The end of the flow: shown once a platform is picked (styles/download.css), and says which download started once one is clicked -->
             <DownloadNext class="dl-next" />
-        </section>
+        </div>
     </main>
 
     <script>
         import '../scripts/download-page.js';
+        import '../scripts/sticky-bar.js';
     </script>
 </Base>

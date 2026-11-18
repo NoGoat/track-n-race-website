@@ -16,8 +16,9 @@
 // the page it came from and the visitor's country as Cloudflare reports it, plus the bot label, which is worked out
 // from the request as it arrives.
 //
-// Count people only with WHERE blob6 = ''. Labels: verified-bot, bot-ua, datacenter, not-click. Rows written before
-// the labels have "" or "bot".
+// This is a classifier for my Analysis dashboard. Each flagged entry is used in addition with other signals to try and 
+// identify bots or probably non human traffic. A flag does not automatically mean its a bot. Its simply a flag.
+// It's not accurate but eh, its close enough.
 
 // The current release comes from env.VERSION ("vars" in wrangler.jsonc), which the pages are built from too
 const RELEASE = `https://github.com/NoGoat/Track-N-Race/releases`;

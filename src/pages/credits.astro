@@ -6,6 +6,13 @@ import '../styles/pages/credits.css';
 import { libraries } from '../data/libraries';
 import { pad } from '../data/format';
 
+const first = libraries[0].items[0];
+// The website as a short label: host without www, plus the path for repositories
+const siteLabel = (href: string) => {
+    const url = new URL(href);
+    return (url.host.replace(/^www\./, '') + url.pathname).replace(/\/$/, '');
+};
+
 
 const jsonLd = {
   "@context": "https://schema.org",
@@ -64,21 +71,33 @@ const jsonLd = {
 
                 <!-- Library browser: grouped project list beside a license reader (scripts/credits.js). Each project
                      links to its license text, which the reader shows in place; without JavaScript the reader is left
-                     out and the links open the text files (styles/credits.css). -->
+                     out and the links open the text files (styles/credits.css). On phones the stacks are tabs above
+                     the list and the reader opens in a bottom sheet (the dialog below). -->
                 <div class="library">
+                    <!-- Phones only: one stack's list at a time. Needs the script, so without it every stack is listed. -->
+                    <div class="stack-tabs js-only" role="group" aria-label="Stack">
+                        {libraries.map((group, g) => (
+                            <button class="stack-tab" type="button" data-stack={group.stack} aria-controls={`group-${group.stack}`}
+                                aria-pressed={g === 0 ? 'true' : 'false'}>
+                                {group.title} <span class="stack-tab-count">{pad(group.items.length)}</span>
+                            </button>
+                        ))}
+                    </div>
                     <nav class="library-list" aria-label="Open source projects">
                     {libraries.map((group, g) => (
-                        <section class="library-group" data-stack={group.stack}>
-                            <h2 class="library-group-title">{group.title} <span class="library-count">{pad(group.items.length)}</span></h2>
+                        <section class:list={['library-group', { 'is-shown': g === 0 }]} id={`group-${group.stack}`} data-stack={group.stack}>
+                            <h2 class="library-group-title"><span class="library-group-name">{group.title}</span> <span class="library-count">{pad(group.items.length)}</span></h2>
+                            <p class="library-group-desc">{group.desc}</p>
                             <ul class="library-items">
                                 {group.items.map((item, i) => {
                                     // The first project is the one the reader opens on
-                                    const first = g === 0 && i === 0;
+                                    const isFirst = g === 0 && i === 0;
                                     return (
                                         <li>
-                                            <a class:list={['library-item', { active: first }]} href={`/assets/licenses/${item.file}`}
-                                                aria-current={first ? 'true' : undefined} aria-controls="library-reader"
-                                                data-file={item.file} data-spdx={item.spdx} data-href={item.href} data-stack={group.stack}>
+                                            <a class:list={['library-item', { active: isFirst }]} href={`/assets/licenses/${item.file}`}
+                                                aria-current={isFirst ? 'true' : undefined} aria-controls="library-reader"
+                                                data-file={item.file} data-spdx={item.spdx} data-href={item.href}
+                                                data-site={siteLabel(item.href)} data-stack={group.stack} data-stack-title={group.title}>
                                                 <span class="library-name">{item.name}</span>
                                                 <span class="library-spdx">{item.spdx}</span>
                                             </a>
@@ -90,20 +109,26 @@ const jsonLd = {
                     ))}
                     </nav>
 
-                    <article class="library-reader" id="library-reader">
+                    <!-- No card: the reader is open like the rest of the site, split from its text by hairlines -->
+                    <article class="library-reader" id="library-reader" data-stack={libraries[0].stack}>
                         <header class="reader-head">
                             <div class="reader-title">
-                                <h3 class="reader-name">zlib</h3>
-                                <p class="reader-meta"><span class="reader-stack" data-stack="core">Core</span><span class="reader-spdx">Zlib</span></p>
+                                <p class="reader-stack">{libraries[0].title}</p>
+                                <h3 class="reader-name" id="readerName">{first.name}</h3>
                             </div>
-                            <a class="reader-link" href="https://zlib.net" target="_blank" rel="noopener">
-                                <span>Website</span>
-                                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                                    stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                                    <path d="M7 17 17 7"></path>
-                                    <path d="M7 7h10v10"></path>
-                                </svg>
-                            </a>
+                            <dl class="reader-specs">
+                                <div><dt>License</dt><dd class="reader-spdx">{first.spdx}</dd></div>
+                                <div><dt>Website</dt><dd>
+                                    <a class="reader-link" href={first.href} target="_blank" rel="noopener">
+                                        <span class="reader-site">{siteLabel(first.href)}</span>
+                                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                            stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                            <path d="M7 17 17 7"></path>
+                                            <path d="M7 7h10v10"></path>
+                                        </svg>
+                                    </a>
+                                </dd></div>
+                            </dl>
                         </header>
                         <!-- Focusable so the keyboard can scroll the license -->
                         <pre class="reader-text" tabindex="0" role="region" aria-label="License text">Loading...</pre>
@@ -112,6 +137,23 @@ const jsonLd = {
             </div>
         </section>
     </main>
+
+    <!-- Phones: the reader moves into this bottom sheet (scripts/credits.js) and slides up when a project is picked.
+         Same overlay and surface as the license pop-up; drag the handle down, tap outside or press Escape to close. -->
+    <dialog class="license-sheet" id="licenseSheet" aria-labelledby="readerName" slot="after-footer">
+        <div class="sheet-panel">
+            <div class="sheet-grab" aria-hidden="true"></div>
+            <!-- autofocus: opening puts focus on Close, not on the website link further down -->
+            <button class="modal-close sheet-close" type="button" aria-label="Close license" autofocus>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"
+                    stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <line x1="18" y1="6" x2="6" y2="18"></line>
+                    <line x1="6" y1="6" x2="18" y2="18"></line>
+                </svg>
+            </button>
+            <div class="sheet-body" id="licenseSheetBody"></div>
+        </div>
+    </dialog>
 
     <script>
         import '../scripts/credits.js';

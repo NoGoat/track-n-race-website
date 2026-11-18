@@ -1,0 +1,33 @@
+---
+// One item of the Setup page's Pre-race checklist (components/SetupResult.astro): a tick box, the item and a line
+// under it, then either the value to set (slot "value") or a How button that opens the detail (the default slot).
+// scripts/setup.js ticks items off, opens How and counts the items this setup shows.
+import { icon } from '../data/setup';
+
+interface Props {
+    /** Unique within the checklist; names the item's title and detail */
+    id: string;
+    /** Answers the item needs to show (scripts/setup.js) */
+    when?: string;
+}
+const { id, when } = Astro.props;
+const hasHow = Astro.slots.has('default');
+const hasValue = Astro.slots.has('value');
+---
+<div class="check-item" data-check-item data-when={when}>
+    <div class="check-row">
+        <button type="button" class="check-tick" role="checkbox" aria-checked="false" aria-labelledby={`${id}-title`} data-check-tick>
+            <Fragment set:html={icon.check} />
+        </button>
+        <div class="check-text">
+            <span class="check-title" id={`${id}-title`}><slot name="title" /></span>
+            {Astro.slots.has('sub') && <span class="check-sub"><slot name="sub" /></span>}
+        </div>
+        {hasValue
+            ? <div class="config-value-group check-value"><slot name="value" /></div>
+            : hasHow
+                ? <button type="button" class="check-how" aria-expanded="false" aria-controls={`${id}-how`} data-check-how>How</button>
+                : <span></span>}
+    </div>
+    {hasHow && <div class="check-body" id={`${id}-how`} hidden><slot /></div>}
+</div>

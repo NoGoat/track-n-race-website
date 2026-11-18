@@ -1,7 +1,9 @@
 ---
 // One frontend's capture of a screen (src/data/screens.ts): AVIF at each width, WebP as the fallback.
-// data-ui marks the frontend, so the Gallery's switch can show one and hide the others.
+// data-ui marks the frontend, so the Gallery's switch can show one and hide the others. data-full is the lossless PNG
+// the lightbox opens (scripts/lightbox.js). Files are in src/assets/screenshots/, served with hashed names.
 import { ANDROID_SIZE, type Screen } from '../data/screens';
+import { asset } from '../asset-url';
 
 interface Props {
     screen: Screen;
@@ -11,18 +13,18 @@ interface Props {
 }
 
 const { screen, ui, sizes, lazy = false } = Astro.props;
-const dir = { electron: '/assets/screenshots', qt: '/assets/screenshots/qt', android: '/assets/screenshots/android' }[ui];
+const dir = { electron: 'screenshots', qt: 'screenshots/qt', android: 'screenshots/android' }[ui];
 const widths = ui === 'android' ? ANDROID_SIZE.widths : ui === 'qt' ? screen.qtWidths : screen.widths;
 const alt = ui === 'android' ? screen.android!.alt : screen.alt;
 const width = ui === 'android' ? ANDROID_SIZE.width : screen.width;
 const height = ui === 'android' ? ANDROID_SIZE.height : screen.height;
 // A single size needs no width descriptors (or sizes) for the browser to pick from
 const srcset = widths.length === 1
-    ? `${dir}/${screen.file}-${widths[0]}.avif`
-    : widths.map(w => `${dir}/${screen.file}-${w}.avif ${w}w`).join(', ');
+    ? asset(`${dir}/${screen.file}-${widths[0]}.avif`)
+    : widths.map(w => `${asset(`${dir}/${screen.file}-${w}.avif`)} ${w}w`).join(', ');
 ---
 <picture data-ui={ui}>
     <source type="image/avif" srcset={srcset} sizes={widths.length === 1 ? undefined : sizes}>
-    <img src={`${dir}/${screen.file}.webp`} alt={alt}
+    <img src={asset(`${dir}/${screen.file}.webp`)} data-full={asset(`${dir}/${screen.file}.png`)} alt={alt}
         class="mockup-img" width={width} height={height} loading={lazy ? 'lazy' : undefined}>
 </picture>

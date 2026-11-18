@@ -1,0 +1,185 @@
+---
+// Opening Track N Race the first time on Windows (SmartScreen), Linux (chmod) and macOS (Gatekeeper): the builds aren't
+// signed. Shown as step 01 of the Setup page's result for its OS (when="os"), and above the questions when the page
+// is opened with ?os_instructions=<os>, as the Download page's cards do (when="launch"; scripts/setup.js).
+import { icon } from '../data/setup';
+
+interface Props {
+    when: 'os' | 'launch';
+}
+const { when } = Astro.props;
+// In the result they're numbered steps; above the questions they stand on their own
+const numbered = when === 'os';
+const cardClass = numbered ? 'setup-step-card result-step' : 'setup-step-card';
+---
+<!-- Opening it on Windows. The builds aren't code-signed, so SmartScreen stops the first launch. -->
+<div class={cardClass} data-when={`${when}=windows`}>
+    <div class="setup-step-card-header">
+        <div class="setup-step-title-group">
+            {numbered && <div class="setup-step-badge">01</div>}
+            <h3 class="setup-step-title">Open it on Windows</h3>
+        </div>
+    </div>
+    <div class="first-launch">
+        <p class="step-desc">
+            Track N Race isn't code-signed, so the first time you run it Windows SmartScreen shows a blue
+            <strong>Windows protected your PC</strong> screen. That's expected. To let it run:
+        </p>
+        <div class="platform-pane">
+            <div class="platform-method-card">
+                <span class="platform-method-badge">SmartScreen</span>
+                <ol class="task-list">
+                    <li>Run the <code>.exe</code> you downloaded. For the Minimal Recorder, extract the <code>.zip</code> first and run the <code>.exe</code> inside.</li>
+                    <li>When SmartScreen appears, click <strong>More info</strong>. The only button until then is <strong>Don't run</strong>.</li>
+                    <li>Click <strong>Run anyway</strong>. Windows remembers this, so you only do it once per version.</li>
+                </ol>
+            </div>
+            <div class="platform-method-card">
+                <span class="platform-method-badge">If the browser blocks the download</span>
+                <p class="config-subtext">
+                    Edge may say the file <strong>isn't commonly downloaded</strong>. Open the downloads
+                    list, click <strong>&hellip;</strong> next to the file &rarr; <strong>Keep</strong>
+                    &rarr; <strong>Show more</strong> &rarr; <strong>Keep anyway</strong>. Chrome has a
+                    similar <strong>Keep</strong> option in its downloads list.
+                </p>
+            </div>
+        </div>
+        <p class="step-callout">
+            <Fragment set:html={icon.info} />
+            <span>Electron, Native and the Minimal Recorder are all unsigned, so each one asks once.</span>
+        </p>
+    </div>
+</div>
+
+<!-- Opening it on Linux. Every Linux build is an AppImage, which downloads without the execute bit. -->
+<div class={cardClass} data-when={`${when}=linux`}>
+    <div class="setup-step-card-header">
+        <div class="setup-step-title-group">
+            {numbered && <div class="setup-step-badge">01</div>}
+            <h3 class="setup-step-title">Open it on Linux</h3>
+        </div>
+    </div>
+    <div class="first-launch">
+        <p class="step-desc">
+            Every Linux build is an <code>.AppImage</code>, and a downloaded file isn't allowed to run
+            until you mark it executable. The usual chmod dance:
+        </p>
+        <div class="platform-pane">
+            <div class="platform-method-card">
+                <span class="platform-method-badge"><span class="platform-method-letter"><span class="visually-hidden">Option </span>A<span class="visually-hidden">: </span></span>Terminal</span>
+                <p class="config-subtext">In the folder you downloaded it to, run:</p>
+                <div class="command-box">
+                    <code>chmod +x Track-N-Race-*.AppImage</code>
+                    <button class="copy-action-btn" type="button" data-copy="chmod +x Track-N-Race-*.AppImage">
+                        <Fragment set:html={icon.copy} />
+                        <span class="copy-label">Copy</span><span class="visually-hidden"> the chmod command</span>
+                    </button>
+                </div>
+                <p class="config-subtext">
+                    Then start it with <code>./Track-N-Race-Electron-Linux.AppImage</code> (or the
+                    Qt or Minimal file), or double-click it.
+                </p>
+            </div>
+            <div class="platform-method-card">
+                <span class="platform-method-badge"><span class="platform-method-letter"><span class="visually-hidden">Option </span>B<span class="visually-hidden">: </span></span>File manager</span>
+                <p class="config-subtext">
+                    Right-click the <code>.AppImage</code> &rarr; <strong>Properties</strong> &rarr;
+                    <strong>Permissions</strong> and turn on <strong>Allow executing file as
+                    program</strong> (<strong>Is executable</strong> in KDE's Dolphin). Then double-click it.
+                </p>
+            </div>
+        </div>
+        <p class="step-callout">
+            <Fragment set:html={icon.info} />
+            <span>Still won't start? AppImages need FUSE 2, which newer distros leave out. On Ubuntu and Debian, install <code>libfuse2</code> (<code>libfuse2t64</code> on Ubuntu 24.04 and later).</span>
+        </p>
+    </div>
+</div>
+
+<!-- Opening it on macOS. Track N Race isn't signed or notarised with an Apple Developer certificate, so
+     Gatekeeper stops the first launch. -->
+<div class={cardClass} data-when={`${when}=macos`}>
+    <div class="setup-step-card-header">
+        <div class="setup-step-title-group">
+            {numbered && <div class="setup-step-badge">01</div>}
+            <h3 class="setup-step-title">Open it on macOS</h3>
+        </div>
+    </div>
+    <div class="first-launch">
+        <p class="step-desc">
+            Track N Race isn't signed with an Apple Developer certificate, so the first time you
+            open it macOS blocks it with <strong>"Track N Race" Not Opened</strong> (or "cannot be
+            opened because Apple cannot check it for malicious software"). That's expected. To let it run:
+        </p>
+        <div class="platform-pane">
+            <div class="platform-method-card">
+                <span class="platform-method-badge"><span class="platform-method-letter"><span class="visually-hidden">Option </span>A<span class="visually-hidden">: </span></span>System Settings</span>
+                <ol class="task-list">
+                    <li>Open the <code>.dmg</code> and drag <strong>Track N Race</strong> into <strong>Applications</strong>.</li>
+                    <li>Open it once. When macOS blocks it, click <strong>Done</strong> (not <strong>Move to Trash</strong>).</li>
+                    <li>Go to <strong>System Settings</strong> &rarr; <strong>Privacy &amp; Security</strong>, scroll down to <strong>Security</strong>, and click <strong>Open Anyway</strong> next to the Track N Race message.</li>
+                    <li>Open Track N Race again and click <strong>Open Anyway</strong>, then enter your password if asked. macOS remembers this, so you only do it once per version.</li>
+                </ol>
+            </div>
+            <div class="platform-method-card">
+                <span class="platform-method-badge"><span class="platform-method-letter"><span class="visually-hidden">Option </span>B<span class="visually-hidden">: </span></span>Terminal, if it says the app "is damaged"</span>
+                <p class="config-subtext">
+                    A damaged message means macOS has quarantined the download. After copying the
+                    app to Applications, clear the quarantine flag:
+                </p>
+                <div class="command-box">
+                    <code>xattr -dr com.apple.quarantine "/Applications/Track N Race.app"</code>
+                    <button class="copy-action-btn" type="button" data-copy='xattr -dr com.apple.quarantine "/Applications/Track N Race.app"'>
+                        <Fragment set:html={icon.copy} />
+                        <span class="copy-label">Copy</span><span class="visually-hidden"> the xattr command</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+        <p class="step-callout">
+            <Fragment set:html={icon.info} />
+            <span>The Minimal Recorder is unsigned too: use the same steps, with its own app name in the command.<span data-when="link=paired"> This is separate from the keychain password prompt when you pair your phone.</span></span>
+        </p>
+    </div>
+</div>
+
+<!-- Installing it on Android, above the questions only (when="launch"): the .apk isn't from the Play Store, so Android
+     asks before it installs. -->
+{!numbered && (
+    <div class={cardClass} data-when="launch=android">
+        <div class="setup-step-card-header">
+            <div class="setup-step-title-group">
+                <h3 class="setup-step-title">Install it on Android</h3>
+            </div>
+        </div>
+        <div class="first-launch">
+            <p class="step-desc">
+                The Android build is an <code>.apk</code>, which doesn't come from the Play Store, so Android
+                asks before it installs it. That's expected. To let it install:
+            </p>
+            <div class="platform-pane">
+                <div class="platform-method-card">
+                    <span class="platform-method-badge">Installing the .apk</span>
+                    <ol class="task-list">
+                        <li>Open the <code>.apk</code> you downloaded, from your browser's downloads or the <strong>Downloads</strong> folder in your Files app.</li>
+                        <li>If Android says your phone isn't allowed to install apps from this source, tap <strong>Settings</strong> and turn on <strong>Allow from this source</strong> for the browser you downloaded it with.</li>
+                        <li>Go back and tap <strong>Install</strong>, then <strong>Open</strong>.</li>
+                    </ol>
+                </div>
+                <div class="platform-method-card">
+                    <span class="platform-method-badge">If a warning gets in the way</span>
+                    <p class="config-subtext">
+                        Chrome may say <strong>This type of file can harm your device</strong>: tap
+                        <strong>Download anyway</strong> (or <strong>Keep</strong>). Google Play Protect may ask to
+                        scan the app or call it unknown: choose <strong>Install anyway</strong> (or
+                        <strong>Scan app</strong>, then install).
+                    </p>
+                </div>
+            </div>
+            <p class="step-callout">
+                <Fragment set:html={icon.info} />
+                <span>The wording of these screens varies a little between Android versions and phone makers.</span>
+            </p>
+        </div>
+    </div>
+)}

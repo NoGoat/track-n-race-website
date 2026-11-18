@@ -1,10 +1,10 @@
 // The run that opens the Analysis page. It builds the screen in front of the visitor: the window starts empty,
 // then each control appears when it is needed and is used straight away (the real controls, so the results are
-// the real results). It loads São Paulo, sets Lap A and Lap B, opens the map and adds the map layers one at a
+// the real results). It loads São Paulo, sets Lap A and Lap B (Fernando Alonso's lap, his car picked first), opens the map and adds the map layers one at a
 // time, then reveals everything else and leaves a working playground. RPM is added to the graphs after Lap B and
 // recoloured on its card. A camera follows along in scenes: it settles on an area, the controls there appear and are
 // used, and it moves on when the action does. A click on the window skips to the end.
-import { useCallback, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { chartHooks } from './Charts'
 import { mapHooks } from './MapPane'
 import { markPoint } from './TrackMap'
@@ -16,9 +16,12 @@ export interface RunApi {
     revealAll: () => void
     load: (id: string) => Promise<void>
     data: () => TourData | null
-    /** Holds a menu open ('lapA', 'lapB', 'layer', 'metrics'), or closes it with null */
+    /** Holds a menu open ('lapA', 'lapB', 'driver:lapB', 'layer', 'metrics'), or closes it with null */
     openMenu: (key: string | null) => void
-    setLap: (which: 'lapA' | 'lapB', lap: number) => void
+    /** Sets a lap by its key (LapInfo.key) */
+    setLap: (which: 'lapA' | 'lapB', lap: string) => void
+    /** Sets a lap group's driver, by driver index */
+    setDriver: (which: 'lapA' | 'lapB', driver: number) => void
     /** Charts a metric, if it isn't already */
     addMetric: (id: string) => void
     setMetricColor: (id: string, color: string) => void
@@ -72,6 +75,8 @@ export function useRun(api: RunApi) {
     apiRef.current = api
     const [running, setRunning] = useState(false)
     const token = useRef(0)
+    // The window going away (a resize to the video, TourGate.tsx) ends the run, which would otherwise drive the next one
+    useEffect(() => () => { token.current++ }, [])
 
     const script = async (t: number) => {
         const a = () => apiRef.current
@@ -132,10 +137,19 @@ export function useRun(api: RunApi) {
             await beforePick?.()
             await choose(match, apply)
         }
-        const pickLap = (which: 'lapA' | 'lapB', lap: number) =>
+        const pickLap = (which: 'lapA' | 'lapB', key: string) => {
+            const lap = a().data()?.laps[key]?.lap
             // The label puts a non-breaking space after the number, so match the number up to a non-digit
-            select(which, which === 'lapA' ? 'analyze-lap-a-field' : 'analyze-lap-b-field',
-                text => new RegExp(`Lap ${lap}(?![0-9])`).test(text), () => a().setLap(which, lap))
+            return select(which, which === 'lapA' ? 'analyze-lap-a-field' : 'analyze-lap-b-field',
+                text => new RegExp(`Lap ${lap}(?![0-9])`).test(text), () => a().setLap(which, key))
+        }
+        /** Picks a lap group's car from its Driver field, by the driver's name */
+        const pickDriver = (which: 'lapA' | 'lapB', key: string) => {
+            const data = a().data(), driver = data?.drivers.find(d => d.index === data.laps[key]?.driver)
+            if (!driver) return Promise.resolve()
+            return select(`driver:${which}`, which === 'lapA' ? 'analyze-lap-a-driver-field' : 'analyze-lap-b-driver-field',
+                text => text.includes(driver.name), () => a().setDriver(which, driver.index))
+        }
         /** Opens the Layer menu, adds the new layer to it, and picks it; the map beside it repaints */
         const addLayer = async (value: string, name: string, first = false) => {
             if (first) a().reveal(`layer:${value}`)
@@ -210,10 +224,10 @@ export function useRun(api: RunApi) {
         await a().load('interlagos')
         a().reveal('session')
         await wait(1300)
-        // São Paulo: Lap 58 against Lap 71 (Lap 70 is the third lap in the lists)
-        const [lapA, lapB] = a().data()?.featured ?? []
+        // São Paulo: the player's Lap 58 against Fernando Alonso's fastest lap
+        const { lapA, lapB } = a().data()?.tour ?? { lapA: '', lapB: '' }
 
-        // The sidebar: Lap A / Lap B mode, then both laps from their menus
+        // The sidebar: Lap A / Lap B mode, then both laps from their menus, Lap B's car picked from its Driver field first
         await look([region(sidebar(), 370, 640)], { pad: 1.1, ms: 1000 })
         await appearAndClick('comparison', 'comparison-toggle')
         await wait(500)
@@ -223,6 +237,8 @@ export function useRun(api: RunApi) {
         await wait(900)
         a().reveal('lapB')
         await wait(900)
+        await pickDriver('lapB', lapB)
+        await wait(700)
         await pickLap('lapB', lapB)
         await wait(1000)
 
@@ -275,6 +291,7 @@ export function useRun(api: RunApi) {
         a().reveal('layer')
         await wait(900)
         await addLayer('dominance', 'Track Dominance', true)
+        await addLayer('racing', 'Racing Line')
         await addLayer('inputs', 'Driver Inputs')
         await addLayer('speed', 'Speed')
         await hover(mapHooks.apexStart, 2200, false)

@@ -1,0 +1,76 @@
+---
+// Finding a computer's local IP address without Track N Race, for one OS. Used under "Find it without the app" in
+// the Setup page's checklist (components/SetupResult.astro) and on the Troubleshooting page.
+import { icon } from '../data/setup';
+
+interface Props {
+    os: 'windows' | 'macos' | 'linux';
+}
+const { os } = Astro.props;
+---
+{os === 'windows' && (
+    <div class="platform-pane">
+        <div class="platform-method-card">
+            <span class="platform-method-badge"><span class="platform-method-letter"><span class="visually-hidden">Option </span>A<span class="visually-hidden">: </span></span>Command Line</span>
+            <p class="config-subtext">Press <kbd>Win</kbd> + <kbd>R</kbd>, type <code>cmd</code> or open PowerShell, then run:</p>
+            <div class="command-box">
+                <code>ipconfig</code>
+                <button class="copy-action-btn" type="button" data-copy="ipconfig">
+                    <Fragment set:html={icon.copy} />
+                    <span class="copy-label">Copy</span><span class="visually-hidden"> ipconfig</span>
+                </button>
+            </div>
+            <p class="config-subtext">Look for <strong>IPv4 Address</strong> under your active connection.</p>
+        </div>
+        <div class="platform-method-card">
+            <span class="platform-method-badge"><span class="platform-method-letter"><span class="visually-hidden">Option </span>B<span class="visually-hidden">: </span></span>Windows Settings</span>
+            <p class="config-subtext">
+                Open <strong>Settings</strong> &rarr; <strong>Network &amp; internet</strong> &rarr; click
+                <strong>Wi-Fi</strong> or <strong>Ethernet</strong> &rarr; scroll down to <strong>Properties</strong> to
+                view the <strong>IPv4 address</strong>.
+            </p>
+        </div>
+    </div>
+)}
+{os === 'macos' && (
+    <div class="platform-pane">
+        <div class="platform-method-card">
+            <span class="platform-method-badge"><span class="platform-method-letter"><span class="visually-hidden">Option </span>A<span class="visually-hidden">: </span></span>System Settings</span>
+            <p class="config-subtext">
+                Open the <strong>Apple menu</strong> &rarr; <strong>System Settings</strong> &rarr; <strong>Network</strong>
+                &rarr; select your connected network (<strong>Wi-Fi</strong> or <strong>Ethernet</strong>) &rarr; click
+                <strong>Details…</strong> to view your <strong>IP Address</strong>.
+            </p>
+        </div>
+        <div class="platform-method-card">
+            <span class="platform-method-badge"><span class="platform-method-letter"><span class="visually-hidden">Option </span>B<span class="visually-hidden">: </span></span>Terminal</span>
+            <p class="config-subtext">Open <strong>Terminal</strong> and run the command for your active interface:</p>
+            <div class="command-box">
+                <code>ipconfig getifaddr en0</code>
+                <button class="copy-action-btn" type="button" data-copy="ipconfig getifaddr en0">
+                    <Fragment set:html={icon.copy} />
+                    <span class="copy-label">Copy</span><span class="visually-hidden"> ipconfig getifaddr en0</span>
+                </button>
+            </div>
+            <p class="config-subtext">Use <code>en0</code> for Wi-Fi or <code>en1</code> for Ethernet.</p>
+        </div>
+    </div>
+)}
+{os === 'linux' && (
+    <div class="platform-pane">
+        <div class="platform-method-card">
+            <span class="platform-method-badge">Terminal</span>
+            <p class="config-subtext">Open your terminal and run:</p>
+            <div class="command-box">
+                <code>hostname -I</code>
+                <button class="copy-action-btn" type="button" data-copy="hostname -I">
+                    <Fragment set:html={icon.copy} />
+                    <span class="copy-label">Copy</span><span class="visually-hidden"> hostname -I</span>
+                </button>
+            </div>
+            <p class="config-subtext">
+                On second thought, why am I even telling you this. You are on Linux. You either know how to do this, or know how to Google how to do this.
+            </p>
+        </div>
+    </div>
+)}

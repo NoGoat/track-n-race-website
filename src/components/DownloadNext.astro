@@ -1,6 +1,6 @@
 ---
-// "Connect it to the game": the closing link to the Setup page, at the end of the Download page. Its styles are in
-// download-build.css. Once a build is clicked, scripts/download-next.js says which one has
+// "Connect it to the game": the closing band of the Download page's panel, linking to the Setup page. Styled in
+// download.css and download-build.css. Once a build is clicked, scripts/download-next.js says which one has
 // started downloading. A page can't see the download finish, so it never says more than that.
 import { VERSION } from '../version';
 
@@ -9,27 +9,29 @@ interface Props {
 }
 const { class: className } = Astro.props;
 ---
-<div class:list={['download-next', className]}>
-    <div class="download-next-body">
-        <p class="eyebrow download-next-status" data-next-status aria-live="polite">Next step</p>
-        <h2 class="download-next-title">Connect it to the game</h2>
-        <p class="download-next-text">
-            <!-- Without JavaScript the Setup page has no questions, only the settings -->
-            <span data-next-idle><span class="js-only">Answer a few questions on the Setup page to get the exact telemetry
-                settings for your setup.</span><span class="nojs-only">The Setup page has the telemetry settings to enter
-                in the game.</span></span>
-            <span data-next-started hidden>
-                Your browser is downloading <strong data-next-name>Track N Race</strong>. While it finishes, answer a
-                few questions on the Setup page to get the exact telemetry settings for your setup.
-            </span>
-        </p>
-        <p class="download-next-note" data-next-retry hidden>
-            Download didn't start? <a href="#">Try again</a>, or get it from
-            <a href={`https://github.com/NoGoat/Track-N-Race/releases/tag/${VERSION}`} target="_blank" rel="noopener">GitHub</a>.
-        </p>
+<section class:list={['download-next', className]} aria-labelledby="downloadNextTitle">
+    <div class="download-next-row">
+        <div class="download-next-body">
+            <p class="eyebrow download-next-status" data-next-status aria-live="polite">Next step</p>
+            <h2 class="download-next-title" id="downloadNextTitle">Connect it to the game</h2>
+            <p class="download-next-text">
+                <!-- Without JavaScript the Setup page has no questions, only the settings -->
+                <span data-next-idle><span class="js-only">Answer a few questions on the Setup page to get the exact telemetry
+                    settings for your setup.</span><span class="nojs-only">The Setup page has the telemetry settings to enter
+                    in the game.</span></span>
+                <span data-next-started hidden>
+                    Your browser is downloading <strong data-next-name>Track N Race</strong>. While it finishes, answer a
+                    few questions on the Setup page to get the exact telemetry settings for your setup.
+                </span>
+            </p>
+            <p class="download-next-note" data-next-retry hidden>
+                Download didn't start? <a href="#">Try again</a>, or get it from
+                <a href={`https://github.com/NoGoat/Track-N-Race/releases/tag/${VERSION}`} target="_blank" rel="noopener">GitHub</a>.
+            </p>
+        </div>
+        <a class="primary-btn download-next-setup" data-next-setup href="/setup/">
+            <span>Set up telemetry</span>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+        </a>
     </div>
-    <a class="primary-btn download-next-setup" data-next-setup href="/setup/">
-        <span>Set up telemetry</span>
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
-    </a>
-</div>
+</section>

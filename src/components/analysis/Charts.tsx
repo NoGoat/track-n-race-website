@@ -2,7 +2,7 @@
 // drawn with Canvas 2D instead of the app's WebGL TimeChart fork, to the same layout: stacked panels (or one
 // shared panel), the comparison lap blended into the background, delta in its two colours, sector ticks,
 // series-coloured y labels, and the playback cursor.
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { useSize } from './TrackMap'
 import { canvasDpr, useCanvasBoost } from './camera'
 import {
@@ -65,6 +65,8 @@ function seriesRange(item: SeriesConfig, laps: (LapInfo | null)[]): [number, num
             if (!lap) continue
             for (let i = 0; i < lap.trace.d.length; i++) {
                 const v = member.value(lap.trace, i)
+                // Channels a car didn't send (an AI car's ride heights) are null
+                if (!Number.isFinite(v)) continue
                 if (v < lo) lo = v
                 if (v > hi) hi = v
             }
@@ -75,7 +77,8 @@ function seriesRange(item: SeriesConfig, laps: (LapInfo | null)[]): [number, num
     return [Math.min(def.min, Math.floor(lo)), Math.max(def.max, Math.ceil(hi))]
 }
 
-/** Delta per sample, reset at each sector start when Sector Delta is on. */
+/** Delta per sample, reset at each sector start when Sector Delta is on. As in the app, each sector is a run of its
+ *  own: a [NaN, NaN] point separates them, so the line breaks at the boundary instead of jumping back to zero. */
 function deltaPoints(delta: ChartProps['delta'], sectorEnds: number[], sectorDelta: boolean): [number, number][] {
     if (!delta) return []
     const pts = delta.samples.filter(s => s[2]).map(([d, v]) => [d, v] as [number, number])
@@ -85,11 +88,22 @@ function deltaPoints(delta: ChartProps['delta'], sectorEnds: number[], sectorDel
         const first = pts.find(([d]) => d >= start)
         return first ? first[1] : 0
     })
-    return pts.map(([d, v]) => {
+    const out: [number, number][] = []
+    let previous = -1
+    for (const [d, v] of pts) {
         const sector = starts.reduce((acc, start, i) => d >= start ? i : acc, 0)
-        return [d, v - base[sector]]
-    })
+        if (previous >= 0 && sector !== previous) out.push([NaN, NaN])
+        out.push([d, v - base[sector]])
+        previous = sector
+    }
+    return out
 }
+
+/** The app's chart tooltip (hooks/useChartTooltip.ts): beside the cursor on whichever side has room, clamped inside */
+const TOOLTIP_GAP = 16
+const TOOLTIP_PAD = 4
+type TooltipRow = { label: string; color: string; value: string }
+type TooltipState = { x: number; y: number; title: string; groups: { heading: string; rows: TooltipRow[] }[]; delta: { value: string; color: string } | null }
 
 export default function Charts(props: ChartProps) {
     const { ref, width, height } = useSize<HTMLDivElement>()
@@ -97,7 +111,19 @@ export default function Charts(props: ChartProps) {
     const overlayRef = useRef<HTMLCanvasElement>(null)
     const geometryRef = useRef<any>(null)
     const hoverRef = useRef<number | null>(null)
-    const [tooltip, setTooltip] = useState<{ x: number; y: number; rows: { label: string; color: string; a: string; b: string | null }[]; title: string } | null>(null)
+    const [tooltip, setTooltip] = useState<TooltipState | null>(null)
+    const tooltipRef = useRef<HTMLDivElement>(null)
+    // Placed once it has laid out, from its measured size (the app's placeTooltip)
+    useLayoutEffect(() => {
+        const el = tooltipRef.current
+        if (!el || !tooltip) return
+        const w = el.offsetWidth, h = el.offsetHeight
+        const left = tooltip.x <= width / 2 ? tooltip.x + TOOLTIP_GAP : tooltip.x - TOOLTIP_GAP - w
+        const top = tooltip.y <= height / 2 ? tooltip.y + TOOLTIP_GAP : tooltip.y - TOOLTIP_GAP - h
+        el.style.left = `${Math.max(TOOLTIP_PAD, Math.min(left, Math.max(TOOLTIP_PAD, width - w - TOOLTIP_PAD)))}px`
+        el.style.top = `${Math.max(TOOLTIP_PAD, Math.min(top, Math.max(TOOLTIP_PAD, height - h - TOOLTIP_PAD)))}px`
+        el.style.visibility = 'visible'
+    }, [tooltip, width, height])
     const propsRef = useRef(props)
     propsRef.current = props
     const boost = useCanvasBoost()
@@ -124,7 +150,7 @@ export default function Charts(props: ChartProps) {
         if (!current || matchMedia('(prefers-reduced-motion: reduce)').matches) return
         baseRef.current?.animate([{ clipPath: 'inset(0 100% 0 0)' }, { clipPath: 'inset(0 0 0 0)' }],
             { duration: 1100, easing: 'cubic-bezier(0.65, 0, 0.35, 1)' })
-    }, [current?.lap, comparison?.lap]) // eslint-disable-line react-hooks/exhaustive-deps
+    }, [current?.key, comparison?.key]) // eslint-disable-line react-hooks/exhaustive-deps
 
     // The static layer: grid, axes and lines
     useEffect(() => {
@@ -182,6 +208,7 @@ export default function Charts(props: ChartProps) {
                 ctx.lineJoin = 'round'
                 for (let i = 1; i < dPts.length; i++) {
                     const [d0, v0] = dPts[i - 1], [d1, v1] = dPts[i]
+                    if (!Number.isFinite(v0) || !Number.isFinite(v1)) continue
                     ctx.beginPath()
                     ctx.strokeStyle = (v0 + v1) / 2 >= 0 ? item.color : item.negativeColor ?? '#37872D'
                     ctx.moveTo(X(d0), Y(0.5 + v0 / (2 * deltaRange)))
@@ -204,10 +231,13 @@ export default function Charts(props: ChartProps) {
                     ctx.strokeStyle = role === 'comparison' ? blendColor(color) : color
                     ctx.lineWidth = role === 'comparison' ? 1.25 : 1.75
                     ctx.lineJoin = 'round'
-                    let prevY = 0
+                    let prevY = 0, started = false
                     for (let i = 0; i < t.d.length; i++) {
-                        const x = X(t.d[i]), y = Y(norm(def.value(t, i)))
-                        if (i === 0) ctx.moveTo(x, y)
+                        const v = def.value(t, i)
+                        // No line where the car didn't send the channel
+                        if (!Number.isFinite(v)) { started = false; continue }
+                        const x = X(t.d[i]), y = Y(norm(v))
+                        if (!started) { ctx.moveTo(x, y); started = true }
                         else if (def.step) { ctx.lineTo(x, prevY); ctx.lineTo(x, y) }
                         else ctx.lineTo(x, y)
                         prevY = y
@@ -305,24 +335,44 @@ export default function Charts(props: ChartProps) {
         const valueAt = (lap: LapInfo, id: string) => {
             const def = METRIC_BY_ID.get(id)!
             const i = Math.round(indexAtTime(lap.trace, timeAtDistance(lap.trace, d)))
-            return def.format(def.value(lap.trace, i))
+            const v = def.value(lap.trace, i)
+            return Number.isFinite(v) ? def.format(v) : '—'
         }
-        const rows = shown.filter(Boolean).flatMap(item => {
-            if (item.metricId === 'delta') {
-                const pt = g.dPts.find(([pd]: [number, number]) => pd >= d)
-                const v = pt ? pt[1] : null
-                return [{ label: 'Delta', color: v !== null && v < 0 ? item.negativeColor ?? '#37872D' : item.color, a: v === null ? '—' : `${v > 0 ? '+' : ''}${v.toFixed(3)} s`, b: null }]
-            }
-            const combined = COMBINED_BY_ID.get(item.metricId)
-            return seriesMemberIds(item).map(id => {
-                const corner = combined && TYRE_CORNERS.find(c => c.key === cornerKeyOf(item.metricId, id))
-                return {
-                    label: corner ? `${combined.shortLabel} ${corner.label}` : METRIC_BY_ID.get(id)!.label, color: seriesLineColor(item, id),
-                    a: valueAt(current, id), b: comparison ? valueAt(comparison, id) : null,
-                }
+        // As in the app (AnalyzeTimeChart's move): a heading per lap with its metrics under it, the comparison's
+        // names in their blended colours, then the delta
+        const metrics = shown.filter(item => item && item.metricId !== 'delta')
+        const group = (lap: LapInfo | null, heading: string, blended: boolean) => {
+            if (!lap) return null
+            const rows = metrics.flatMap(item => {
+                const combined = COMBINED_BY_ID.get(item.metricId)
+                return seriesMemberIds(item).map(id => {
+                    const corner = combined && TYRE_CORNERS.find(c => c.key === cornerKeyOf(item.metricId, id))
+                    const color = seriesLineColor(item, id)
+                    return {
+                        label: corner ? `${combined.shortLabel} ${corner.label}` : METRIC_BY_ID.get(id)!.label,
+                        color: blended ? blendColor(color) : color, value: valueAt(lap, id),
+                    }
+                })
             })
-        })
-        setTooltip({ x, y, rows, title: `${Math.round(d).toLocaleString('en-US')} m` })
+            return rows.length ? { heading, rows } : null
+        }
+        const groups = [group(current, props.currentLabel, false), group(comparison, props.comparisonLabel, true)]
+            .filter((g): g is { heading: string; rows: TooltipRow[] } => !!g)
+        let deltaRow: TooltipState['delta'] = null
+        const deltaItem = shown.find(item => item?.metricId === 'delta')
+        if (deltaItem) {
+            // The nearest sample, skipping the breaks between sectors
+            let best: [number, number] | null = null
+            for (const pt of g.dPts as [number, number][]) {
+                if (Number.isFinite(pt[1]) && (!best || Math.abs(pt[0] - d) < Math.abs(best[0] - d))) best = pt
+            }
+            if (best) {
+                const v = best[1]
+                deltaRow = { value: `${v >= 0 ? '+' : ''}${v.toFixed(3)} s`, color: v >= 0 ? deltaItem.color : deltaItem.negativeColor ?? '#37872D' }
+            }
+        }
+        if (!groups.length && !deltaRow) { setTooltip(null); return }
+        setTooltip({ x, y: y + 4, title: `${Math.round(d)} m`, groups, delta: deltaRow })
     }
 
     return <div ref={ref} className="absolute inset-0 overflow-hidden" data-tour="charts"
@@ -334,16 +384,18 @@ export default function Charts(props: ChartProps) {
         </div>
         <canvas ref={baseRef} className="absolute inset-0 w-full h-full" />
         <canvas ref={overlayRef} className="absolute inset-0 w-full h-full pointer-events-none" />
-        {tooltip && tooltip.rows.length > 0 && <div
-            className="pointer-events-none absolute z-20 min-w-[150px] rounded-md border border-[var(--border)] bg-[var(--bg-menu)] px-2.5 py-2 text-[10px] font-mono text-[var(--text-primary)] shadow-[0_6px_20px_rgba(0,0,0,0.4)]"
-            style={{ left: tooltip.x > width - 220 ? undefined : tooltip.x + 14, right: tooltip.x > width - 220 ? width - tooltip.x + 14 : undefined, top: Math.min(tooltip.y + 10, height - 30 - tooltip.rows.length * 18) }}>
-            <div className="mb-1 text-[9px] uppercase tracking-widest text-[var(--text-secondary)]">{tooltip.title}</div>
-            {tooltip.rows.map(row => <div key={row.label} className="flex items-center gap-2 py-[1px] tabular-nums">
-                <span className="h-2 w-2 shrink-0 rounded-sm" style={{ background: row.color }} />
-                <span className="flex-1 text-[var(--text-secondary)]">{row.label}</span>
-                <span className="font-semibold" style={{ color: row.color }}>{row.a}</span>
-                {row.b !== null && <span className="text-[var(--text-secondary)]">{row.b}</span>}
+        {tooltip && <div ref={tooltipRef}
+            className="pointer-events-none absolute z-20 whitespace-nowrap font-mono text-[var(--text-primary)]"
+            style={{
+                visibility: 'hidden', background: 'var(--bg-panel)', border: '1px solid var(--border)', borderRadius: 4,
+                fontSize: 12, padding: '6px 10px', boxShadow: '0 4px 16px rgba(0,0,0,0.3)',
+            }}>
+            <div style={{ color: 'var(--text-secondary)', marginBottom: 4 }}>{tooltip.title}</div>
+            {tooltip.groups.map((group, gi) => <div key={gi}>
+                <div style={{ color: 'var(--text-secondary)', fontSize: 10, margin: `${gi > 0 ? 5 : 0}px 0 2px` }}>{group.heading}</div>
+                {group.rows.map(row => <div key={row.label}><span style={{ color: row.color }}>{row.label}</span>: {row.value}</div>)}
             </div>)}
+            {tooltip.delta && <div style={{ marginTop: 5 }}><span style={{ color: tooltip.delta.color }}>Delta</span>: {tooltip.delta.value}</div>}
         </div>}
     </div>
 }

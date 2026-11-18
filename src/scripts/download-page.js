@@ -26,12 +26,14 @@ if (flow) {
     });
 
     // Start on this device's platform, unless going back to the page brought the last choice back.
-    // No scroll: the guide just appears under the options.
-    if (!flow.querySelector('input[name="platform"]:checked')) {
-        flow.querySelector(`input[name="platform"][value="${detectOS()}"]`).checked = true;
+    // No scroll: the guide just appears under the options. iOS and iPadOS have no platform (detectOS gives null),
+    // so nothing is preselected for them.
+    const detected = detectOS();
+    if (detected && !flow.querySelector('input[name="platform"]:checked')) {
+        flow.querySelector(`input[name="platform"][value="${detected}"]`).checked = true;
     }
 
-    // There's no iOS or iPadOS build: the macOS guide, where they start, says so
+    // There's no iOS or iPadOS build: a notice above step 01 says so and points at the platforms below it
     const mobileOS = appleMobileOS();
     if (mobileOS) {
         flow.querySelectorAll('.dl-ios-warning').forEach(note => {

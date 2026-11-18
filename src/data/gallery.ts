@@ -11,4 +11,3 @@ export const groups = [
 export const numbers = new Map(groups.flatMap(group => group.screens).map((file, i) => [file, i + 1]));
 // The Android tab leaves out screens the app doesn't have, so it numbers and counts its own
 export const androidNumbers = new Map(groups.flatMap(group => group.screens).filter(file => screens[file].android).map((file, i) => [file, i + 1]));
-export const androidCount = (files: string[]) => files.filter(file => screens[file].android).length;

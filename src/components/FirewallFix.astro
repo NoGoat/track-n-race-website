@@ -1,0 +1,144 @@
+---
+// Letting Track N Race through the computer's firewall, for one OS. Used in the Setup page's checklist
+// (components/SetupResult.astro) and on the Troubleshooting page.
+//
+// Windows: first-time setup's Check connection step (and Settings > Network > Check connection) finds a blocked
+// rule, and "Allow through firewall" runs an elevated PowerShell that removes Track N Race's block rules and adds one
+// allow rule for every network type. So the Windows admin prompt names Windows PowerShell, and nobody has to change
+// their network from Public to Private.
+//
+// The "what happened" cases are tabs (scripts/tabs.js). Without JavaScript every case shows, each under its name.
+import { icon } from '../data/setup';
+
+interface Props {
+    os: 'windows' | 'macos' | 'linux';
+}
+const { os } = Astro.props;
+---
+{os === 'windows' && (
+    <div class="fix-tabscope" data-tabscope>
+        <div class="fix-cases js-only" role="tablist" aria-label="What happened when you opened Track N Race">
+            <button type="button" class="fix-case" role="tab" data-tab="asked" aria-selected="true"><b>Windows asked me</b><span>A Windows Security window about blocked features</span></button>
+            <button type="button" class="fix-case" role="tab" data-tab="cancel" aria-selected="false"><b>I clicked Cancel</b><span>Or closed it, or Check connection shows red</span></button>
+            <button type="button" class="fix-case" role="tab" data-tab="unsure" aria-selected="false"><b>Not sure</b><span>I skipped setup, or don't remember</span></button>
+        </div>
+
+        <div class="fix-pane" data-pane="asked">
+            <p class="fix-pane-label nojs-only">If Windows asked</p>
+            <div class="fix-split">
+                <div>
+                    <ol class="task-list">
+                        <li>Click <strong>Allow access</strong>. Windows may ask for an admin password.</li>
+                        <li>Open <strong>Check connection</strong>: <strong>Settings</strong> &rarr; <strong>Network</strong> in Electron, <strong>Settings</strong> &rarr; <strong>Connection</strong> in Native. Windows Firewall still red? Click <strong>Allow through firewall</strong> there. It allows Track N Race on every type of network, so you don't have to change any network settings.</li>
+                    </ol>
+                    <p class="fix-done"><Fragment set:html={icon.check} /><span>Check connection shows Windows Firewall as <strong>Allowed</strong>.</span></p>
+                </div>
+                <figure class="fix-figure">
+                    <div class="mock-win" aria-hidden="true">
+                        <p class="mock-win-bar">Windows Security</p>
+                        <div class="mock-win-body">
+                            <p class="mock-win-title">Windows Firewall has blocked some features of this app</p>
+                            <p class="mock-win-text">Allow Track N Race to communicate on these networks:</p>
+                            <p class="mock-win-box"><i class="on"></i>Private networks, such as my home or work network</p>
+                            <p class="mock-win-box"><i></i>Public networks, such as those in airports and coffee shops</p>
+                        </div>
+                        <p class="mock-win-foot"><span class="mock-win-btn primary mock-hl">Allow access</span><span class="mock-win-btn">Cancel</span></p>
+                    </div>
+                    <figcaption>The window Windows shows. Its wording varies a little between Windows 10 and 11.</figcaption>
+                </figure>
+            </div>
+        </div>
+
+        <div class="fix-pane" data-pane="cancel">
+            <p class="fix-pane-label nojs-only">If you clicked Cancel</p>
+            <div class="fix-split">
+                <div>
+                    <p class="step-desc">Cancel makes Windows add a rule that blocks Track N Race. The app can remove it.</p>
+                    <ol class="task-list">
+                        <li>Open <strong>Check connection</strong>: <strong>Settings</strong> &rarr; <strong>Network</strong> in Electron, <strong>Settings</strong> &rarr; <strong>Connection</strong> in Native, or the same step in first-time setup.</li>
+                        <li>Click <strong>Allow through firewall</strong>.</li>
+                        <li>Windows asks whether <strong>Windows PowerShell</strong> may make changes. That's Track N Race adding its rule. Click <strong>Yes</strong>.</li>
+                    </ol>
+                    <p class="fix-done"><Fragment set:html={icon.check} /><span>The row turns <strong>Allowed</strong>. The rule works on every type of network and covers Paired mode too.</span></p>
+                </div>
+                <div class="fix-figures">
+                    <figure class="fix-figure">
+                        <div class="mock-app" aria-hidden="true">
+                            <span class="mock-app-icon">&times;</span>
+                            <div>
+                                <p class="mock-app-title">Windows Firewall</p>
+                                <p class="mock-app-text">A firewall rule blocks Track N Race.</p>
+                                <span class="mock-app-btn mock-hl">Allow through firewall</span>
+                            </div>
+                        </div>
+                        <figcaption>Check connection in Track N Race. It may say "isn't allowed through the firewall" instead. Same button.</figcaption>
+                    </figure>
+                    <figure class="fix-figure">
+                        <div class="mock-win mock-uac" aria-hidden="true">
+                            <p class="mock-win-bar">User Account Control</p>
+                            <div class="mock-win-body">
+                                <p class="mock-win-title">Do you want to allow this app to make changes to your device?</p>
+                                <p class="mock-uac-app"><b>Windows PowerShell</b><span>Verified publisher: Microsoft Windows</span></p>
+                            </div>
+                            <p class="mock-win-foot"><span class="mock-win-btn mock-hl">Yes</span><span class="mock-win-btn">No</span></p>
+                        </div>
+                        <figcaption>Clicking No leaves things as they were. Try again any time.</figcaption>
+                    </figure>
+                </div>
+            </div>
+        </div>
+
+        <div class="fix-pane" data-pane="unsure">
+            <p class="fix-pane-label nojs-only">If you're not sure</p>
+            <p class="step-desc">Let Track N Race check. It reads the firewall and fixes it in one click.</p>
+            <ol class="task-list">
+                <li>Open <strong>Check connection</strong>: <strong>Settings</strong> &rarr; <strong>Network</strong> in Electron, <strong>Settings</strong> &rarr; <strong>Connection</strong> in Native.</li>
+                <li>Windows Firewall says <strong>Allowed</strong>? You're done.</li>
+                <li>Red? Click <strong>Allow through firewall</strong>, then <strong>Yes</strong> when Windows asks about Windows PowerShell.</li>
+            </ol>
+            <p class="fix-done"><Fragment set:html={icon.check} /><span>Every row is green, and Telemetry says <strong>Receiving</strong> once you're on track.</span></p>
+        </div>
+    </div>
+)}
+
+{os === 'macos' && (
+    <div class="fix-split">
+        <div>
+            <ol class="task-list">
+                <li>If macOS asks whether Track N Race may accept incoming network connections, click <strong>Allow</strong>.</li>
+                <li>Clicked <strong>Deny</strong>? Open <strong>System Settings</strong> &rarr; <strong>Network</strong> &rarr; <strong>Firewall</strong> &rarr; <strong>Options</strong>, find Track N Race and choose <strong>Allow incoming connections</strong>.</li>
+            </ol>
+            <p class="fix-done"><Fragment set:html={icon.check} /><span>Data arrives as soon as you're on track.</span></p>
+        </div>
+        <figure class="fix-figure">
+            <div class="mock-mac" aria-hidden="true">
+                <p class="mock-mac-title">Do you want the application "Track N Race.app" to accept incoming network connections?</p>
+                <p class="mock-mac-text">Clicking Deny may limit the application's behaviour.</p>
+                <p class="mock-mac-btns"><span>Deny</span><span class="primary mock-hl">Allow</span></p>
+            </div>
+            <figcaption>Only appears when the macOS firewall is on. It's off by default.</figcaption>
+        </figure>
+    </div>
+)}
+
+{os === 'linux' && (
+    <div class="fix-tabscope" data-tabscope>
+        <p class="step-desc">Most desktops ship with the firewall off. If yours is on, open the port Track N Race listens on.</p>
+        <div class="fix-tabs js-only" role="tablist" aria-label="Firewall">
+            <button type="button" role="tab" data-tab="ufw" aria-selected="true">ufw</button>
+            <button type="button" role="tab" data-tab="firewalld" aria-selected="false">firewalld</button>
+        </div>
+        <div class="fix-pane" data-pane="ufw">
+            <p class="fix-pane-label nojs-only">ufw</p>
+            <div class="command-box"><code>sudo ufw allow 20777/udp</code><button class="copy-action-btn" type="button" data-copy="sudo ufw allow 20777/udp"><Fragment set:html={icon.copy} /><span class="copy-label">Copy</span></button></div>
+            <div class="command-box"><code>sudo ufw allow 20779/tcp</code><button class="copy-action-btn" type="button" data-copy="sudo ufw allow 20779/tcp"><Fragment set:html={icon.copy} /><span class="copy-label">Copy</span></button></div>
+        </div>
+        <div class="fix-pane" data-pane="firewalld">
+            <p class="fix-pane-label nojs-only">firewalld</p>
+            <div class="command-box"><code>sudo firewall-cmd --permanent --add-port=20777/udp</code><button class="copy-action-btn" type="button" data-copy="sudo firewall-cmd --permanent --add-port=20777/udp"><Fragment set:html={icon.copy} /><span class="copy-label">Copy</span></button></div>
+            <div class="command-box"><code>sudo firewall-cmd --permanent --add-port=20779/tcp</code><button class="copy-action-btn" type="button" data-copy="sudo firewall-cmd --permanent --add-port=20779/tcp"><Fragment set:html={icon.copy} /><span class="copy-label">Copy</span></button></div>
+            <div class="command-box"><code>sudo firewall-cmd --reload</code><button class="copy-action-btn" type="button" data-copy="sudo firewall-cmd --reload"><Fragment set:html={icon.copy} /><span class="copy-label">Copy</span></button></div>
+        </div>
+        <p class="fix-caption">The 20779 line is only needed for Paired mode.</p>
+    </div>
+)}

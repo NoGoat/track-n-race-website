@@ -4,6 +4,7 @@ import { memo, useRef, useState } from 'react'
 import { ChevronLeft, ChevronRight, Download, Pause, Play } from 'lucide-react'
 import Select, { buildSelectStyles, selectComponents } from './select'
 import { fmtLap } from './lib'
+import { showUnavailable } from './unavailable'
 
 const selectStyles = buildSelectStyles()
 export const PLAYBACK_SPEED_OPTIONS = [
@@ -80,6 +81,6 @@ export default memo(function PlaybackBar({ compact = false, state, startTime = 0
                     isOptionDisabled={o => !!o.isDisabled} inputId="playback-lap" />
             </div>
         </div>}
-        {showExport && <button title="Export session to Excel (.xlsx)" className={`${controlSize} flex items-center justify-center rounded-full text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-hover)] transition-colors disabled:opacity-50 shrink-0`}><Download size={16} /></button>}
+        {showExport && <button title="Export session to Excel (.xlsx)" onClick={showUnavailable}className={`${controlSize} flex items-center justify-center rounded-full text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-hover)] transition-colors disabled:opacity-50 shrink-0`}><Download size={16} /></button>}
     </div>
 })

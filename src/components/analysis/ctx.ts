@@ -14,6 +14,12 @@ export interface AnalyzeConfig {
     splitCursors: boolean
     brakingPoints: boolean
     inputPanel: boolean
+    /** Show the Braking Zones sidebar */
+    zonesPanel: boolean
+    /** The Braking Zones sidebar's width, in pixels */
+    zonesWidth: number
+    /** The Braking Zones sidebar: the zone list's share of the height above the detail card */
+    zonesListRatio: number
     mapColoring: MapColoring
     currentLabel: string
     compareLabel: string
@@ -24,7 +30,10 @@ export interface AnalyzeConfig {
     series: SeriesConfig[]
 }
 
-export interface FixedLapMode { enabled: boolean; lapA: number | null; lapB: number | null }
+/** Lap A / Lap B, as lap keys (LapInfo.key) */
+export interface FixedLapMode { enabled: boolean; lapA: string | null; lapB: string | null }
+/** The lap groups whose Driver field picks a car */
+export type DriverGroup = 'lapA' | 'lapB' | 'compare'
 
 /** What the tour allows while it runs: layers and controls not yet reached stay locked */
 export interface TourLock { layers: Set<string>; controls: Set<string> }
@@ -37,9 +46,14 @@ export interface AppState {
     save: (next: AnalyzeConfig) => void
     fixed: FixedLapMode
     setFixed: (next: FixedLapMode) => void
+    /** The player's lap the session clock is in */
     currentLap: number | null
-    compareLap: number | null
-    setCompareLap: (lap: number | null) => void
+    /** Compare's lap key */
+    compareLap: string | null
+    setCompareLap: (lap: string | null) => void
+    /** Each lap group's driver while it has no lap (a chosen lap's driver is the lap's own) */
+    groupDrivers: Record<DriverGroup, number | null>
+    setGroupDriver: (group: DriverGroup, driver: number) => void
     seekLap: (lap: number) => void
     clock: Clock
     fixedClock: Clock

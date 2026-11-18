@@ -1,39 +1,42 @@
 ---
 // The footer. The GPL link opens the license pop-up (scripts/site.js); without JavaScript it opens the text file.
 
-const pages = [
+const links = [
     { href: '/', label: 'Home' },
     { href: '/gallery/', label: 'Gallery' },
-    { href: '/electron-vs-qt/', label: 'Compare Frontends' },
+    { href: '/frontends/', label: 'Frontends' },
+    { href: '/analysis/', label: 'Analysis' },
     { href: '/download/', label: 'Download' },
     { href: '/setup/', label: 'Setup' },
+    { href: '/troubleshooting/', label: 'Troubleshooting' },
     { href: '/tnrd/', label: 'TNRD Files' },
     { href: '/credits/', label: 'Credits' },
     { href: '/privacy/', label: 'Privacy Policy' },
+    { href: 'https://github.com/NoGoat/Track-N-Race', label: 'GitHub' },
+    // Discord invite link: replace it here (and in Header.astro)
+    { href: 'https://discord.gg/UMVRrN3RbR', label: 'Discord' },
 ];
 const path = Astro.url.pathname;
 ---
 <footer class="site-footer">
-    <div class="footer-container">
-        <div class="footer-left">
-            <span class="footer-brand"><span class="brand-accent">Track</span> N Race</span>
-            <p class="footer-desc">
-                Copyright &copy; 2026 NoGoat. Track N Race is distributed under the <a
-                    class="footer-license" href="/assets/licenses/GPL-3.0.txt" data-license="GPL-3.0.txt">GNU
-                    General Public License v3.0</a>
-            </p>
-            <p class="footer-disclaimer">
-                Track N Race is not affiliated with, endorsed by, or associated with EA, Codemasters, Formula One,
-                the FIA, the drivers or the teams participating in Formula One.
-            </p>
-        </div>
-        <ul class="footer-links">
-            {pages.map(({ href, label }) => (
-                <li><a href={href} data-astro-prefetch aria-current={href === path ? 'page' : undefined}>{label}</a></li>
+    <div class="footer-rail">
+        <span class="footer-brand">Track N Race</span>
+        <nav class="footer-links" aria-label="Footer">
+            {links.map(({ href, label }) => (
+                href.startsWith('http')
+                    ? <a href={href} target="_blank" rel="noopener">{label}</a>
+                    : <a href={href} data-astro-prefetch aria-current={href === path ? 'page' : undefined}>{label}</a>
             ))}
-            <li><a href="https://github.com/NoGoat/Track-N-Race" target="_blank" rel="noopener">GitHub</a></li>
-            <!-- Discord invite link: replace the href below (and in Header.astro) -->
-            <li><a href="https://discord.gg/UMVRrN3RbR" target="_blank" rel="noopener">Discord</a></li>
-        </ul>
+        </nav>
+    </div>
+    <div class="footer-legal">
+        <p class="footer-copyright">
+            &copy; 2026 NoGoat<span class="footer-slash">/</span><a class="footer-license"
+                href="/assets/licenses/GPL-3.0.txt" data-license="GPL-3.0.txt">GPL-3.0</a>
+        </p>
+        <p class="footer-disclaimer">
+            Track N Race is not affiliated with, endorsed by, or associated with EA, Codemasters, Formula One,
+            the FIA, the drivers or the teams participating in Formula One.
+        </p>
     </div>
 </footer>

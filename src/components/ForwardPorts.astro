@@ -1,0 +1,26 @@
+---
+// Which address and port a UDP forwarding channel takes, and the two ways it goes wrong: two apps on one port, and
+// packets sent back to Track N Race. Used beside components/ForwardSteps.astro on the Setup and Troubleshooting pages.
+//
+// The apps refuse a channel aimed at their own port on 127.x or their listen address (Android: any of the phone's own
+// addresses), since it would loop every packet. Two listeners on one port either fail to start or split the data.
+import { icon } from '../data/setup';
+---
+<div class="config-list">
+    <div class="config-item">
+        <div class="config-info">
+            <span class="config-label">The other app is on the same device as Track N Race</span>
+            <span class="config-subtext">Use a different port, like <code>20778</code>, and set the other app to listen on it. Track N Race already uses <code>20777</code>.</span>
+        </div>
+        <div class="config-value-group"><span class="code-pill green">127.0.0.1</span><span class="code-pill">20778</span></div>
+    </div>
+    <div class="config-item">
+        <div class="config-info">
+            <span class="config-label">The other app is on another computer or phone</span>
+            <span class="config-subtext">That device's address, and the port the app listens on. <code>20777</code> is fine there, since it's a different device. Its firewall has to allow the app.</span>
+        </div>
+        <div class="config-value-group"><span class="code-pill">Its address</span><span class="code-pill">Its port</span></div>
+    </div>
+</div>
+<p class="fix-warn"><Fragment set:html={icon.warning} /><span><strong>Only one app can listen on a port.</strong> If two apps on the same device both use <code>20777</code>, one of them fails to start listening, or both start and only one gets the data.</span></p>
+<p class="fix-warn"><Fragment set:html={icon.warning} /><span><strong>Don't forward back to Track N Race.</strong> Don't forward to its own port, or to an app that forwards to it: the packets would go round in a loop. Track N Race refuses <code>127.0.0.1</code> on its own port, but it can't catch every loop.</span></p>

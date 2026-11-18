@@ -5,8 +5,9 @@ import { pages } from '../data/pages';
 import '../styles/pages/gallery.css';
 import Lightbox from '../components/Lightbox.astro';
 import GalleryShot from '../components/GalleryShot.astro';
-import { groups, androidCount } from '../data/gallery';
-import { pad } from '../data/format';
+import ScreenPicture from '../components/ScreenPicture.astro';
+import { groups } from '../data/gallery';
+import { screens } from '../data/screens';
 
 
 const jsonLd = {
@@ -57,7 +58,7 @@ const jsonLd = {
     </Fragment>
 
     <main id="main" class="gallery-section">
-        <!-- Gallery: every screen, grouped by area. The switch shows each one in the Electron or the Qt frontend
+        <!-- Gallery: every screen, in area order. The switch shows each one in the Electron or the Qt frontend
              or the Android app; every capture sits in the markup, and a hidden one's lazy images don't load until
              it is picked. Screens the Android app doesn't have are left out of its tab. The switch is a radio group
              that styles/gallery.css follows, so it works without JavaScript too. -->
@@ -77,19 +78,42 @@ const jsonLd = {
             </div>
         </div>
 
-        <section id="gallery" class="section gallery-body">
-            {groups.map((group, g) => (
-                <section class="gallery-group" aria-labelledby={group.id}>
-                    <div class="section-header">
-                        <h2 class="section-heading" id={group.id}>{group.title}</h2>
-                        <span class="eyebrow desc-desktop">{pad(group.screens.length)} screens</span>
-                        <span class="eyebrow" data-ui="android">{pad(androidCount(group.screens))} screens</span>
+        <!-- Viewer: one screen at a time, big, with its caption beside it, and a strip of every screen by area under
+             it (scripts/gallery.js). Without JavaScript the strip is left out and every screen is listed in turn. -->
+        <section id="gallery" class="section gallery-body" aria-label="Screens">
+            <div class="viewer-stage" id="viewerStage">
+                {groups.map((group, g) => group.screens.map((file, i) => (
+                    <GalleryShot file={file} group={group.title} current={g === 0 && i === 0} lazy={g > 0 || i > 0} />
+                )))}
+            </div>
+            <p class="visually-hidden" id="viewerStatus" aria-live="polite"></p>
+
+            <nav class="viewer-strip" aria-label="Every screen">
+                {groups.map(group => (
+                    <div class="strip-group">
+                        <span class="strip-title">{group.title}</span>
+                        <ul class="strip-thumbs">
+                            {group.screens.map((file, i) => {
+                                const screen = screens[file];
+                                return (
+                                    <li class:list={{ 'no-android': !screen.android }}>
+                                        <a class:list={['strip-thumb', { active: group === groups[0] && i === 0, 'shot-trimmed': screen.width === 2492 }]}
+                                            href={`#shot-${file}`} data-file={file} aria-current={group === groups[0] && i === 0 ? 'true' : undefined}>
+                                            <span class="thumb-frame" aria-hidden="true">
+                                                <ScreenPicture screen={screen} ui="electron" sizes="104px" lazy />
+                                                <ScreenPicture screen={screen} ui="qt" sizes="104px" lazy />
+                                                {screen.android && <ScreenPicture screen={screen} ui="android" sizes="104px" lazy />}
+                                            </span>
+                                            <span class:list={['visually-hidden', { 'desc-desktop': screen.android?.name }]}>{screen.name}</span>
+                                            {screen.android?.name && <span class="visually-hidden" data-ui="android">{screen.android.name}</span>}
+                                        </a>
+                                    </li>
+                                );
+                            })}
+                        </ul>
                     </div>
-                    <div class="gallery-grid">
-                        {group.screens.map(file => <GalleryShot file={file} lazy={g > 0} />)}
-                    </div>
-                </section>
-            ))}
+                ))}
+            </nav>
         </section>
     </main>
 

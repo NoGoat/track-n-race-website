@@ -14,7 +14,8 @@
     padding: calc(var(--nav-h) + 24px) var(--gutter) 48px;
 }
 
-/* Without JavaScript (pages/analysis.astro): the run's 4K recording, framed like the window */
+/* Without JavaScript, on phones and in small windows (pages/analysis.astro, components/analysis/TourGate.tsx): the
+   run's recording, framed like the window */
 .tour-video {
     display: block;
     width: 100%;
@@ -26,7 +27,8 @@
     box-shadow: 0 40px 100px rgba(0, 0, 0, 0.65), 0 0 0 1px rgba(0, 0, 0, 0.6);
 }
 
-.tour-nojs {
+.tour-nojs,
+.tour-video-note {
     padding: 1rem 1.2rem;
     border: 1px solid var(--line-strong);
     border-radius: var(--radius);
@@ -90,8 +92,12 @@
 
 /* A part of the screen arriving: out of a blur, with a light sweeping across it */
 .tnr-app .rv {
-    position: relative;
     animation: rv-in 0.7s cubic-bezier(0.2, 0.9, 0.2, 1) both;
+}
+
+/* The sweep needs a positioned box; one already placed absolutely (the map's zoom buttons) keeps its own */
+.tnr-app .rv:not(.absolute):not(.fixed) {
+    position: relative;
 }
 
 .tnr-app .rv::after {
@@ -248,14 +254,36 @@
     100% { opacity: 0; transform: translate(var(--tip-x), var(--tip-y)); }
 }
 
-/* A layer added to the open Layer menu */
+/* A layer added to the open Layer menu: the row opens up from nothing, so the menu grows smoothly to make room (no
+   jump); then the name fades and settles into it, and a soft accent outline breathes once and fades. The glow is an
+   inset box-shadow, so it never fights the option's own hover/selected background. */
 .tnr-portal .rv-opt {
-    animation: rv-opt 0.75s cubic-bezier(0.2, 0.9, 0.2, 1) both;
+    --rv-opt-anim:
+        rv-opt-open 0.42s cubic-bezier(0.32, 0.72, 0, 1) both,
+        rv-opt-text 0.4s cubic-bezier(0.2, 0.8, 0.2, 1) 0.18s both,
+        rv-opt-glow 0.9s ease-out 0.12s;
+    overflow: hidden;
+    animation: var(--rv-opt-anim);
 }
 
-@keyframes rv-opt {
-    0% { opacity: 0; transform: translateX(-10px); filter: blur(4px); background: rgba(87, 148, 242, 0.45); }
-    60% { opacity: 1; transform: none; filter: none; background: rgba(87, 148, 242, 0.3); }
+/* The run taps the new option while it's still marked fresh, so its press flash runs alongside (not instead) */
+.tnr-portal .rv-opt.rv-press {
+    animation: var(--rv-opt-anim), rv-press 0.55s ease-out;
+}
+
+@keyframes rv-opt-open {
+    from { height: 0; padding-top: 0; padding-bottom: 0; }
+    to { height: calc(1lh + 10px); padding-top: 5px; padding-bottom: 5px; }
+}
+
+@keyframes rv-opt-text {
+    from { color: transparent; text-indent: 8px; }
+}
+
+@keyframes rv-opt-glow {
+    0% { box-shadow: inset 0 0 0 1px rgba(87, 148, 242, 0), inset 0 0 0 999px rgba(87, 148, 242, 0); }
+    30% { box-shadow: inset 0 0 0 1px rgba(87, 148, 242, 0.55), inset 0 0 0 999px rgba(87, 148, 242, 0.16); }
+    100% { box-shadow: inset 0 0 0 1px rgba(87, 148, 242, 0), inset 0 0 0 999px rgba(87, 148, 242, 0); }
 }
 
 /* The Data Comparison panel gliding to a new spot (a drag moves it directly) */
@@ -305,6 +333,35 @@
     position: absolute;
     top: 0;
     left: 0;
+}
+
+/* The demo control, bottom left of the screen above the zoomed stage: names the mode and what a click does */
+.tour-mode {
+    position: fixed;
+    right: 16px;
+    bottom: 16px;
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    padding: 8px 14px;
+    border: 1px solid var(--line-strong);
+    border-radius: var(--radius-sm);
+    background: rgba(17, 17, 21, 0.97);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+    color: var(--text-2);
+    font: 600 11px/1.3 "Cascadia Code", ui-monospace, monospace;
+    cursor: pointer;
+    transition: border-color 0.2s ease, color 0.2s ease;
+}
+
+.tour-mode:hover {
+    border-color: var(--text-2);
+    color: var(--text);
+}
+
+.tour-mode b {
+    color: var(--text);
+    font-weight: 700;
 }
 
 /* Held upright, the screen asks to be turned */
@@ -371,6 +428,7 @@
     .tnr-app .rv::after,
     .tnr-app .rv-press,
     .tnr-portal .rv-opt,
+    .tnr-portal .rv-opt.rv-press,
     .tnr-app .rv-slide {
         animation: none;
     }

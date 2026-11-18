@@ -1,18 +1,21 @@
 /* ==========================================================================
    Download flow
-   Step 01 is Setup's question row (styles/quiz.css); step 02 lays the builds out as cards, with their
-   data rows and download buttons (styles/download-build.css). Step 01's radios pick what shows here, without
+   The platform tabs (radios with Setup's answer-card insides, styles/quiz.css) are a sticky rail, like the TNRD page's,
+   that stays under the navbar while the checked platform's guide scrolls; the guide lays the builds out as cards, with
+   their data rows and download buttons (styles/download-build.css); the Setup link closes the page. The radios pick what shows, without
    JavaScript too; scripts/download-page.js starts on this device's platform.
    ========================================================================== */
 /* The page's one section, spaced like the Frontends page's (styles/compare.css). The flow's rows start on the
    header's rule, like Setup's questions. */
 .section.download-section {
     padding-top: calc(var(--nav-h) + 72px);
+    padding-bottom: 2.5rem;
 }
 
 @media (max-width: 768px) {
     .section.download-section {
         padding-top: calc(var(--nav-h) + 48px);
+        padding-bottom: 2rem;
     }
 }
 
@@ -26,7 +29,7 @@
     text-underline-offset: 3px;
 }
 
-/* Only the checked platform's guide, and none until one is picked. Outranks .quiz-question's display: grid. */
+/* Only the checked platform's guide, and none until one is picked */
 .dl-flow .dl-dive {
     display: none;
 }
@@ -35,41 +38,127 @@
 .dl-flow:has(input[value="macos"]:checked) .dl-dive[data-for~="macos"],
 .dl-flow:has(input[value="linux"]:checked) .dl-dive[data-for~="linux"],
 .dl-flow:has(input[value="android"]:checked) .dl-dive[data-for~="android"] {
-    display: grid;
+    display: block;
 }
 
+/* The Setup link waits for a platform too: with none picked there is no guide, so nothing to follow up on */
+.dl-flow:not(:has(input[name="platform"]:checked)) .dl-next {
+    display: none;
+}
+
+/* Everything sits in the content column except the tabs' rail, which can go edge to edge once it sticks */
 .dl-flow {
-    display: flex;
-    flex-direction: column;
+    padding-bottom: 96px;
 }
 
-/* Steps, not questions: just the number */
-.dl-flow .quiz-num::before {
-    content: none;
+.dl-flow > :not(.dl-bar),
+.dl-tabs {
+    width: min(var(--content), 100% - var(--gutter) * 2);
+    margin-inline: auto;
 }
 
-.quiz-options[data-count="4"] {
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-}
-
-/* Step 02 */
-.dl-dive {
-    scroll-margin-top: calc(var(--nav-h) + 1rem);
-}
-
-.dl-dive h2.quiz-title {
-    margin: 0;
-}
-
-/* Like Setup's step headers: the number and title stay under the navbar while the cards scroll past */
-.dl-dive .quiz-legend {
-    align-self: start;
+/* The platform tabs: a sticky rail like the TNRD page's (styles/tnrd.css). At rest it is see-through and matches the
+   page; once it sticks under the navbar (scripts/sticky-bar.js adds .is-stuck) it runs edge to edge with the
+   navbar's own see-through background, border and shadow. */
+.dl-bar {
     position: sticky;
-    top: calc(var(--nav-h) + 1.5rem);
+    top: var(--nav-h);
+    z-index: 5;
+    margin-top: 0.5rem;
+    border-bottom: 1px solid transparent;
+    transition: background var(--fast), box-shadow var(--fast), border-color var(--fast);
+}
+
+/* Without JavaScript (html.no-js) nothing can tell when it's stuck, so it always has the stuck background */
+.dl-bar.is-stuck,
+.no-js .dl-bar {
+    background: var(--header-bg);
+    border-bottom-color: var(--line);
+    box-shadow: var(--header-shadow);
+}
+
+/* Radios styled as tabs, with Setup's answer-card insides (components/OptionContent.astro) */
+.dl-tabs {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    min-width: 0;
+    margin-block: 0;
+    padding: 0;
+    border: 0;
+    border-top: 1px solid var(--line);
+    border-bottom: 1px solid var(--line);
+}
+
+.dl-bar.is-stuck .dl-tabs,
+.no-js .dl-bar .dl-tabs {
+    border-color: transparent;
+}
+
+.dl-tab {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 1.1rem 1.25rem;
+    cursor: pointer;
+    transition: background var(--fast);
+}
+
+.dl-tab + .dl-tab {
+    border-left: 1px solid var(--line);
+}
+
+.dl-tab:hover {
+    background: rgba(255, 255, 255, 0.03);
+}
+
+.dl-tab:hover .quiz-option-desc {
+    color: var(--text-2);
+}
+
+/* The checked tab's red underline, over the rail's bottom rule */
+.dl-tab:has(input:checked)::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: -1px;
+    height: 2px;
+    background: var(--accent);
+}
+
+.dl-tab:has(input:checked) .quiz-option-icon {
+    color: var(--accent);
+}
+
+.dl-tab:has(input:focus-visible) {
+    outline: 2px solid var(--accent);
+    outline-offset: -2px;
+}
+
+/* The radio itself is invisible but stays focusable and in the accessibility tree */
+.dl-tab input {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    margin: 0;
+    cursor: pointer;
+}
+
+/* The guide */
+.dl-dive {
+    padding-top: 2.5rem;
+    scroll-margin-top: calc(var(--nav-h) + 5rem);
+}
+
+.dl-dive-title {
+    margin: 0 0 0.6rem;
+    font-size: 1.4rem;
+    font-weight: 600;
+    letter-spacing: -0.03em;
 }
 
 .dl-dive-body {
-    grid-column: 2;
     min-width: 0;
 }
 
@@ -80,7 +169,7 @@
     color: var(--text-2);
 }
 
-/* iOS visitors only (scripts/download-page.js): a .dl-badge above the guide's intro */
+/* iOS and iPadOS visitors only (scripts/download-page.js): a .dl-badge above step 01, with no platform preselected */
 .dl-ios-warning {
     margin: 0 0 1rem;
     max-width: 46rem;
@@ -97,11 +186,15 @@
     display: none;
 }
 
+/* The builds as open columns, no cards (the home page's hero specs, scaled up): a rule above and below, and a hairline
+   down the middle of each gap so every column gets the same width */
 .dl-builds {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 0.75rem;
-    margin-top: 1.25rem;
+    column-gap: 3.5rem;
+    margin-top: 2rem;
+    border-top: 1px solid var(--line);
+    border-bottom: 1px solid var(--line);
 }
 
 /* Windows and Linux: Electron, Native and the Minimal Recorder side by side */
@@ -109,125 +202,318 @@
     grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
-/* Android's one build: a single card, as wide as one of the macOS pair */
+/* Android's one build: as wide as one of the macOS pair */
 .dl-builds[data-count="1"] {
-    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    grid-template-columns: minmax(0, 1fr);
+    max-width: calc((100% - 3.5rem) / 2);
 }
 
+/* --build is the frontend's colour, the same one its home page title uses (BuildCard sets it) */
 .dl-build {
-    display: flex;
-    flex-direction: column;
-    padding: 1.25rem 1.25rem 1.35rem;
-    background: var(--surface);
-    border: 1px solid var(--line);
-    border-radius: var(--radius);
-}
-
-.dl-build-stack {
-    font-size: 0.66rem;
-}
-
-.dl-build-stack + .download-build-name {
-    margin-top: 0.4rem;
-}
-
-/* The cards' downloads take the primary button's white fill (styles/base.css) over their outline */
-.dl-build a.download-build-get {
-    border-color: var(--text);
-    color: var(--bg);
-}
-
-.dl-build a.download-build-get::before {
-    opacity: 1;
-}
-
-.dl-build a.download-build-get:hover {
-    border-color: #fff;
-}
-
-.dl-build a.download-build-get:hover::before {
-    background: #fff;
-}
-
-/* The one thing to know before picking a build, right under its name */
-.dl-badge {
-    --tone: var(--text);
-    --tone-bg: var(--surface-3);
-    --tone-line: var(--line-hover);
-    display: flex;
-    align-items: flex-start;
-    gap: 0.55rem;
-    margin-top: 0.75rem;
-    padding: 0.6rem 0.75rem;
-    background: var(--tone-bg);
-    border: 1px solid var(--tone-line);
-    border-radius: var(--radius-sm);
-    color: var(--tone);
-    font-size: 0.85rem;
-    font-weight: 600;
-    line-height: 1.4;
-    letter-spacing: -0.01em;
-}
-
-.dl-badge svg {
-    width: 16px;
-    height: 16px;
-    flex-shrink: 0;
-    margin-top: 0.05rem;
-}
-
-.dl-badge[data-tone="pick"] {
-    --tone: var(--ok);
-    --tone-bg: var(--ok-soft);
-    --tone-line: var(--ok-line);
-}
-
-/* The matrix's "partly" yellow (styles/matrix.css) */
-.dl-badge[data-tone="warn"] {
-    --tone: #f9d923;
-    --tone-bg: rgba(249, 217, 35, 0.08);
-    --tone-line: rgba(249, 217, 35, 0.3);
-}
-
-.dl-badge + .download-build-desc {
-    margin-top: 0.75rem;
-}
-
-/* Advantages with a green plus, drawbacks with a grey minus */
-.dl-points {
-    display: flex;
-    flex-direction: column;
-    gap: 0.45rem;
-    margin-top: 1rem;
-    padding: 0;
-    list-style: none;
-}
-
-.dl-points li {
     position: relative;
-    padding-left: 1.25rem;
-    font-size: 0.85rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1.1rem;
+    min-width: 0;
+    padding: 1.75rem 0 2rem;
+}
+
+/* The optional P.S., above the first-launch note */
+.dl-ps {
+    display: grid;
+    gap: 0.35rem;
+    font-size: 0.82rem;
     line-height: 1.5;
     color: var(--text-2);
 }
 
-.dl-points li::before {
-    position: absolute;
-    left: 0;
-    top: 0;
-    width: 1rem;
+.dl-ps-label {
     font-family: var(--font-mono);
-    font-weight: 500;
-}
-
-.dl-pro::before {
-    content: "+";
-    color: var(--ok);
-}
-
-.dl-con::before {
-    content: "\2212";
+    font-size: 0.66rem;
+    letter-spacing: 0.08em;
     color: var(--text-3);
+}
+
+.dl-build + .dl-build::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: -1.75rem;
+    border-left: 1px solid var(--line);
+}
+
+/* Role, title and stack */
+.dl-build-head {
+    display: grid;
+    gap: 0.55rem;
+}
+
+.dl-role {
+    font-family: var(--font-mono);
+    font-size: 0.68rem;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text-3);
+}
+
+.dl-build[data-tone="pick"] .dl-role {
+    color: var(--build);
+}
+
+/* Set like the home page's feature titles: the second word in the frontend's colour */
+.dl-build-title {
+    font-size: 1.6rem;
+    font-weight: 600;
+    line-height: 1.1;
+    letter-spacing: -0.035em;
+}
+
+.dl-build-title span {
+    color: var(--build);
+}
+
+.dl-build-stack {
+    font-family: var(--font-mono);
+    font-size: 0.66rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text-3);
+}
+
+/* The one thing to know before picking a build */
+.dl-why {
+    font-size: 1rem;
+    font-weight: 500;
+    line-height: 1.45;
+    letter-spacing: -0.01em;
+}
+
+/* The cards' downloads in the home hero's Download style (styles/home.css), in the build's own accent (--build,
+   set on the card): an accent outline over a 10% wash of it, white label, accent icon. Hover keeps the colours;
+   the button lifts and the icon's arrow drops into its tray. */
+.dl-build a.download-build-get {
+    justify-content: flex-start;
+    padding: 0 1rem;
+    margin-top: 0;
+    border-color: var(--build);
+    background: color-mix(in srgb, var(--build) 10%, transparent);
+    color: #fff;
+    transition: transform 0.2s var(--ease), box-shadow 0.2s var(--ease);
+}
+
+.dl-build a.download-build-get svg {
+    color: var(--build);
+}
+
+/* The version, set apart on the button's right by a hairline, as on the home hero's Download (.hero-download-ver) */
+.download-build-ver {
+    margin-left: auto;
+    padding-left: 0.75rem;
+    border-left: 1px solid rgba(255, 255, 255, 0.28);
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    font-weight: 500;
+    color: #fff;
+}
+
+/* No white fill layer on these */
+.dl-build a.download-build-get::before,
+.dl-build a.download-build-get:hover::before {
+    opacity: 0;
+}
+
+.dl-build a.download-build-get:hover {
+    border-color: var(--build);
+    color: #fff;
+    transform: translateY(-1px);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.35);
+}
+
+.dl-build a.download-build-get:active {
+    transform: translateY(0);
+    box-shadow: none;
+}
+
+/* The arrow (not the tray) falls out of view and comes back in from the top, once per hover */
+@keyframes dl-build-drop {
+    0% { transform: translateY(0); opacity: 1; }
+    45% { transform: translateY(6px); opacity: 0; }
+    46% { transform: translateY(-7px); opacity: 0; }
+    100% { transform: translateY(0); opacity: 1; }
+}
+
+.dl-build a.download-build-get:hover svg polyline,
+.dl-build a.download-build-get:hover svg line {
+    animation: dl-build-drop 0.7s var(--ease);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .dl-build a.download-build-get {
+        transition: none;
+    }
+
+    .dl-build a.download-build-get:hover {
+        transform: none;
+    }
+
+    .dl-build a.download-build-get:hover svg polyline,
+    .dl-build a.download-build-get:hover svg line {
+        animation: none;
+    }
+}
+
+/* A notice in the Recommended badge's rule style (.dl-recommended): coloured hairlines above and below, mono
+   capitals, no fill. Only the iOS and iPadOS warning uses it, in the matrix's "partly" yellow (styles/matrix.css). */
+.dl-badge {
+    --tone: var(--text);
+    --tone-line: var(--line-hover);
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.85rem 0;
+    border-top: 1px solid var(--tone-line);
+    border-bottom: 1px solid var(--tone-line);
+    color: var(--tone);
+    font-family: var(--font-mono);
+    font-size: 0.74rem;
+    font-weight: 500;
+    line-height: 1.55;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+/* The icon as tall as two lines of the text (the notice's usual height). A fixed size, not stretched to the text:
+   a stretched square icon widens as the text wraps, which squeezes the text into more lines and grows it again. */
+.dl-badge svg {
+    width: 2.3rem;
+    height: 2.3rem;
+    width: 2lh;
+    height: 2lh;
+    flex-shrink: 0;
+}
+
+.dl-badge[data-tone="warn"] {
+    --tone: #f9d923;
+    --tone-line: rgba(249, 217, 35, 0.3);
+}
+
+/* What stops the first launch (SmartScreen, chmod): the shield beside the heading, the text and link under it */
+.dl-launch {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    gap: 0.2rem 0.6rem;
+    font-size: 0.82rem;
+    line-height: 1.5;
+    color: var(--text-2);
+}
+
+.dl-launch-head {
+    display: contents;
+}
+
+.dl-launch-head span {
+    color: var(--text);
+    font-weight: 600;
+}
+
+.dl-launch-head svg {
+    width: 15px;
+    height: 15px;
+    margin-top: 0.15rem;
+    color: #f9d923;
+}
+
+.dl-launch > p:not(.dl-launch-head),
+.dl-launch-go {
+    grid-column: 2;
+}
+
+.dl-launch-go {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    justify-self: start;
+    color: #f9d923;
+    font-weight: 600;
+    text-decoration: none;
+}
+
+.dl-launch-go:hover {
+    text-decoration: underline;
+}
+
+.dl-launch-go svg {
+    width: 13px;
+    height: 13px;
+}
+
+/* Advantages and drawbacks as the home page's feature list: hairline rows with a dash in the frontend's colour,
+   grey for a drawback. The list takes the column's spare height, except in the recommended column, where the badge
+   below it does. */
+.dl-points {
+    flex: 1;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    border-top: 1px solid var(--line);
+}
+
+.dl-build[data-tone="pick"] .dl-points {
+    flex: 0 0 auto;
+}
+
+.dl-points li {
+    display: flex;
+    align-items: baseline;
+    gap: 0.75rem;
+    padding: 0.6rem 0;
+    border-bottom: 1px solid var(--line);
+    font-size: 0.9rem;
+    line-height: 1.5;
+    color: var(--text);
+}
+
+.dl-points li::before {
+    content: "";
+    flex-shrink: 0;
+    width: 10px;
+    height: 1px;
+    background: var(--build);
+    transform: translateY(-0.3em);
+}
+
+.dl-points .dl-con {
+    color: var(--text-2);
+}
+
+.dl-points .dl-con::before {
+    background: var(--text-3);
+}
+
+/* The recommended build's badge: green hairlines above and below, like one of the data rows lit up, at the foot of
+   the space the shorter column leaves */
+.dl-recommended {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    margin-top: auto;
+    padding: 0.85rem 0;
+    border-top: 1px solid var(--ok-line);
+    border-bottom: 1px solid var(--ok-line);
+    color: var(--ok);
+    font-family: var(--font-mono);
+    font-size: 0.74rem;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.dl-recommended svg {
+    width: 14px;
+    height: 14px;
+    flex-shrink: 0;
 }
 
 .dl-advice {
@@ -256,51 +542,84 @@
     color: var(--text);
 }
 
-/* The end of the flow: the Setup link (components/DownloadNext.astro) as a raised panel */
+/* The end of the flow: the Setup link (components/DownloadNext.astro), open like the build columns above it, between
+   a rule above and below */
 .dl-next {
-    margin-top: 2rem;
-    padding: 1.25rem 1.25rem 1.25rem 1.5rem;
-    background: var(--surface);
-    border: 1px solid var(--line-strong);
-    border-radius: var(--radius);
+    margin-top: 2.5rem;
+    padding: 1.75rem 0;
+    border-top: 1px solid var(--line);
+    border-bottom: 1px solid var(--line);
 }
 
 @media (max-width: 1024px) {
-    .quiz-options[data-count="4"] {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-    }
-
-    /* Too narrow for three cards' data rows: they stack */
+    /* Too narrow for three columns: they stack, a rule between each instead of the hairline down the gap */
     .dl-builds[data-count="3"] {
         grid-template-columns: 1fr;
+    }
+
+    .dl-builds[data-count="3"] .dl-build + .dl-build {
+        border-top: 1px solid var(--line);
+    }
+
+    .dl-builds[data-count="3"] .dl-build + .dl-build::before {
+        display: none;
     }
 }
 
 @media (max-width: 860px) {
-    .dl-dive-body {
-        grid-column: 1;
+    /* Still one row of four, without descriptions, so the sticky bar stays short */
+    .dl-tab {
+        justify-content: center;
+        padding: 0.9rem 0.5rem;
     }
 
-    /* One column: the header sits above the cards, as on Setup */
-    .dl-dive .quiz-legend {
-        position: static;
+    .dl-tab .quiz-option-desc {
+        display: none;
+    }
+}
+
+/* Phones: icon over label, four equal columns */
+@media (max-width: 560px) {
+    .dl-tab {
+        flex-direction: column;
+        gap: 0.35rem;
+        padding: 0.7rem 0.25rem 0.65rem;
+    }
+
+    .dl-tab .quiz-option-text {
+        align-items: center;
+    }
+
+    .dl-tab .quiz-option-label {
+        font-size: 0.78rem;
     }
 }
 
 @media (max-width: 680px) {
+    .dl-dive {
+        padding-top: 1.75rem;
+    }
+
+    .dl-next {
+        padding: 1.5rem 0;
+    }
+
     .dl-builds,
     .dl-builds[data-count="1"] {
         grid-template-columns: 1fr;
+        max-width: none;
+    }
+
+    .dl-build + .dl-build {
+        border-top: 1px solid var(--line);
+    }
+
+    .dl-build + .dl-build::before {
+        display: none;
     }
 
     .dl-next .download-next-setup.primary-btn {
         width: 100%;
         justify-content: center;
-    }
-}
-
-@media (max-width: 480px) {
-    .quiz-options[data-count="4"] {
-        grid-template-columns: 1fr;
     }
 }

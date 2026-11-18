@@ -1,9 +1,10 @@
 // The Credits page's projects, by stack.
-// file is the license text in public/assets/licenses/.
+// file is the license text in public/assets/licenses/. desc is the line under a stack's tab on phones.
 export const libraries = [
     {
         stack: 'core',
         title: 'Core',
+        desc: 'Shared by every build.',
         items: [
             { name: 'zlib', spdx: 'Zlib', file: 'Zlib.txt', href: 'https://zlib.net' },
             { name: 'Zstandard', spdx: 'BSD-3-Clause', file: 'zstandard.txt', href: 'https://facebook.github.io/zstd/' },
@@ -16,6 +17,7 @@ export const libraries = [
     {
         stack: 'electron',
         title: 'Electron',
+        desc: 'The Electron frontend.',
         items: [
             { name: 'Electron', spdx: 'MIT', file: 'electron.txt', href: 'https://electronjs.org' },
             { name: 'React', spdx: 'MIT', file: 'react.txt', href: 'https://react.dev' },
@@ -39,6 +41,7 @@ export const libraries = [
     {
         stack: 'qt',
         title: 'Native',
+        desc: 'The Native (Qt) frontend.',
         items: [
             { name: 'Qt', spdx: 'LGPL-3.0-only', file: 'qt.txt', href: 'https://www.qt.io' },
             { name: 'qt-toast (fork)', spdx: 'MIT', file: 'MIT-qt-toast.txt', href: 'https://github.com/niklashenning/qt-toast' },
@@ -48,6 +51,19 @@ export const libraries = [
             { name: 'KDE Frameworks', spdx: 'LGPL-2.0-or-later', file: 'kde-frameworks.txt', href: 'https://develop.kde.org/products/frameworks/' },
             { name: 'GNU gettext (libintl) & libiconv', spdx: 'LGPL-2.1-or-later', file: 'LGPL-2.1.txt', href: 'https://www.gnu.org/software/gettext/' },
             { name: 'Linux AppImage libraries', spdx: 'Various', file: 'linux-appimage-libraries.txt', href: 'https://launchpad.net/ubuntu' },
+        ],
+    },
+    {
+        stack: 'android',
+        title: 'Android',
+        desc: 'The Android frontend.',
+        items: [
+            { name: 'Jetpack Compose', spdx: 'Apache-2.0', file: 'apache-2.0.txt', href: 'https://developer.android.com/jetpack/compose' },
+            { name: 'AndroidX Activity', spdx: 'Apache-2.0', file: 'apache-2.0.txt', href: 'https://developer.android.com/jetpack/androidx/releases/activity' },
+            { name: 'Material Components for Android', spdx: 'Apache-2.0', file: 'apache-2.0.txt', href: 'https://github.com/material-components/material-components-android' },
+            { name: 'Kotlin', spdx: 'Apache-2.0', file: 'apache-2.0.txt', href: 'https://kotlinlang.org' },
+            { name: 'OkHttp', spdx: 'Apache-2.0', file: 'apache-2.0.txt', href: 'https://square.github.io/okhttp/' },
+            { name: 'ZXing Android Embedded', spdx: 'Apache-2.0', file: 'apache-2.0.txt', href: 'https://github.com/journeyapps/zxing-android-embedded' },
         ],
     },
 ];

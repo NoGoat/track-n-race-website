@@ -1,0 +1,27 @@
+---
+// The Frontends page's opening lineup: one open column per build, with what it is, its memory at the end of a live
+// race and where it runs. Styles in styles/compare.css.
+import { builds, lineup, platforms } from '../data/compare';
+---
+<div class="cmp-lineup">
+    {builds.map(build => {
+        const b = lineup[build];
+        return (
+            <article class="cmp-build" data-f={build}>
+                <span class="eyebrow">{b.stack}</span>
+                <h2 class="cmp-build-title">{b.title[0]} <span>{b.title[1]}</span></h2>
+                <p class="cmp-build-desc">{b.desc}</p>
+                <div>
+                    <p class="eyebrow cmp-build-label">RAM, end of a live race</p>
+                    <p class="cmp-build-ram">{b.ram.toLocaleString('en-US')}<small>MB</small></p>
+                </div>
+                <div class="cmp-runs">
+                    <span class="eyebrow">Runs on</span>
+                    <ul>
+                        {b.runsOn.map(p => <li><Fragment set:html={platforms[p].icon} />{platforms[p].name}</li>)}
+                    </ul>
+                </div>
+            </article>
+        );
+    })}
+</div>

@@ -180,11 +180,10 @@
     color: var(--accent);
     text-decoration: none;
     word-break: break-all;
-    transition: opacity var(--fast);
 }
 
 .privacy-contact-link:hover {
-    opacity: 0.8;
+    text-decoration: underline;
 }
 
 /* The email: a button until the Turnstile challenge is solved (scripts/contact.js), then the link */
@@ -203,11 +202,10 @@
     color: var(--accent);
     font: inherit;
     cursor: pointer;
-    transition: opacity var(--fast);
 }
 
 .privacy-contact-reveal:hover {
-    opacity: 0.8;
+    text-decoration: underline;
 }
 
 /* Notes in the email's row: without JavaScript in its place, and when the check fails */

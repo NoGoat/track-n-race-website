@@ -1,0 +1,65 @@
+---
+// Turning on UDP forwarding in each Track N Race app, as tabs (scripts/tabs.js). Used by the Setup page's result,
+// its no-JavaScript version and the Troubleshooting page. Without JavaScript every app shows, each under its name.
+//
+// Mirrors the apps' own settings: Electron Settings ▸ Network, Native Settings ▸ Connection, the Minimal Recorder's
+// UDP forwarding field, Android Settings ▸ Telemetry ▸ UDP listener. Every app caps forwarding at 15 IPv4
+// destinations and copies each packet unchanged (libtnrp's UdpListener).
+type App = 'electron' | 'native' | 'minimal' | 'android';
+interface Props {
+    apps?: App[];
+}
+const { apps = ['electron', 'native', 'minimal', 'android'] } = Astro.props;
+const LABELS: Record<App, string> = { electron: 'Electron', native: 'Native', minimal: 'Minimal Recorder', android: 'Android' };
+---
+<div class="fix-tabscope" data-tabscope>
+    {apps.length > 1 && (
+        <div class="fix-tabs js-only" role="tablist" aria-label="Track N Race app">
+            {apps.map((app, i) => <button type="button" role="tab" data-tab={app} aria-selected={String(i === 0)}>{LABELS[app]}</button>)}
+        </div>
+    )}
+    {apps.includes('electron') && (
+        <div class="fix-pane" data-pane="electron">
+            <p class="fix-pane-label nojs-only">Electron</p>
+            <ol class="task-list">
+                <li>Open <strong>Settings</strong> &rarr; <strong>Network</strong>.</li>
+                <li>Turn on <strong>UDP Forward Mode</strong>.</li>
+                <li>Click <strong>Add channel</strong> and enter the other app's address and port. Add one channel per app, up to 15.</li>
+                <li>Click <strong>Apply &amp; Restart</strong>. The live session and any recording carry on.</li>
+            </ol>
+        </div>
+    )}
+    {apps.includes('native') && (
+        <div class="fix-pane" data-pane="native">
+            <p class="fix-pane-label nojs-only">Native</p>
+            <ol class="task-list">
+                <li>Open <strong>Settings</strong> &rarr; <strong>Connection</strong>.</li>
+                <li>Tick <strong>Forward every received packet unchanged</strong>.</li>
+                <li>Click <strong>Add channel</strong> and enter the other app's <strong>IPv4 destination</strong> and <strong>Port</strong>. Up to 15 channels.</li>
+                <li>Click <strong>Apply &amp; Restart</strong>. The live session and any recording carry on.</li>
+            </ol>
+        </div>
+    )}
+    {apps.includes('minimal') && (
+        <div class="fix-pane" data-pane="minimal">
+            <p class="fix-pane-label nojs-only">Minimal Recorder</p>
+            <ol class="task-list">
+                <li>In <strong>UDP forwarding</strong>, type each address and port, separated by commas. For example: <code>127.0.0.1:20778, 192.168.1.20:20777</code>. Up to 15.</li>
+                <li>Click <strong>Apply network</strong>.</li>
+            </ol>
+            <p class="step-desc">Changing the list closes the current recording. A new file starts when the game sends again. To stop forwarding, empty the field and click <strong>Apply network</strong>.</p>
+        </div>
+    )}
+    {apps.includes('android') && (
+        <div class="fix-pane" data-pane="android">
+            <p class="fix-pane-label nojs-only">Android</p>
+            <ol class="task-list">
+                <li>Open <strong>Settings</strong> &rarr; <strong>Telemetry</strong> &rarr; <strong>UDP listener</strong>.</li>
+                <li>Turn on <strong>UDP forward mode</strong>.</li>
+                <li>Tap <strong>Add destination</strong> and enter the other app's <strong>IPv4 address</strong> and <strong>Port</strong>. Up to 15.</li>
+                <li>Tap <strong>Apply</strong>. The live session carries on.</li>
+            </ol>
+            <p class="step-desc">The phone only forwards in Direct mode, when <strong>Source</strong> is <strong>Direct UDP</strong>. In Paired mode the computer gets the game's data, so turn on forwarding in the desktop app instead.</p>
+        </div>
+    )}
+</div>

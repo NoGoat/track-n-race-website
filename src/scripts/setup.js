@@ -1,5 +1,7 @@
-import { QUESTIONS, derive, matches, fillsFor } from '../data/setup-logic';
+import { QUESTIONS, LAUNCH_OSES, derive, matches, fillsFor } from '../data/setup-logic';
 import { pad } from '../data/format';
+import './copy.js';
+import './tabs.js';
 
 // Setup Page questionnaire. Each answer is a radio group in #setupQuiz; data/setup-logic.ts turns the answers into
 // the blocks that show (data-when) and the text that fills in (data-fill). The answers live in the page's query
@@ -11,8 +13,42 @@ const answers = () => Object.fromEntries(QUESTIONS.map(name => [name, quiz.eleme
 
 let wasComplete = false;
 
+// Pre-race checklist: tick items off, open "How" under any of them. The count only takes in the items this setup
+// shows, so it follows the answers.
+const checklist = document.querySelector('[data-checklist]');
+const updateChecklist = () => {
+    if (!checklist) return;
+    const items = Array.from(checklist.querySelectorAll('[data-check-item]')).filter(item => !item.closest('[hidden]'));
+    const done = items.filter(item => item.classList.contains('done')).length;
+    checklist.querySelector('[data-check-count]').textContent = `${done} of ${items.length}`;
+    checklist.querySelector('[data-check-bar]').style.width = items.length ? `${(done / items.length) * 100}%` : '0';
+};
+checklist?.addEventListener('click', e => {
+    const tick = e.target.closest('[data-check-tick]');
+    if (tick) {
+        const on = tick.getAttribute('aria-checked') !== 'true';
+        tick.setAttribute('aria-checked', String(on));
+        tick.closest('[data-check-item]').classList.toggle('done', on);
+        updateChecklist();
+        return;
+    }
+    const how = e.target.closest('[data-check-how]');
+    if (how) {
+        const body = document.getElementById(how.getAttribute('aria-controls'));
+        const open = how.getAttribute('aria-expanded') !== 'true';
+        how.setAttribute('aria-expanded', String(open));
+        how.textContent = open ? 'Hide' : 'How';
+        body.hidden = !open;
+    }
+});
+
+// ?os_instructions=<os>, from the Download page's cards: that OS's first-launch steps show above the questions
+// until the result does, and the OS question starts on it
+const params = new URLSearchParams(location.search);
+let osInstructions = LAUNCH_OSES.includes(params.get('os_instructions')) ? params.get('os_instructions') : null;
+
 const render = () => {
-    const state = derive(answers());
+    const state = derive(answers(), osInstructions);
 
     document.querySelectorAll('[data-when]').forEach(el => {
         el.hidden = !matches(el.dataset.when, state);
@@ -44,9 +80,20 @@ const render = () => {
         if (badge) ref.textContent = badge.textContent;
     });
 
+    updateChecklist();
+
+    // Troubleshooting links open with this setup's computer (or Android) already picked
+    const forOs = state.link === 'direct' ? 'android' : state.os;
+    document.querySelectorAll('[data-fix-link]').forEach(link => {
+        const url = new URL(link.getAttribute('href'), location.href);
+        if (forOs) url.searchParams.set('for', forOs); else url.searchParams.delete('for');
+        link.setAttribute('href', url.pathname + url.search + url.hash);
+    });
+
     // Remember the answers in the address bar (only the ones that apply)
     const params = new URLSearchParams();
     QUESTIONS.forEach(name => { if (state[name]) params.set(name, state[name]); });
+    if (state.launch) params.set('os_instructions', state.launch);
     const query = params.toString();
     history.replaceState(null, '', query ? `?${query}` : location.pathname);
     document.getElementById('copySetupLink')?.setAttribute('data-copy', location.href);
@@ -84,74 +131,16 @@ document.querySelectorAll('[data-answer]').forEach(btn => {
 
 document.getElementById('resetSetup')?.addEventListener('click', () => {
     quiz.reset();
+    osInstructions = null;
     render();
     quiz.querySelector('input')?.focus({ preventScroll: true });
     quiz.scrollIntoView({ block: 'start' });
 });
 
-// Restore answers from the URL
-const params = new URLSearchParams(location.search);
+// Restore answers from the URL. An os answer of its own wins over os_instructions.
 QUESTIONS.forEach(name => {
-    const input = quiz.querySelector(`input[name="${name}"][value="${CSS.escape(params.get(name) ?? '')}"]`);
+    const value = params.get(name) ?? (name === 'os' ? osInstructions : null);
+    const input = quiz.querySelector(`input[name="${name}"][value="${CSS.escape(value ?? '')}"]`);
     if (input) input.checked = true;
 });
 render();
-
-// Copy to Clipboard Action Buttons
-// The result is announced through #copyStatus, a visually hidden live region
-const copyButtons = document.querySelectorAll('.copy-action-btn[data-copy]');
-const copyStatus = document.getElementById('copyStatus');
-const announce = (message) => {
-    if (!copyStatus) return;
-    // Cleared first, so the same message twice in a row is still read out
-    copyStatus.textContent = '';
-    setTimeout(() => { copyStatus.textContent = message; }, 50);
-};
-
-// The button's label says what happened for two seconds
-const flash = (btn, text) => {
-    const span = btn.querySelector('.copy-label');
-    if (!span) return;
-    clearTimeout(btn.flashTimer);
-    span.textContent = text;
-    btn.classList.toggle('copied', text === 'Copied!');
-    btn.flashTimer = setTimeout(() => {
-        btn.classList.remove('copied');
-        span.textContent = btn.dataset.label ?? 'Copy';
-    }, 2000);
-};
-
-copyButtons.forEach(btn => {
-    btn.dataset.label = btn.querySelector('.copy-label')?.textContent ?? 'Copy';
-    btn.addEventListener('click', async (e) => {
-        e.stopPropagation();
-        const textToCopy = btn.getAttribute('data-copy');
-        if (!textToCopy) return;
-        // The setup link is announced by what it is, not the whole URL
-        const what = btn.id === 'copySetupLink' ? 'a link to this setup' : textToCopy;
-
-        try {
-            if (navigator.clipboard && window.isSecureContext) {
-                await navigator.clipboard.writeText(textToCopy);
-            } else {
-                const textArea = document.createElement('textarea');
-                textArea.value = textToCopy;
-                textArea.style.position = 'fixed';
-                textArea.style.opacity = '0';
-                document.body.appendChild(textArea);
-                textArea.focus();
-                textArea.select();
-                document.execCommand('copy');
-                textArea.remove();
-                btn.focus(); // the textarea took focus; give it back
-            }
-
-            flash(btn, 'Copied!');
-            announce(`Copied ${what} to the clipboard`);
-        } catch (err) {
-            flash(btn, 'Failed');
-            announce(`Couldn't copy ${what}`);
-            console.error('Failed to copy text: ', err);
-        }
-    });
-});

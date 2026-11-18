@@ -1,0 +1,145 @@
+---
+// Frontends (/frontends/, formerly /electron-vs-qt/, which public/_redirects sends here): an information page.
+// The four builds, their memory, their features, every screen compared, questions, and the download row last.
+import Base from '../layouts/Base.astro';
+import PageHead from '../components/PageHead.astro';
+import { pages } from '../data/pages';
+import '../styles/pages/compare.css';
+import CompareLineup from '../components/CompareLineup.astro';
+import CompareMemory from '../components/CompareMemory.astro';
+import CompareTable from '../components/CompareTable.astro';
+import CompareScreens from '../components/CompareScreens.astro';
+import CompareDownload from '../components/CompareDownload.astro';
+import { screens } from '../data/screens';
+import { order, faq, builds } from '../data/compare';
+import { pad } from '../data/format';
+
+const PAGE_URL = 'https://track-n-race.com/frontends/';
+const androidCount = order.filter(file => screens[file].android).length;
+const half = Math.ceil(faq.length / 2);
+const nav = [
+    ['lineup', 'The Frontends'],
+    ['memory', 'Memory'],
+    ['features', 'Features'],
+    ['screens', 'Screen by screen'],
+    ['questions', 'FAQ'],
+];
+
+const jsonLd = {
+    "@context": "https://schema.org",
+    "@graph": [
+        {
+            "@type": "BreadcrumbList",
+            "@id": `${PAGE_URL}#breadcrumb`,
+            "itemListElement": [
+                { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://track-n-race.com/" },
+                { "@type": "ListItem", "position": 2, "name": "Frontends", "item": PAGE_URL },
+            ],
+        },
+        {
+            "@type": "WebPage",
+            "@id": `${PAGE_URL}#about`,
+            "about": { "@type": "SoftwareApplication", "@id": "https://track-n-race.com/#software", "name": "Track N Race" },
+            "name": pages.compare.title,
+            "description": pages.compare.description,
+            "isPartOf": { "@type": "WebSite", "@id": "https://track-n-race.com/#website", "name": "Track N Race", "url": "https://track-n-race.com/" },
+            "breadcrumb": { "@id": `${PAGE_URL}#breadcrumb` },
+            "mainEntity": {
+                "@type": "ItemList",
+                "name": "Screens compared",
+                "numberOfItems": order.length,
+                "itemListElement": order.map((file, i) => ({ "@type": "ListItem", "position": i + 1, "name": screens[file].name })),
+            },
+        },
+        {
+            "@type": "FAQPage",
+            "@id": `${PAGE_URL}#questions`,
+            "mainEntity": faq.map(([q, a]) => ({ "@type": "Question", "name": q, "acceptedAnswer": { "@type": "Answer", "text": a } })),
+        },
+    ],
+};
+---
+<Base jsonLd={jsonLd}>
+    <Fragment slot="head">
+        <PageHead page={pages.compare} />
+    </Fragment>
+
+    <main id="main">
+        <div class="cmp-top">
+            <div class="page-header">
+                <h1 class="main-title">{pages.compare.heading}</h1>
+                <p class="subtitle">{pages.compare.intro}</p>
+            </div>
+        </div>
+
+        <!-- Section rail, like the TNRD page's. At rest its rules match the content column; once it sticks under the
+             navbar (scripts/sticky-bar.js adds .is-stuck) it runs edge to edge with the navbar's background, border and
+             shadow. scripts/compare.js marks the section in view. -->
+        <nav class="cmp-nav" aria-label="On this page">
+            <ol class="cmp-nav-list">{nav.map(([id, label]) => <li><a href={`#${id}`} class="cmp-nav-link">{label}</a></li>)}</ol>
+        </nav>
+
+        <div class="section compare-section">
+            <section id="lineup" class="cmp-sec">
+                <CompareLineup />
+            </section>
+
+            <section id="memory" class="cmp-sec">
+                <div class="section-header">
+                    <h2 class="section-heading">How much memory they use</h2>
+                    <span class="eyebrow">MB · private memory</span>
+                </div>
+                <p class="section-desc cmp-lede">
+                    Measured across the same 92-minute S&atilde;o Paulo Grand Prix, played back into each app at real
+                    speed. Lower is lighter on your PC, which leaves more for the game.
+                </p>
+                <CompareMemory />
+            </section>
+
+            <section id="features" class="cmp-sec">
+                <div class="section-header">
+                    <h2 class="section-heading">What each one can do</h2>
+                    <span class="eyebrow">{pad(builds.length)} builds</span>
+                </div>
+                <CompareTable />
+            </section>
+
+            <section id="screens" class="cmp-sec">
+                <div class="section-header">
+                    <h2 class="section-heading">Screen by screen</h2>
+                    <span class="eyebrow">{order.length} screens · {androidCount === order.length ? 'all' : androidCount} on Android</span>
+                </div>
+                <p class="section-desc cmp-lede">
+                    Every capture shows the same moment of the same race, so you're comparing like with like. Pick two
+                    frontends, then slide between them or put them side by side.
+                </p>
+                <CompareScreens />
+            </section>
+
+            <section id="questions" class="cmp-sec">
+                <div class="section-header">
+                    <h2 class="section-heading">Frequently Asked Questions</h2>
+                </div>
+                <div class="cmp-faq">
+                    {[faq.slice(0, half), faq.slice(half)].map(col => (
+                        <div class="cmp-faq-col">
+                            {col.map(([q, a]) => (
+                                <details>
+                                    <summary>{q}<span class="cmp-fold-icon" aria-hidden="true"></span></summary>
+                                    <div class="cmp-fold-body"><p>{a}</p></div>
+                                </details>
+                            ))}
+                        </div>
+                    ))}
+                </div>
+            </section>
+
+            <CompareDownload />
+        </div>
+    </main>
+
+    <script>
+        import '../scripts/compare.js';
+        import '../scripts/sticky-bar.js';
+    </script>
+</Base>

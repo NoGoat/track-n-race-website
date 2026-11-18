@@ -1,15 +1,16 @@
 // The Analysis map (electron-frontend components/AnalyzeMapComparison.tsx and AnalyzeInputComparison.tsx):
 // libtnrp's map layers and braking points for the laps on show, the Data Comparison panel, and the map's own
-// playback bar in Comparison mode. Markup, classes and wording ported as written.
-import { memo, useEffect, useId, useMemo, useRef, useState, type ReactNode } from 'react'
-import { AlertTriangle, GripVertical } from 'lucide-react'
-import TrackMap, { trackFit, useSize, type TrackMapMarker, type TrackMark } from './TrackMap'
+// playback bar in Comparison mode, and the zoom buttons. Markup, classes and wording ported as written.
+import { memo, useCallback, useEffect, useId, useMemo, useRef, useState, type ReactNode } from 'react'
+import { AlertTriangle, GripVertical, Maximize, Minus, Plus } from 'lucide-react'
+import TrackMap, { trackFit, useSize, type RacingLine, type TrackMapMarker, type TrackMapView, type TrackMark } from './TrackMap'
 import {
-    channelAt, dominancePaint, ersPaint, fmtKw, harvestPaint, indexAtTime, inputsPaint, rampGradient, speedPaint,
+    channelAt, dominancePaint, ersPaint, fmtKw, harvestPaint, indexAtTime, inputsPaint, rampGradient, speedPaint, timeAtDistance,
     ERS_RAMP_DARK, HARVEST_RAMP_DARK, INPUT_COLORS_DARK, INPUT_STATE_LABELS, SPEED_RAMP_DARK, SUPERCLIP_COLOR_DARK,
+    BRAKING_LEVEL_S, MAP_ZOOM_MAX, formatM,
     type LapInfo, type TourData, type TrackPaint, reducedMotion } from './lib'
 
-export type MapColoring = 'none' | 'dominance' | 'ers' | 'harvest' | 'inputs' | 'speed'
+export type MapColoring = 'none' | 'dominance' | 'racing' | 'ers' | 'harvest' | 'inputs' | 'speed'
 
 /** The tour reads the marks on show to point at one */
 export const mapHooks: {
@@ -21,7 +22,7 @@ export const mapHooks: {
 } = { marks: [], zoneCount: 0, apexStart: 0, map: null, pane: null, movePanel: null, crossfade: null }
 
 /** libtnrp's result for `mode` over these laps; with one lap, its half of any pair. */
-export function resolveMapResult(data: TourData, mode: string, current: number | null, comparison: number | null): any | null {
+export function resolveMapResult(data: TourData, mode: string, current: string | null, comparison: string | null): any | null {
     if (current === null || !data.laps[current]) return null
     if (comparison !== null && comparison !== current && data.maps[`${current}-${comparison}`]) {
         return { ...data.maps[`${current}-${comparison}`][mode], hasCurrent: true, hasComparison: true }
@@ -34,7 +35,10 @@ export function resolveMapResult(data: TourData, mode: string, current: number |
     return { ...r, hasCurrent: true, hasComparison: false }
 }
 
-const LEGEND_CLASS = 'pointer-events-none absolute bottom-2 right-2 z-10 flex items-center text-[9px] font-mono text-[var(--text-secondary)]'
+const MAP_ZOOM_BUTTON_CLASS = 'flex h-9 w-full items-center justify-center text-[var(--text-primary)] hover:bg-[var(--bg-hover)] focus-visible:bg-[var(--bg-hover)] focus-visible:outline-none disabled:pointer-events-none disabled:text-[var(--text-muted)]'
+const MAP_ZOOM_FLIGHT_MS = 220
+
+const LEGEND_CLASS ='pointer-events-none absolute bottom-2 right-2 z-10 flex items-center text-[9px] font-mono text-[var(--text-secondary)]'
 
 function ErsScale({ usage }: { usage: any }) {
     if (!usage || (!usage.restricted && !usage.usesNormal && !usage.usesReduced)) return null
@@ -75,6 +79,14 @@ function SpeedScale({ speed, minKph, maxKph }: { speed: any; minKph: number; max
         <span className="text-[var(--text-primary)]">{Math.round(maxKph)} km/h</span>
     </div>
 }
+/** Which racing line is which lap, in the map's bottom-right corner */
+function RacingLineLegend({ lines }: { lines: readonly { label: string; color: string }[] }) {
+    return <div className={`${LEGEND_CLASS} gap-2.5`}>
+        {lines.map(({ label, color }) => <span key={label} className="flex items-center gap-1">
+            <span className="h-1.5 w-3 rounded-full" style={{ background: color }} />{label}
+        </span>)}
+    </div>
+}
 function InputsLegend() {
     return <div className={`${LEGEND_CLASS} gap-2.5`}>
         {INPUT_STATE_LABELS.map((label, state) => <span key={label} className="flex items-center gap-1">
@@ -83,17 +95,19 @@ function InputsLegend() {
     </div>
 }
 
+// The stretch either side of a corner's apex that its caret on the Speed map is placed from and hovered along
 const APEX_MARK_M = 6
-const formatM = (m: number) => `${Math.round(m).toLocaleString('en-US')} m`
 const sideText = (side: number) => side < 0 ? ' · L' : side > 0 ? ' · R' : ''
 
+/** Marks each corner's apex on a lap's speed map, with its slowest speed on hover */
 function apexMarks(speed: any): TrackMark[] {
     if (!speed || !(speed.trackLengthM > 0)) return []
     const length = speed.trackLengthM
     return speed.apexes.map((apex: any, index: number) => ({
-        fromFraction: Math.max(0, apex.distanceM - APEX_MARK_M) / length,
-        toFraction: Math.min(length, apex.distanceM + APEX_MARK_M) / length,
+        fromFraction: (apex.distanceM - APEX_MARK_M) / length,
+        toFraction: (apex.distanceM + APEX_MARK_M) / length,
         color: '#F4F5F8',
+        caret: true,
         tooltip: <div className="flex flex-col gap-0.5 whitespace-nowrap tabular-nums">
             <span className="text-[9px] uppercase tracking-widest text-[var(--text-secondary)]">
                 Apex {index + 1}{sideText(apex.side)} · {formatM(apex.distanceM)}
@@ -103,12 +117,30 @@ function apexMarks(speed: any): TrackMark[] {
     }))
 }
 
-const BRAKING_LEVEL_S = 0.01
+/** Braking zone highlights along a lap's own path, for the Racing Line layer */
+function marksOnLap(marks: readonly TrackMark[], lap: LapInfo, trackLengthM: number): TrackMark[] {
+    const trace = lap.trace
+    if (trace.d.length < 2) return []
+    const positionAt = (seconds: number) => {
+        const i = indexAtTime(trace, seconds)
+        return { x: channelAt(trace, 'x', i), z: channelAt(trace, 'z', i) }
+    }
+    return marks.flatMap(mark => {
+        const from = timeAtDistance(trace, mark.fromFraction * trackLengthM)
+        const to = timeAtDistance(trace, mark.toFraction * trackLengthM)
+        if (!Number.isFinite(from) || !Number.isFinite(to)) return []
+        const inside = trace.t.flatMap((t, i) => t > from && t < to ? [{ x: trace.x[i], z: trace.z[i] }] : [])
+        return [{ ...mark, points: [positionAt(from), ...inside, positionAt(to)] }]
+    })
+}
+
 const BRAKING_HALF_OPACITY = 0.45
 const PHASE_MIN_M = 30
 const CORNER_MATCH_M = 80
 type BrakingPhase = 'braking' | 'acceleration' | null
-const EXIT_OBSERVATIONS = new Set(['wheelspin', 'earlier_throttle_spin', 'earlier_throttle', 'faster_to_full'])
+// Observations about the corner exit; the rest are about the braking
+const EXIT_OBSERVATIONS = new Set(['wheelspin', 'earlier_throttle_spin', 'earlier_throttle', 'faster_to_full',
+    'tighter_wheelspin', 'tighter_slower_exit'])
 
 function brakingObservationText(o: any, labels: [string, string]): string {
     const lap = labels[o.lap], other = labels[1 - o.lap]
@@ -123,11 +155,31 @@ function brakingObservationText(o: any, labels: [string, string]): string {
         case 'earlier_throttle': return `${lap} is back on throttle ${Math.round(o.value)} m earlier than ${other}`
         case 'faster_to_full': return `${lap} is flat out ${Math.round(o.value)} m sooner than ${other}`
         case 'lift_only': return `${lap} takes it on a lift where ${other} brakes`
+        case 'flat_out': return `${lap} takes it flat out where ${other} ${o.other ? 'lifts' : 'brakes'}`
+        case 'no_lift': return `${lap} keeps ${Math.round(o.value)}% throttle where ${other} ${o.other ? 'lifts' : 'brakes'}`
+        case 'tighter_track_limits': return `${lap} runs ${o.value.toFixed(1)} m further inside at the apex but breaks track limits`
+        case 'straighter_line': {
+            const line = `${lap} runs a wider arc, ${o.value.toFixed(1)} m further inside at the apex`
+            if (o.other > 0) return `${line}, and is ${o.other.toFixed(3)} s quicker`
+            if (o.other < 0) return `${line}, but is ${(-o.other).toFixed(3)} s slower`
+            return line
+        }
+        case 'tighter_helped': return `${lap} takes a ${o.value.toFixed(1)} m tighter line and is ${o.other.toFixed(3)} s quicker`
+        case 'tighter_no_gain': return `${lap}'s ${o.value.toFixed(1)} m tighter line gains no time`
+        case 'tighter_lost_speed': return `${lap} takes a ${o.value.toFixed(1)} m tighter line but loses ${Math.round(o.other)} km/h through the apex`
+        case 'tighter_wheelspin': return `${lap} takes a ${o.value.toFixed(1)} m tighter line but spins the rears on exit (${Math.round(o.other)}%)`
+        case 'tighter_slower_exit': return `${lap} takes a ${o.value.toFixed(1)} m tighter line but is on the power ${Math.round(o.other)} m later`
+        case 'tighter_slower': return `${lap} takes a ${o.value.toFixed(1)} m tighter line but is ${o.other.toFixed(3)} s slower`
+        case 'track_limits': return `${lap} breaks track limits here`
     }
     return ''
 }
-const brakeAtText = (p: any) => p.liftOnly ? `lift ${Math.round(p.distanceM).toLocaleString('en-US')} m` : formatM(p.distanceM)
+/** Where a lap braked, that it only lifted (and where), or took it without either */
+const brakeAtText = (p: any) => p.flatOut ? (p.partThrottle ? `no lift · ${Math.round(p.minThrottle * 100)}%` : 'flat out')
+    : p.liftOnly ? `lift ${Math.round(p.distanceM).toLocaleString('en-US')} m` : formatM(p.distanceM)
 const metresText = (m: number) => m < 0 ? '—' : `${Math.round(m).toLocaleString('en-US')} m`
+/** A lap's line against the other's at a corner's apex, named on the lap further inside */
+const lineText = (gapM: number) => gapM === 0 ? 'level' : gapM > 0 ? `${gapM.toFixed(1)} m inside` : '—'
 const coastText = (p: any) => p.coastS > 0 ? `${p.coastS.toFixed(1)} s · ${Math.round(p.coastM)} m` : 'none'
 const spinText = (p: any) => p.wheelspin ? `${Math.round(p.wheelspinPct)}% · ${p.wheelspinS.toFixed(1)} s` : 'none'
 function alignCorners(a: any[], b: any[]) {
@@ -148,7 +200,9 @@ function exitBetter(a: number, b: number, aSpun: boolean, bSpun: boolean): 0 | 1
     return Math.abs(a - b) < 0.5 ? null : a < b ? 0 : 1
 }
 
-function BrakingTooltip({ zone, phase, fromM, splitM, toM, current, comparison, pair, currentLabel, comparisonLabel, currentColor, comparisonColor }: {
+export function BrakingTooltip({ fill, zone, phase, fromM, splitM, toM, current, comparison, pair, currentLabel, comparisonLabel, currentColor, comparisonColor }: {
+    /** Fill the container rather than the hover card's fixed width */
+    fill?: boolean
     zone: number; phase: BrakingPhase; fromM: number; splitM: number; toM: number
     current: any; comparison: any; pair: any
     currentLabel: string; comparisonLabel: string; currentColor: string; comparisonColor: string
@@ -156,6 +210,9 @@ function BrakingTooltip({ zone, phase, fromM, splitM, toM, current, comparison, 
     const braking = phase !== 'acceleration'
     const acceleration = phase !== 'braking'
     const both = current !== undefined && comparison !== undefined
+    // A corner every lap shown takes without the brake or a lift
+    // (recordings read before flat-out corners were found carry no flatOut, and are braking zones)
+    const cornerOnly = (current ? current.flatOut === true : true) && (comparison ? comparison.flatOut === true : true)
     const times = !pair ? null
         : phase === 'braking' ? [pair.currentBrakingS, pair.comparisonBrakingS]
             : phase === 'acceleration' ? [pair.currentAccelerationS, pair.comparisonAccelerationS]
@@ -177,28 +234,42 @@ function BrakingTooltip({ zone, phase, fromM, splitM, toM, current, comparison, 
         return splitM < 0 || (braking && at <= splitM) || (acceleration && at > splitM)
     })
     const rows: Row[] = [
+        // A corner taken flat out has no braking, coasting or exit to compare
         ...(braking ? [
-            ['Brakes at', current ? brakeAtText(current) : null, comparison ? brakeAtText(comparison) : null,
+            [cornerOnly ? 'Taken' : 'Brakes at', current ? brakeAtText(current) : null, comparison ? brakeAtText(comparison) : null,
                 both && sameBrake ? pick(current.distanceM, comparison.distanceM, true, 0.5) : null],
-            ['Braking', current ? metresText(current.brakingDistanceM) : null, comparison ? metresText(comparison.brakingDistanceM) : null,
-                both && sameBrake && current.brakingDistanceM >= 0 && comparison.brakingDistanceM >= 0
-                    ? pick(current.brakingDistanceM, comparison.brakingDistanceM, false, 0.5) : null],
+            ...(cornerOnly ? [] : [
+                ['Braking', current ? metresText(current.brakingDistanceM) : null, comparison ? metresText(comparison.brakingDistanceM) : null,
+                    both && sameBrake && current.brakingDistanceM >= 0 && comparison.brakingDistanceM >= 0
+                        ? pick(current.brakingDistanceM, comparison.brakingDistanceM, false, 0.5) : null],
+            ] as Row[]),
             ['Entry', current ? `${Math.round(current.speedKph)} km/h` : null, comparison ? `${Math.round(comparison.speedKph)} km/h` : null,
-                both && sameBrake ? pick(current.speedKph, comparison.speedKph, true, 0.5) : null],
-            ['Coast', current ? coastText(current) : null, comparison ? coastText(comparison) : null, null],
+                both && (sameBrake || cornerOnly) ? pick(current.speedKph, comparison.speedKph, true, 0.5) : null],
+            ...(cornerOnly ? [] : [
+                ['Coast', current ? coastText(current) : null, comparison ? coastText(comparison) : null, null],
+            ] as Row[]),
         ] as Row[] : []),
-        ...corners.map(([a, b], index): Row => [
-            `${corners.length > 1 ? `Apex ${index + 1}` : 'Apex'}${sideText((a ?? b).side)}`,
-            current ? (a ? `${Math.round(a.speedKph)} km/h` : '—') : null,
-            comparison ? (b ? `${Math.round(b.speedKph)} km/h` : '—') : null,
-            a && b ? pick(a.speedKph, b.speedKph, true, 0.5) : null,
+        // One apex row per corner, flat-out ones included, each with which lap took the tighter line there when both
+        // recorded their positions
+        ...corners.flatMap(([a, b], index): Row[] => [
+            [
+                `${corners.length > 1 ? `Apex ${index + 1}` : 'Apex'}${sideText((a ?? b).side)}`,
+                current ? (a ? `${Math.round(a.speedKph)} km/h` : '—') : null,
+                comparison ? (b ? `${Math.round(b.speedKph)} km/h` : '—') : null,
+                a && b ? pick(a.speedKph, b.speedKph, true, 0.5) : null,
+            ],
+            ...(a?.hasLine && b?.hasLine
+                ? [[corners.length > 1 ? `Line ${index + 1}` : 'Line', lineText(a.lineGapM), lineText(b.lineGapM), null] as Row]
+                : []),
         ]),
         ...(braking ? [
             ['ERS', known(pair?.currentHarvestKj) ? `+${Math.round(pair.currentHarvestKj).toLocaleString('en-US')} kJ` : null,
                 known(pair?.comparisonHarvestKj) ? `+${Math.round(pair.comparisonHarvestKj).toLocaleString('en-US')} kJ` : null,
                 pair && known(pair.currentHarvestKj) && known(pair.comparisonHarvestKj) ? pick(pair.currentHarvestKj, pair.comparisonHarvestKj, true, 0.5) : null],
         ] as Row[] : []),
-        ...(acceleration ? [
+        // Corner exit. Back on the throttle earlier wins unless it spins the rears, which hands it to the other lap;
+        // flat out sooner only counts without wheelspin
+        ...(acceleration && !cornerOnly ? [
             ['Throttle on', current ? metresText(current.throttleOnM) : null, comparison ? metresText(comparison.throttleOnM) : null,
                 both ? exitBetter(current.throttleOnM, comparison.throttleOnM, current.wheelspin, comparison.wheelspin) : null,
                 [!!current?.wheelspin && current.throttleOnM >= 0, !!comparison?.wheelspin && comparison.throttleOnM >= 0]],
@@ -219,31 +290,36 @@ function BrakingTooltip({ zone, phase, fromM, splitM, toM, current, comparison, 
         .map((o: any) => brakingObservationText(o, [currentLabel, comparisonLabel]))
     const [shownFrom, shownTo] = phase === 'braking' ? [fromM, splitM] : phase === 'acceleration' ? [splitM, toM] : [fromM, toM]
     const lapHead = (label: string, color: string, align: 'left' | 'right') =>
-        <th className={`pb-1 text-[9px] font-bold ${align === 'left' ? 'text-left' : 'text-right'}`} style={{ color }}>{label}</th>
+        <th className={`pb-1 text-[9px] font-bold ${align === 'left' ? 'pl-3 text-left' : 'pr-3 text-right'}`} style={{ color }}>{label}</th>
+    // A warning (an exit that spun) shows in the warning colour instead of the lap's
     const cell = (value: string | null, wins: boolean, warn: boolean, color: string, align: 'left' | 'right') =>
-        <td className={`border-t border-[var(--border)] py-[3px] ${align === 'left' ? 'text-left' : 'text-right'} ${wins || warn ? 'font-bold' : ''} ${warn ? 'text-amber-500' : ''}`}
+        <td className={`border-t border-[var(--border)] py-[3px] ${align === 'left' ? 'pl-3 text-left' : 'pr-3 text-right'} ${wins || warn ? 'font-bold' : ''} ${warn ? 'text-amber-500' : ''}`}
             style={wins && !warn ? { color } : undefined}>{value ?? '—'}</td>
-    return <div className="flex w-[270px] flex-col gap-2 whitespace-nowrap tabular-nums">
-        <div className="flex items-baseline justify-between gap-3 text-[9px] uppercase tracking-widest text-[var(--text-secondary)]">
-            <span>{phase === 'acceleration' ? 'Acceleration' : 'Braking'} zone {zone}{corners.length > 1 ? ` · ${corners.length} corners` : ''}</span>
-            <span>{formatM(shownFrom)} – {formatM(shownTo)}</span>
+    return <div className={`flex ${fill ? 'w-full' : 'w-[270px]'} flex-col gap-2 whitespace-nowrap tabular-nums`}>
+        {/* The range drops to its own line, still right-aligned, rather than running past the table's edge when the
+            title is long */}
+        <div className="flex flex-wrap items-baseline justify-between gap-x-3 text-[9px] uppercase tracking-widest text-[var(--text-secondary)]">
+            <span>{cornerOnly ? 'Corner' : `${phase === 'acceleration' ? 'Acceleration' : 'Braking'} zone`} {zone}{corners.length > 1 ? ` · ${corners.length} corners` : ''}</span>
+            <span className="ml-auto">{formatM(shownFrom)} – {formatM(shownTo)}</span>
         </div>
         {verdict && <div className="text-[12px] font-bold" style={verdict.color ? { color: verdict.color } : undefined}>{verdict.text}</div>}
-        <table className="w-full border-collapse">
+        {/* The table and the observations' divider run through the card's 12px side padding (px-3 / p-3 around it),
+            so the separators reach its edges; the outer cells take that padding back for their text */}
+        <table className="-mx-3 w-[calc(100%+1.5rem)] max-w-none border-collapse">
             <thead><tr>
                 {current && lapHead(currentLabel, currentColor, 'left')}
                 <th />
                 {comparison && lapHead(comparisonLabel, comparisonColor, 'right')}
             </tr></thead>
             <tbody>
-                {shown.map(([measure, a, b, better, warn]) => <tr key={measure}>
+                {shown.map(([measure, a, b, better, warn], rowIndex) => <tr key={measure} className="braking-row" style={{ animationDelay: `${rowIndex * 18}ms` }}>
                     {current && cell(a, better === 0, warn?.[0] ?? false, currentColor, 'left')}
                     <td className="border-t border-[var(--border)] px-1.5 py-[3px] text-center text-[9px] text-[var(--text-secondary)]">{measure}</td>
                     {comparison && cell(b, better === 1, warn?.[1] ?? false, comparisonColor, 'right')}
                 </tr>)}
             </tbody>
         </table>
-        {observations.length > 0 && <div className="flex flex-col gap-1 whitespace-normal border-t border-[var(--border)] pt-1.5 leading-snug text-[var(--text-secondary)]">
+        {observations.length > 0 && <div className="flex flex-col gap-1 whitespace-normal -mx-3 border-t border-[var(--border)] px-3 pt-1.5 leading-snug text-[var(--text-secondary)]">
             {observations.map((text: string) => <div key={text} className="flex gap-1.5">
                 <span className="shrink-0 text-[var(--text-muted)]">▸</span><span className="min-w-0">{text}</span>
             </div>)}
@@ -327,9 +403,11 @@ function InputComparison({ current, comparison, currentColor, comparisonColor, c
                 onPointerMove={event => {
                     const drag = dragRef.current, panel = panelRef.current, map = panel?.parentElement
                     if (!drag || drag.id !== event.pointerId || !panel || !map) return
+                    // The pointer moves in screen pixels, the panel in the window's own (the window scales down on narrow screens)
+                    const k = map.getBoundingClientRect().width / (map.offsetWidth || 1) || 1
                     setPosition({
-                        x: clampPos(drag.start.x + (event.clientX - drag.sx) / Math.max(1, map.clientWidth - panel.offsetWidth - 16)),
-                        y: clampPos(drag.start.y + (event.clientY - drag.sy) / Math.max(1, map.clientHeight - panel.offsetHeight - 16)),
+                        x: clampPos(drag.start.x + (event.clientX - drag.sx) / k / Math.max(1, map.clientWidth - panel.offsetWidth - 16)),
+                        y: clampPos(drag.start.y + (event.clientY - drag.sy) / k / Math.max(1, map.clientHeight - panel.offsetHeight - 16)),
                     })
                 }}
                 onPointerUp={() => { dragRef.current = null; setDragging(false) }}
@@ -387,7 +465,7 @@ function lapPosition(lap: LapInfo | null, elapsed: number): { x: number; z: numb
 
 export default memo(function MapPane({
     data, map, current, comparison, currentColor, comparisonColor, currentLabel, comparisonLabel,
-    mapColoring, brakingPoints, showInputPanel, elapsedSource, fixedMode, fixedBar, onMarkHover,
+    mapColoring, brakingPoints, showInputPanel, elapsedSource, fixedMode, fixedBar, onMarkHover, onBrakingZoneClick, zoomable,
 }: {
     data: TourData; map: any
     current: LapInfo | null; comparison: LapInfo | null
@@ -398,13 +476,28 @@ export default memo(function MapPane({
     /** The map's own playback bar, shown in Comparison mode */
     fixedBar: ReactNode
     onMarkHover: (kind: 'zone' | 'apex' | null) => void
+    /** A braking zone clicked on the map, as its row in the Braking Zones panel (its pair, or with one lap its zone);
+     *  left out when nothing listens */
+    onBrakingZoneClick?: (row: number) => void
+    /** Scroll to zoom, drag to pan and the zoom buttons (off while the run plays: it points at marks unzoomed) */
+    zoomable: boolean
 }) {
     const comparisonSelected = !!comparison
-    const result = useMemo(() => mapColoring === 'none' ? null
-        : resolveMapResult(data, mapColoring, current?.lap ?? null, comparison?.lap ?? null), [comparison, current, data, mapColoring])
-    const brakingResult = useMemo(() => brakingPoints ? resolveMapResult(data, 'braking', current?.lap ?? null, comparison?.lap ?? null) : null,
+    // Racing Line needs nothing from libtnrp: it draws the laps' recorded positions
+    const result = useMemo(() => mapColoring === 'none' || mapColoring === 'racing' ? null
+        : resolveMapResult(data, mapColoring, current?.key ?? null, comparison?.key ?? null), [comparison, current, data, mapColoring])
+    const brakingResult = useMemo(() => brakingPoints ? resolveMapResult(data, 'braking', current?.key ?? null, comparison?.key ?? null) : null,
         [brakingPoints, comparison, current, data])
     const ersMode = mapColoring === 'ers', inputsMode = mapColoring === 'inputs', harvestMode = mapColoring === 'harvest', speedMode = mapColoring === 'speed'
+    const racingMode = mapColoring === 'racing'
+    // Racing Line: both laps' recorded positions on the one map, as they are
+    const racingLines = useMemo<(RacingLine & { label: string })[] | null>(() => racingMode
+        ? [
+            { lap: current, label: currentLabel, color: currentColor },
+            { lap: comparison, label: comparisonLabel, color: comparisonColor },
+        ].flatMap(({ lap, label, color }) => lap
+            ? [{ points: lap.trace.x.map((x, i) => ({ x, z: lap.trace.z[i] })), label, color }] : [])
+        : null, [comparison, comparisonColor, comparisonLabel, current, currentColor, currentLabel, racingMode])
     const currentSpeed = speedMode && result?.hasCurrent ? result.current : null
     const comparisonSpeed = speedMode && result?.hasComparison ? result.comparison : null
     const currentHarvest = harvestMode && result?.hasCurrent ? result.current : null
@@ -427,7 +520,8 @@ export default memo(function MapPane({
         ? <ErsScale usage={usage} />
         : harvestMode ? <HarvestScale harvest={harvest} />
             : speedMode && result ? <SpeedScale speed={speed} minKph={result.min} maxKph={result.max} />
-                : inputsMode && result ? <InputsLegend /> : null
+                : inputsMode && result ? <InputsLegend />
+                    : racingLines ? <RacingLineLegend lines={racingLines} /> : null
     const peakMismatches: string[] = separateMaps && currentUsage && comparisonUsage
         ? [
             result?.normalPeakMismatch && `normal grip ${currentLabel} ${fmtKw(currentUsage.normalPeakKw)}, ${comparisonLabel} ${fmtKw(comparisonUsage.normalPeakKw)}`,
@@ -450,32 +544,86 @@ export default memo(function MapPane({
             const q = ps - cs
             return Math.abs(q) < BRAKING_LEVEL_S ? level : q > 0 ? currentColor : comparisonColor
         }
-        const halves = (fromM: number, splitM: number, toM: number, brakingColor: string, accelerationColor: string,
-            card: (phase: BrakingPhase, fromM: number, splitM: number, toM: number) => ReactNode): TrackMark[] =>
-            splitM < 0
-                ? [{ fromFraction: fromM / length, toFraction: toM / length, color: accelerationColor, tooltip: card(null, fromM, splitM, toM) }]
-                : [{ fromFraction: fromM / length, toFraction: splitM / length, color: brakingColor, opacity: BRAKING_HALF_OPACITY, tooltip: card('braking', fromM, splitM, toM) },
-                    { fromFraction: splitM / length, toFraction: toM / length, color: accelerationColor, tooltip: card('acceleration', fromM, splitM, toM) }]
+        // A zone as its braking half, dimmed, then its acceleration half, each with its own tooltip; whole when it has
+        // no split. Clicking either half selects the zone's row in the Braking Zones panel.
+        const halves = (row: number, fromM: number, splitM: number, toM: number, brakingColor: string, accelerationColor: string,
+            card: (phase: BrakingPhase, fromM: number, splitM: number, toM: number) => ReactNode): TrackMark[] => {
+            const onClick = onBrakingZoneClick ? () => onBrakingZoneClick(row) : undefined
+            return splitM < 0
+                ? [{ fromFraction: fromM / length, toFraction: toM / length, color: accelerationColor, tooltip: card(null, fromM, splitM, toM), onClick }]
+                : [{ fromFraction: fromM / length, toFraction: splitM / length, color: brakingColor, opacity: BRAKING_HALF_OPACITY, tooltip: card('braking', fromM, splitM, toM), onClick },
+                    { fromFraction: splitM / length, toFraction: toM / length, color: accelerationColor, tooltip: card('acceleration', fromM, splitM, toM), onClick }]
+        }
         if (braking.comparison.length === 0)
             return braking.current.flatMap((point: any, index: number) => {
                 const toM = Math.max(point.distanceM, point.endM)
-                const split = point.minSpeedM - point.distanceM >= PHASE_MIN_M && toM - point.minSpeedM >= PHASE_MIN_M ? point.minSpeedM : -1
-                return halves(point.distanceM, split, toM, currentColor, currentColor, tooltip(index + 1, point, undefined, undefined))
+                const split = !point.flatOut && point.minSpeedM - point.distanceM >= PHASE_MIN_M &&
+                    toM - point.minSpeedM >= PHASE_MIN_M ? point.minSpeedM : -1
+                return halves(index, point.distanceM, split, toM, currentColor, currentColor, tooltip(index + 1, point, undefined, undefined))
             })
-        return braking.pairs.flatMap((pair: any) => halves(pair.fromM, pair.splitM, pair.toM,
+        return braking.pairs.flatMap((pair: any, row: number) => halves(row, pair.fromM, pair.splitM, pair.toM,
             winner(pair.currentBrakingS, pair.comparisonBrakingS),
             pair.splitM < 0 ? winner(pair.currentTimeS, pair.comparisonTimeS) : winner(pair.currentAccelerationS, pair.comparisonAccelerationS),
             tooltip(pair.current + 1, braking.current[pair.current], braking.comparison[pair.comparison], pair)))
-    }, [brakingResult, comparisonColor, comparisonLabel, currentColor, currentLabel])
+    }, [brakingResult, comparisonColor, comparisonLabel, currentColor, currentLabel, onBrakingZoneClick])
+    // The Speed map marks each lap's corners on its own map, over any braking zones. Racing Line has no track, so its
+    // zones follow a lap's own path.
     const currentMarks = useMemo<TrackMark[] | null>(() => {
+        if (racingMode) {
+            const lap = current ?? comparison
+            const length = brakingResult?.braking?.trackLengthM ?? 0
+            return brakingMarks && lap && length > 0 ? marksOnLap(brakingMarks, lap, length) : null
+        }
         const apexes = apexMarks(currentSpeed)
         return apexes.length > 0 ? [...(brakingMarks ?? []), ...apexes] : brakingMarks
-    }, [brakingMarks, currentSpeed])
+    }, [brakingMarks, brakingResult, comparison, current, currentSpeed, racingMode])
     const comparisonMarks = useMemo<TrackMark[] | null>(() => {
         if (!separateMaps) return null
         const apexes = apexMarks(comparisonSpeed)
         return apexes.length > 0 ? [...(brakingMarks ?? []), ...apexes] : brakingMarks
     }, [brakingMarks, comparisonSpeed, separateMaps])
+
+    // One zoom for every map on show, so two laps stay framed alike
+    const [mapView] = useState<TrackMapView>(() => ({ zoom: 1, cx: 0, cy: 0 }))
+    const [mapZoom, setMapZoom] = useState(1)
+    const mapZoomGoalRef = useRef(1)
+    const mapZoomFlightRef = useRef(0)
+    const handleMapViewChange = useCallback((zoom: number) => {
+        cancelAnimationFrame(mapZoomFlightRef.current)
+        mapZoomGoalRef.current = zoom
+        setMapZoom(zoom)
+    }, [])
+    const zoomMapTo = useCallback((target: number) => {
+        cancelAnimationFrame(mapZoomFlightRef.current)
+        const goal = Math.min(MAP_ZOOM_MAX, Math.max(1, target))
+        mapZoomGoalRef.current = goal
+        if (reducedMotion()) {
+            mapView.zoom = goal
+            setMapZoom(goal)
+            return
+        }
+        const from = mapView.zoom
+        const startedAt = performance.now()
+        const step = (now: number) => {
+            const progress = Math.min(1, (now - startedAt) / MAP_ZOOM_FLIGHT_MS)
+            const eased = progress * progress * (3 - 2 * progress)
+            mapView.zoom = progress < 1 ? from * Math.pow(goal / from, eased) : goal
+            setMapZoom(mapView.zoom)
+            if (progress < 1) mapZoomFlightRef.current = requestAnimationFrame(step)
+        }
+        mapZoomFlightRef.current = requestAnimationFrame(step)
+    }, [mapView])
+    const fitMap = useCallback(() => zoomMapTo(1), [zoomMapTo])
+    useEffect(() => () => cancelAnimationFrame(mapZoomFlightRef.current), [])
+    // Another circuit starts from the whole lap, as does the run playing again
+    useEffect(() => {
+        cancelAnimationFrame(mapZoomFlightRef.current)
+        mapView.zoom = 1
+        mapZoomGoalRef.current = 1
+        setMapZoom(1)
+    }, [map, mapView, zoomable])
+    const mapZoomed = mapZoom > 1.01
+    const view = zoomable ? mapView : undefined
 
     const { ref: mapsRef, width: mapsWidth, height: mapsHeight } = useSize<HTMLDivElement>()
     const currentPaneRef = useRef<HTMLDivElement>(null)
@@ -557,10 +705,12 @@ export default memo(function MapPane({
     const hoverKind = (marks: TrackMark[] | null) => (index: number | null) =>
         onMarkHover(index === null ? null : index >= (brakingMarks?.length ?? 0) && (marks?.length ?? 0) > (brakingMarks?.length ?? 0) ? 'apex' : 'zone')
 
-    const mapEl = <TrackMap map={map} trackPaint={trackPaint} trackMarks={currentMarks}
-        markerSource={separateMaps ? markersFor(true, false) : markersFor(true, true)} onMarkHover={hoverKind(currentMarks)} />
+    const mapEl = <TrackMap map={map} trackPaint={trackPaint} trackMarks={currentMarks} racingLines={racingLines}
+        markerSource={separateMaps ? markersFor(true, false) : markersFor(true, true)} onMarkHover={hoverKind(currentMarks)}
+        view={view} onViewChange={handleMapViewChange} onViewFit={fitMap} />
     const comparisonMapEl = separateMaps && <TrackMap map={map} trackPaint={comparisonTrackPaint} trackMarks={comparisonMarks}
-        markerSource={markersFor(false, true)} onMarkHover={hoverKind(comparisonMarks)} />
+        markerSource={markersFor(false, true)} onMarkHover={hoverKind(comparisonMarks)}
+        view={view} onViewChange={handleMapViewChange} onViewFit={fitMap} />
 
     return <div className="h-full min-h-0 flex flex-col">
         <div ref={mapsRef} data-tour="maps" className="flex-1 min-h-0 relative">
@@ -580,6 +730,21 @@ export default memo(function MapPane({
                     {mapEl}
                     {legend(currentUsage, currentHarvest, currentSpeed)}
                 </div>}
+            {zoomable && map && <>
+                {mapZoomed && <div className="pointer-events-none absolute bottom-9 right-[3.75rem] z-10 flex h-[22px] items-center rounded-md border border-[var(--border)] bg-[var(--bg-panel)] px-2 text-[11px] font-mono text-[var(--text-primary)]">
+                    {mapZoom.toFixed(1)}×
+                </div>}
+                <div role="group" aria-label="Map zoom" className="rv absolute bottom-9 right-3 z-10 flex w-[38px] flex-col overflow-hidden rounded-lg border border-[var(--border)] bg-[var(--bg-panel)] shadow-[0_6px_20px_rgba(0,0,0,0.4)]">
+                    <button type="button" className={MAP_ZOOM_BUTTON_CLASS} aria-label="Zoom in" title="Zoom in"
+                        disabled={mapZoom >= MAP_ZOOM_MAX} onClick={() => zoomMapTo(mapZoomGoalRef.current * 2)}><Plus size={14} /></button>
+                    <div className="h-px bg-[var(--border)]" />
+                    <button type="button" className={MAP_ZOOM_BUTTON_CLASS} aria-label="Zoom out" title="Zoom out"
+                        disabled={!mapZoomed} onClick={() => zoomMapTo(mapZoomGoalRef.current / 2)}><Minus size={14} /></button>
+                    <div className="h-px bg-[var(--border)]" />
+                    <button type="button" className={MAP_ZOOM_BUTTON_CLASS} aria-label="Fit circuit" title="Fit circuit"
+                        disabled={!mapZoomed} onClick={fitMap}><Maximize size={14} /></button>
+                </div>
+            </>}
             {peakMismatches.length > 0 && <div role="status"
                 className="pointer-events-none absolute top-2 right-2 z-10 flex items-center gap-1.5 rounded-md border border-amber-500/40 bg-[var(--bg-panel)] px-2 py-1 text-[10px] text-[var(--text-primary)]">
                 <AlertTriangle size={12} className="shrink-0 text-amber-500" />

@@ -1,6 +1,8 @@
 ---
-// One screen on the Gallery: its screenshot and caption. Every frontend's capture, marked data-ui, and the Android
-// tab's own name, number and caption beside the desktop ones; styles/gallery.css shows the picked frontend's.
+// One screen in the Gallery's viewer: its screenshot, with its number, name, caption and data rows beside it.
+// Every frontend's capture, marked data-ui, and the Android tab's own name, number and caption beside the desktop
+// ones; styles/gallery.css shows the picked frontend's. scripts/gallery.js shows one screen at a time; without
+// JavaScript every screen is listed in turn (styles/gallery.css).
 import ScreenPicture from './ScreenPicture.astro';
 import ZoomBadge from './ZoomBadge.astro';
 import { screens } from '../data/screens';
@@ -9,32 +11,50 @@ import { pad } from '../data/format';
 
 interface Props {
     file: string;
-    /** Whether the screenshot waits until scrolled to (every group but the first) */
+    /** The area the screen sits in */
+    group: string;
+    /** Whether the viewer opens on it */
+    current: boolean;
+    /** Whether the Electron screenshot waits until shown (every screen but the first) */
     lazy: boolean;
 }
-const { file, lazy } = Astro.props;
+const { file, group, current, lazy } = Astro.props;
 const screen = screens[file];
-const SIZES = '(max-width: 768px) 100vw, 600px';
+const SIZES = '(max-width: 900px) 100vw, 870px';
 ---
-<figure class:list={['shot', { 'shot-trimmed': screen.width === 2492, 'no-android': !screen.android }]}>
+<figure id={`shot-${file}`} class:list={['shot', { 'shot-trimmed': screen.width === 2492, 'no-android': !screen.android, 'is-current': current }]}
+    data-file={file}>
     <div class="app-window">
         <div class="img-zoom-wrapper">
-            <!-- Only the first group loads straight away; the rest wait until scrolled to -->
             <ScreenPicture screen={screen} ui="electron" sizes={SIZES} lazy={lazy} />
             <ScreenPicture screen={screen} ui="qt" sizes={SIZES} lazy />
             {screen.android && <ScreenPicture screen={screen} ui="android" sizes={SIZES} lazy />}
             <ZoomBadge />
         </div>
     </div>
-    <figcaption class="shot-caption">
-        <span class="module-num desc-desktop">{pad(numbers.get(file)!)}</span>
-        {screen.android && <span class="module-num" data-ui="android">{pad(androidNumbers.get(file)!)}</span>}
-        <div>
+    <figcaption class="shot-side">
+        <!-- Number out of the frontend's total: the Android tab numbers and counts its own screens -->
+        <p class="shot-count">
+            <span class="desc-desktop">{pad(numbers.get(file)!)}</span>
+            {screen.android && <span data-ui="android">{pad(androidNumbers.get(file)!)}</span>}
+            <span class="shot-total">/ <span class="desc-desktop">{pad(numbers.size)}</span><span data-ui="android">{pad(androidNumbers.size)}</span></span>
+        </p>
+        <div class="shot-words">
             <!-- The Android tab swaps in the app's own name and caption for the screen -->
-            <h3 class:list={['module-title', { 'desc-desktop': screen.android?.name }]}>{screen.name}</h3>
-            {screen.android?.name && <h3 class="module-title" data-ui="android">{screen.android.name}</h3>}
+            <h2 class:list={['module-title', { 'desc-desktop': screen.android?.name }]}>{screen.name}</h2>
+            {screen.android?.name && <h2 class="module-title" data-ui="android">{screen.android.name}</h2>}
             <p class="module-desc desc-desktop">{screen.desc}</p>
             {screen.android && <p class="module-desc" data-ui="android">{screen.android.desc}</p>}
         </div>
+        <dl class="shot-specs">
+            <div><dt>Area</dt><dd>{group}</dd></div>
+            <div><dt>Frontend</dt><dd><span data-ui="electron">Electron</span><span data-ui="qt">Native</span><span data-ui="android">Android</span></dd></div>
+        </dl>
+        <!-- Stepping needs the script, so these are left out without it -->
+        <div class="shot-nav js-only">
+            <button class="shot-step" type="button" data-step="-1" aria-label="Previous screen">&larr; Previous</button>
+            <button class="shot-step" type="button" data-step="1" aria-label="Next screen">Next &rarr;</button>
+        </div>
+        <p class="shot-hint js-only">Arrow keys also step through</p>
     </figcaption>
 </figure>

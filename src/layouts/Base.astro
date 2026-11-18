@@ -9,6 +9,10 @@
 import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
 import LicenseModal from '../components/LicenseModal.astro';
+import { asset } from '../asset-url';
+// Icons and fonts come from src/assets/ with hashed names (asset-url.ts). The preloads name the same hashed files
+// base.css's @font-face rules load, so the browser reuses them. favicon-48 and the apple-touch-icon stay in public/:
+// site.webmanifest and browsers asking for /apple-touch-icon.png need them at fixed addresses.
 
 interface Props {
     /** Structured data for search engines, written out as JSON-LD */
@@ -33,14 +37,14 @@ const { jsonLd, bodyClass } = Astro.props;
     <!-- Favicon & App Icons -->
     <link rel="icon" type="image/x-icon" href="/favicon.ico">
     <link rel="icon" type="image/png" sizes="48x48" href="/assets/icons/favicon-48x48.png">
-    <link rel="icon" type="image/png" sizes="32x32" href="/assets/icons/favicon-32x32.png">
-    <link rel="icon" type="image/png" sizes="16x16" href="/assets/icons/favicon-16x16.png">
+    <link rel="icon" type="image/png" sizes="32x32" href={asset('icons/favicon-32x32.png')}>
+    <link rel="icon" type="image/png" sizes="16x16" href={asset('icons/favicon-16x16.png')}>
     <link rel="apple-touch-icon" sizes="180x180" href="/assets/icons/apple-touch-icon.png">
     <link rel="manifest" href="/site.webmanifest">
 
     <!-- Fonts -->
-    <link rel="preload" href="/assets/fonts/geist-latin.woff2" as="font" type="font/woff2" crossorigin>
-    <link rel="preload" href="/assets/fonts/geist-mono-latin.woff2" as="font" type="font/woff2" crossorigin>
+    <link rel="preload" href={asset('fonts/geist-latin.woff2')} as="font" type="font/woff2" crossorigin>
+    <link rel="preload" href={asset('fonts/geist-mono-latin.woff2')} as="font" type="font/woff2" crossorigin>
 </head>
 
 <body class={bodyClass}>

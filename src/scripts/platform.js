@@ -1,11 +1,12 @@
 // The visitor's platform, for the Download page.
 // Android's user agent also says Linux, so it's checked first. Anything unrecognized gets Windows.
-// iOS users are intentionally sent to the macOS build, since iOS is not supported and macOS is the closest
-// thing in the Apple ecosystem.
+// iOS and iPadOS have no build, so they get null: the Download page preselects nothing and says so instead
+// (see appleMobileOS below).
 export const detectOS = () => {
+    if (appleMobileOS()) return null;
     const ua = navigator.userAgent || navigator.platform || '';
     if (/Android/.test(ua)) return 'android';
-    if (/Mac|iPhone|iPad|iPod/.test(ua) && !ua.includes('Windows')) return 'macos';
+    if (/Mac/.test(ua) && !ua.includes('Windows')) return 'macos';
     if (/Linux/.test(ua)) return 'linux';
     return 'windows';
 };

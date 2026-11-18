@@ -14,11 +14,23 @@ const OS_NAMES: Record<string, string> = { windows: 'your Windows PC', macos: 'y
 const IP_DEVICES: Record<string, string> = { windows: 'your Windows PC', macos: 'your Mac', linux: 'your Linux PC', android: 'your phone' };
 const IP_OWNERS: Record<string, string> = { windows: "your PC's", macos: "your Mac's", linux: "your PC's", android: "your phone's" };
 // What the game's IP field shows until a real address is entered
-const IP_PLACEHOLDERS: Record<string, string> = { windows: "Your PC's IP", macos: "Your Mac's IP", linux: "Your PC's IP", android: "Your phone's IP" };
+const IP_PLACEHOLDERS: Record<string, string> = { windows: "Your PC's address", macos: "Your Mac's address", linux: "Your PC's address", android: "Your phone's address" };
 
-// Answers plus what follows from them. Questions that don't apply are dropped, so a stale answer (say the PC host
-// kept after switching to PlayStation) never shows through.
-export const derive = (a: Answers): SetupState => {
+// The OSes with first-launch steps (components/FirstLaunch.astro), for ?os_instructions=<os>. Android's are the
+// install steps for the .apk, which only show above the questions: Android isn't an answer to the OS question.
+export const LAUNCH_OSES = ['windows', 'macos', 'linux', 'android'];
+
+// Answers plus what follows from them, and launch: the OS whose first-launch steps show above the questions until
+// the result does, from ?os_instructions=<os>.
+export const derive = (a: Answers, osInstructions?: string | null): SetupState => {
+    const s = deriveAnswers(a);
+    if (s.complete !== 'yes' && osInstructions && LAUNCH_OSES.includes(osInstructions)) s.launch = osInstructions;
+    return s;
+};
+
+// Questions that don't apply are dropped, so a stale answer (say the PC host kept after switching to PlayStation)
+// never shows through.
+const deriveAnswers = (a: Answers): SetupState => {
     const s: SetupState = { platform: a.platform, game: a.game, view: a.view };
     if (!s.platform || !s.game || !s.view) return s;
     if (s.view !== 'android') {
@@ -31,6 +43,9 @@ export const derive = (a: Answers): SetupState => {
     // The Native (Qt) app is built for Windows and Linux only; a Mac runs the Electron app
     if (s.view !== 'android') s.native = s.os === 'macos' ? 'no' : 'yes';
     s.ip = s.view === 'android' ? 'android' : s.host === 'same' ? 'loopback' : s.os;
+    // The computer's firewall matters when data reaches it from another device: the game over the network, or the
+    // phone in Paired mode
+    s.fw = s.link !== 'direct' && (s.ip !== 'loopback' || s.link === 'paired') ? 'yes' : 'no';
     s.complete = 'yes';
     return s;
 };

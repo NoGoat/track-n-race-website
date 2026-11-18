@@ -2,16 +2,17 @@
 // title bar (app/components/AppHeaderMacOS.tsx) and playback bar, fed by two race recordings. On load, the run
 // (Tour.tsx) builds the screen one part at a time, then leaves it as a playground.
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
-import { createPortal } from 'react-dom'
 import { ChartNoAxesCombined, Columns3, FileText, Pencil, Settings2, Smartphone, Upload, X } from 'lucide-react'
 import '../../styles/analysis-app.css'
-import Select, { buildSelectStyles, pagePortal, selectComponents } from './select'
+import Select, { buildSelectStyles, selectComponents } from './select'
 import Screen, { AnalysisHelpItem, BUTTON_CLASS, HELP_INTERACTIONS, HELP_ITEMS, SyncedTooltipIcon, lapOptions } from './Screen'
 import PlaybackBar from './PlaybackBar'
 import { createClock, useClock } from './clock'
-import { AppCtx, type AnalyzeConfig, type AppState, type FixedLapMode } from './ctx'
+import { AppCtx, type AnalyzeConfig, type AppState, type DriverGroup, type FixedLapMode } from './ctx'
 import { RUN_RPM_COLOR, useRun, type AimOptions, type AimTarget } from './Tour'
 import { mapHooks } from './MapPane'
+import { onUnavailable, showUnavailable } from './unavailable'
+import { DEFAULT_ZONES_LIST_RATIO, DEFAULT_ZONES_WIDTH } from './BrakingZones'
 import { registerCamera, setCanvasBoost, toCamera } from './camera'
 import {
     FILES, METRIC_BY_ID, fmtClock, loadRecording, loadTrackMap, reducedMotion,
@@ -22,9 +23,11 @@ import {
 const DEFAULT_CONFIG: AnalyzeConfig = {
     collapsed: false, view: 'graph', individualGraphs: true, syncedTooltip: false, sectorBoundaries: true, sectorDelta: false,
     splitCursors: true, brakingPoints: false, inputPanel: false, mapColoring: 'none',
+    // Open, as in the app; the sidebar itself shows with the rest of the screen at the end of the run
+    zonesPanel: true, zonesWidth: DEFAULT_ZONES_WIDTH, zonesListRatio: DEFAULT_ZONES_LIST_RATIO,
     currentLabel: '', compareLabel: '', lapALabel: '', lapBLabel: '',
     // Lap A green, Lap B rose (the site's --trace-pink, home.css)
-    mapCurrentColor: '#228260', mapComparisonColor: '#F279AE',
+    mapCurrentColor: '#DC8FE1', mapComparisonColor: '#807EF1',
     series: [
         { metricId: 'delta', color: DEFAULT_DELTA_POSITIVE_COLOR, negativeColor: DEFAULT_DELTA_NEGATIVE_COLOR, visible: true, showYAxis: true },
         { metricId: 'throttle', color: METRIC_BY_ID.get('throttle')!.defaultColor, visible: true, showYAxis: true },
@@ -39,7 +42,8 @@ const windowHeight = () => Math.max(640, Math.min(880, (typeof innerHeight === '
 const tabSelectStyles = buildSelectStyles({ menuWidth: '120px' })
 const windowSelectStyles = buildSelectStyles({ labelStyleGroupHeadings: true, menuWidth: '7rem', scrollableMenu: false })
 const driverSelectStyles = buildSelectStyles({ menuWidth: '240px' })
-const TAB_OPTIONS = [{ value: 'analyze', label: 'Analysis' }]
+const HEADER_BUTTON = 'p-1.5 rounded transition-colors text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--border)]'
+const TAB_OPTIONS =[{ value: 'analyze', label: 'Analysis' }]
 // What the playground keeps: where the run ends, Lap A / Lap B on the full map with Braking Points and the panel on
 const PLAYGROUND: Partial<AnalyzeConfig> = { view: 'map', mapColoring: 'none', brakingPoints: true, inputPanel: true }
 /** The config with a metric charted at the end of the list, as the metric picker adds it */
@@ -48,7 +52,7 @@ const withMetric = (c: AnalyzeConfig, id: string): AnalyzeConfig => c.series.som
 /** The camera's deepest zoom, which the canvases draw for while the run plays */
 const CAMERA_MAX_ZOOM = 2.5
 const clamp = (v: number, lo: number, hi: number) => Math.max(lo, Math.min(hi, v))
-const WINDOW_OPTIONS = [{ label: 'Laps', options: [{ value: 'CL', label: 'Current' }, { value: 'PL', label: 'Previous' }, { value: 'FL', label: 'Fastest' }, { value: 'AL', label: 'All Laps' }] }]
+const WINDOW_OPTIONS = [{ label: 'Laps', options: [{ value: 'CL', label: 'Current' }] }]
 
 function Modal({ open, onClose, labelledBy, width, children }: { open: boolean; onClose: () => void; labelledBy: string; width: string; children: React.ReactNode }) {
     const [mounted, setMounted] = useState(open)
@@ -58,13 +62,14 @@ function Modal({ open, onClose, labelledBy, width, children }: { open: boolean; 
         else { setVisible(false); const t = setTimeout(() => setMounted(false), 220); return () => clearTimeout(t) }
     }, [open])
     if (!mounted) return null
-    return createPortal(<div data-state={visible ? 'open' : 'closed'} role="dialog" aria-modal="true" aria-labelledby={labelledBy}
-        className="modal-backdrop fixed inset-0 z-[120] flex items-center justify-center bg-[var(--bg-modal)] backdrop-blur-[2px]"
+    // Rendered inside the app window and sized to it, as the app's own modals sit within its window
+    return <div data-state={visible ? 'open' : 'closed'} role="dialog" aria-modal="true" aria-labelledby={labelledBy}
+        className="modal-backdrop absolute inset-0 z-[120] flex items-center justify-center rounded-[inherit] bg-[var(--bg-modal)] backdrop-blur-[2px]"
         onMouseDown={e => { if (e.target === e.currentTarget) onClose() }}>
-        <div className={`modal-panel flex max-h-[calc(100vh-2rem)] ${width} max-w-[calc(100vw-2rem)] flex-col overflow-hidden rounded-xl border border-[var(--border)] bg-[var(--bg-panel)] shadow-[0_0_60px_rgba(0,0,0,0.85)]`}>
+        <div className={`modal-panel flex max-h-[calc(100%-2rem)] ${width} max-w-[calc(100%-2rem)] flex-col overflow-hidden rounded-xl border border-[var(--border)] bg-[var(--bg-panel)] shadow-[0_0_60px_rgba(0,0,0,0.85)]`}>
             {children}
         </div>
-    </div>, pagePortal())
+    </div>
 }
 
 function TitleTimer({ clock, show }: { clock: ReturnType<typeof createClock>; show: boolean }) {
@@ -77,7 +82,8 @@ function TitleTimer({ clock, show }: { clock: ReturnType<typeof createClock>; sh
 function GlobalBar({ app, onSeek }: { app: AppState; onSeek: (time: number) => void }) {
     const state = useClock(app.clock)
     const total = app.data?.sessionTotal ?? 1
-    const options = useMemo(() => lapOptions(app.data).map(o => ({ value: o.lapNum, label: String(o.lapNum) })), [app.data])
+    // The session clock plays the player's laps
+    const options = useMemo(() => lapOptions(app.data, app.data?.driver.index ?? null).map(o => ({ value: o.lapNum, label: String(o.lapNum) })), [app.data])
     return <PlaybackBar compact state={{ currentTime: state.time, isPlaying: state.playing, progressPct: state.time / total, speed: state.speed, totalTime: total }}
         onSeekProgress={p => onSeek(p * total)}
         onSeekBackward={() => onSeek(state.time - 5)} onSeekForward={() => onSeek(state.time + 5)}
@@ -93,10 +99,14 @@ export default function App() {
     const [loading, setLoading] = useState<string | null>(null)
     const [dialogOpen, setDialogOpen] = useState(false)
     const [helpOpen, setHelpOpen] = useState(false)
+    const [unavailableOpen, setUnavailableOpen] = useState(false)
+    useEffect(() => onUnavailable(() => setUnavailableOpen(true)), [])
     const [config, save] = useState<AnalyzeConfig>(DEFAULT_CONFIG)
     const [fixed, setFixed] = useState<FixedLapMode>({ enabled: false, lapA: null, lapB: null })
     const [currentLap, setCurrentLap] = useState<number | null>(null)
-    const [compareLap, setCompareLapState] = useState<number | null>(null)
+    const [compareLap, setCompareLapState] = useState<string | null>(null)
+    const [groupDrivers, setGroupDrivers] = useState<Record<DriverGroup, number | null>>({ lapA: null, lapB: null, compare: null })
+    const setGroupDriver = useCallback((group: DriverGroup, driver: number) => setGroupDrivers(g => ({ ...g, [group]: driver })), [])
     const [dropping, setDropping] = useState(false)
     const [shown, setShown] = useState<Set<string> | 'all'>(() => new Set())
     const [fresh, setFresh] = useState<string | null>(null)
@@ -151,9 +161,10 @@ export default function App() {
     const clock = useMemo(() => createClock({ time: 0, playing: false, speed: 1 }), [])
     const fixedClock = useMemo(() => createClock({ time: 0, playing: false, speed: 1 }), [])
 
-    const primary = data ? (fixed.enabled ? data.laps[fixed.lapA ?? -1] : data.laps[currentLap ?? -1]) ?? null : null
-    const comparisonRaw = data ? (fixed.enabled ? data.laps[fixed.lapB ?? -1] : data.laps[compareLap ?? -1]) ?? null : null
-    const comparison = comparisonRaw && comparisonRaw.lap !== primary?.lap ? comparisonRaw : null
+    const lapOf = (key: string | number | null) => key === null ? null : data?.laps[key] ?? null
+    const primary = fixed.enabled ? lapOf(fixed.lapA) : lapOf(currentLap)
+    const comparisonRaw = fixed.enabled ? lapOf(fixed.lapB) : lapOf(compareLap)
+    const comparison = comparisonRaw && comparisonRaw.key !== primary?.key ? comparisonRaw : null
     const primaryRef = useRef(primary)
     primaryRef.current = primary
     const fixedRef = useRef(fixed)
@@ -204,10 +215,10 @@ export default function App() {
         clock.set({ time: Math.max(nearest.start, Math.min(nearest.start + nearest.time - 0.05, t)) })
     }, [clock, data, lapAt])
     const seekLap = useCallback((lap: number) => { if (data?.laps[lap]) clock.set({ time: data.laps[lap].start }) }, [clock, data])
-    const setCompareLap = useCallback((lap: number | null) => { setCompareLapState(lap); if (lap !== null) { emit('compareLap'); emit(`compareLap:${lap}`) } }, [emit])
+    const setCompareLap = useCallback((lap: string | null) => { setCompareLapState(lap); if (lap !== null) { emit('compareLap'); emit(`compareLap:${lap}`) } }, [emit])
 
-    /** Loads a recording; `laps` opens it in Lap A / Lap B mode on those featured laps (by index) */
-    const openFile = useCallback(async (id: string, laps: [number, number] | null = [0, 1]): Promise<TourData | null> => {
+    /** Loads a recording; `laps` opens it in Lap A / Lap B mode on the run's laps (the player's against the rival's) */
+    const openFile = useCallback(async (id: string, laps = true): Promise<TourData | null> => {
         setDialogOpen(false)
         const file = FILES.find(f => f.id === id)!
         setLoading(file.name)
@@ -218,8 +229,9 @@ export default function App() {
             // The session clock sits in the fastest lap, so Current / Compare has laps too
             clock.set({ time: laps ? recording.laps[f[0]].start : 0, playing: false })
             fixedClock.set({ time: 0, playing: false })
-            setFixed(laps ? { enabled: true, lapA: f[laps[0]], lapB: f[laps[1]] } : { enabled: false, lapA: null, lapB: null })
-            setCompareLapState(laps ? f[1] : null)
+            setFixed(laps ? { enabled: true, lapA: recording.tour.lapA, lapB: recording.tour.lapB } : { enabled: false, lapA: null, lapB: null })
+            setCompareLapState(laps ? String(f[1]) : null)
+            setGroupDrivers({ lapA: null, lapB: null, compare: null })
             setCurrentLap(null)
             setData(recording)
             setMap(trackMap)
@@ -409,7 +421,7 @@ export default function App() {
     const run = useRun({
         reveal,
         revealAll: () => setShown('all'),
-        load: async id => { await openFile(id, null) },
+        load: async id => { await openFile(id, false) },
         data: () => dataRef.current,
         openMenu: setForcedMenu,
         aim,
@@ -418,6 +430,7 @@ export default function App() {
             setFixed(f => ({ ...f, enabled: true, [which === 'lapA' ? 'lapA' : 'lapB']: lap }))
             fixedClock.set({ time: 0 })
         },
+        setDriver: (which, driver) => setGroupDriver(which, driver),
         setLayer: layer => {
             if (layer !== configRef.current.mapColoring) mapHooks.crossfade?.()
             save(c => ({ ...c, mapColoring: layer as AnalyzeConfig['mapColoring'] }))
@@ -430,9 +443,9 @@ export default function App() {
             await layerSplit(false, 0)
             aim(null, { ms: 700 })
             const recording = dataRef.current
-            if (!recording) await openFile('interlagos', [0, 1])
+            if (!recording) await openFile('interlagos', true)
             else if (!fixedRef.current.enabled || fixedRef.current.lapA === null || fixedRef.current.lapB === null) {
-                setFixed({ enabled: true, lapA: recording.featured[0], lapB: recording.featured[1] })
+                setFixed({ enabled: true, lapA: recording.tour.lapA, lapB: recording.tour.lapB })
             }
             save(c => {
                 const next = withMetric(c, 'rpm')
@@ -448,7 +461,7 @@ export default function App() {
 
     const app: AppState = {
         data, map, fileName: fileId ? FILES.find(f => f.id === fileId)!.name : null, config, save, fixed, setFixed,
-        currentLap, compareLap, setCompareLap, seekLap, clock, fixedClock, elapsedSource, primary, comparison,
+        currentLap, compareLap, setCompareLap, groupDrivers, setGroupDriver, seekLap, clock, fixedClock, elapsedSource, primary, comparison,
         lock: null, emit, openHelp: () => setHelpOpen(true), shows, fresh, forcedMenu,
     }
 
@@ -501,6 +514,18 @@ export default function App() {
         else lastTap.current = now
     }
 
+    // Interactive Mode back to Demo Mode: the window empties and the run plays again from the start
+    const restartDemo = () => {
+        setForcedMenu(null); setDialogOpen(false); setHelpOpen(false)
+        clock.set({ playing: false, time: 0 })
+        setData(null); setMap(null); setFileId(null); setCurrentLap(null); setCompareLapState(null)
+        setFixed({ enabled: false, lapA: null, lapB: null })
+        setGroupDrivers({ lapA: null, lapB: null, compare: null })
+        save(DEFAULT_CONFIG)
+        setShown(new Set())
+        run.start()
+    }
+
     const session = data ? { label: 'Race', accent: '#5794F2' } : null
 
     return <AppCtx.Provider value={app}>
@@ -543,19 +568,19 @@ export default function App() {
                         : <span className="text-[10px] font-medium uppercase tracking-wide rounded px-2 py-0.5 select-none shrink-0 bg-[var(--bg-panel)] text-[var(--text-secondary)]">Offline</span>}
                     <div className="flex-1 min-w-0" />
                     {shows('session') && <div className="rv"><TitleTimer clock={clock} show={!!data} /></div>}
-                    {data && shows('session') && <div className="rv" title="This recording saved only your driver.">
+                    {data && shows('session') && <div className="rv" title="Playback follows your car.">
                         <Select value={{ value: 0, label: data.driver.name }} options={[{ value: 0, label: data.driver.name }]} isDisabled styles={driverSelectStyles}
                             components={selectComponents} isSearchable={false}
                             formatOptionLabel={(o: any) => <span className="font-bold uppercase">{o.label}</span>} />
                     </div>}
                     {shows('rest') && <div className="rv flex items-center gap-3">
                     <div className="w-[96px]">
-                        <Select defaultValue={WINDOW_OPTIONS[0].options[0]} options={WINDOW_OPTIONS} styles={windowSelectStyles} components={selectComponents} isSearchable={false} />
+                        <Select value={WINDOW_OPTIONS[0].options[0]} options={WINDOW_OPTIONS} isDisabled styles={windowSelectStyles} components={selectComponents} isSearchable={false} />
                     </div>
-                    <button title="Settings" className="p-1.5 rounded transition-colors text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--border)]"><Settings2 size={13} /></button>
-                    <button disabled aria-label="Sector Boundaries" className="p-1.5 rounded transition-colors text-[var(--text-inactive)] cursor-not-allowed"><Columns3 size={13} /></button>
-                    <button disabled aria-label="Synchronize Tooltip" className="p-1.5 rounded transition-colors text-[var(--text-inactive)] cursor-not-allowed"><SyncedTooltipIcon size={13} /></button>
-                    <button disabled title="Edit layout" className="p-1.5 rounded transition-colors text-[var(--text-inactive)] cursor-not-allowed"><Pencil size={13} /></button>
+                    <button title="Settings" onClick={showUnavailable} className={HEADER_BUTTON}><Settings2 size={13} /></button>
+                    <button aria-label="Sector Boundaries" onClick={showUnavailable} className={HEADER_BUTTON}><Columns3 size={13} /></button>
+                    <button aria-label="Synchronize Tooltip" onClick={showUnavailable} className={HEADER_BUTTON}><SyncedTooltipIcon size={13} /></button>
+                    <button title="Edit layout" onClick={showUnavailable} className={HEADER_BUTTON}><Pencil size={13} /></button>
                     </div>}
                 </header>
                 <div className="flex-1 min-h-0">
@@ -569,6 +594,60 @@ export default function App() {
                         <span className="max-w-[420px] truncate text-[10px] text-[var(--text-muted)]">{loading}</span>
                     </div>
                 </div>}
+                <Modal open={dialogOpen} onClose={() => setDialogOpen(false)} labelledBy="open-title" width="w-[560px]">
+                    <div className="flex shrink-0 items-center justify-between border-b border-[var(--border)] px-6 py-4" data-tour="open-dialog">
+                        <div>
+                            <div id="open-title" className="text-xs font-mono font-bold uppercase tracking-widest text-[var(--text-primary)]">Load Session Data</div>
+                            <div className="mt-1 text-[10px] font-mono uppercase tracking-wider text-[var(--text-secondary)]">Documents › Track-N-Race</div>
+                        </div>
+                        <button type="button" onClick={() => setDialogOpen(false)} aria-label="Close" className="flex h-9 w-9 items-center justify-center rounded-lg text-[var(--text-secondary)] transition-colors hover:text-[#e10600]"><X size={18} /></button>
+                    </div>
+                    <div className="flex flex-col gap-2 p-5">
+                        {FILES.map(file => <button key={file.id} type="button" data-tour={`file-${file.id}`} onClick={() => openFile(file.id)}
+                            className="flex items-center gap-3 rounded-lg border border-[var(--border)] bg-[var(--bg-card)]/30 p-3 text-left transition-colors hover:border-[var(--border-focus)] hover:bg-[var(--bg-hover)]">
+                            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded bg-[var(--border-focus)] text-white"><FileText size={15} /></span>
+                            <span className="min-w-0 flex-1">
+                                <span className="block text-[11px] font-bold uppercase tracking-wider text-[var(--text-primary)]">{file.track} · Race</span>
+                                <span className="mt-0.5 block truncate text-[10px] text-[var(--text-secondary)]">{file.name}</span>
+                            </span>
+                            <span className="shrink-0 text-right text-[10px] text-[var(--text-secondary)] tabular-nums">{file.laps} laps<br />{file.size}</span>
+                        </button>)}
+                    </div>
+                    <div className="flex shrink-0 justify-end border-t border-[var(--border)] bg-[var(--bg-card)]/10 px-6 py-4">
+                        <button type="button" onClick={() => setDialogOpen(false)} className={BUTTON_CLASS}>Cancel</button>
+                    </div>
+                </Modal>
+        
+                <Modal open={unavailableOpen} onClose={() => setUnavailableOpen(false)} labelledBy="unavailable-title" width="w-[460px]">
+                    <div className="flex shrink-0 items-center justify-between border-b border-[var(--border)] px-6 py-4">
+                        <div id="unavailable-title" className="text-xs font-mono font-bold uppercase tracking-widest text-[var(--text-primary)]">Not Available in the Demo</div>
+                        <button type="button" onClick={() => setUnavailableOpen(false)} aria-label="Close" className="flex h-9 w-9 items-center justify-center rounded-lg text-[var(--text-secondary)] transition-colors hover:text-[#e10600]"><X size={18} /></button>
+                    </div>
+                    <p className="p-6 text-[11px] leading-relaxed text-[var(--text-secondary)]">This feature cannot be reliably demonstrated in this demo. Please download Track N Race to experience them.</p>
+                    <div className="flex shrink-0 justify-end gap-2 border-t border-[var(--border)] bg-[var(--bg-card)]/10 px-6 py-4">
+                        <button type="button" onClick={() => setUnavailableOpen(false)} className={BUTTON_CLASS}>Close</button>
+                        <a href="/download/" className={`${BUTTON_CLASS} !border-[var(--border-focus)] !bg-[var(--border-focus)] !text-white no-underline`}>Download</a>
+                    </div>
+                </Modal>
+
+                <Modal open={helpOpen}onClose={() => setHelpOpen(false)} labelledBy="analysis-controls-help-title" width="w-[680px]">
+                    <div className="flex shrink-0 items-center justify-between border-b border-[var(--border)] px-6 py-4">
+                        <div>
+                            <div id="analysis-controls-help-title" className="text-xs font-mono font-bold uppercase tracking-widest text-[var(--text-primary)]">Analysis Controls</div>
+                            <div className="mt-1 text-[10px] font-mono uppercase tracking-wider text-[var(--text-secondary)]">Views, chart options, and interactions</div>
+                        </div>
+                        <button type="button" onClick={() => setHelpOpen(false)} aria-label="Close Analysis controls help" className="flex h-9 w-9 items-center justify-center rounded-lg text-[var(--text-secondary)] transition-colors hover:text-[#e10600]"><X size={18} /></button>
+                    </div>
+                    <div className="min-h-0 overflow-y-auto p-5">
+                        <div className="mb-2 text-[9px] font-bold uppercase tracking-widest text-[var(--text-secondary)]">Sidebar controls</div>
+                        <div className="grid grid-cols-2 gap-2">{HELP_ITEMS.map(([icon, label, text]) => <AnalysisHelpItem key={label} icon={icon} label={label}>{text}</AnalysisHelpItem>)}</div>
+                        <div className="mb-2 mt-5 text-[9px] font-bold uppercase tracking-widest text-[var(--text-secondary)]">Chart interactions</div>
+                        <div className="grid grid-cols-2 gap-2">{HELP_INTERACTIONS.map(([icon, label, text]) => <AnalysisHelpItem key={label} icon={icon} label={label}>{text}</AnalysisHelpItem>)}</div>
+                    </div>
+                    <div className="flex shrink-0 justify-end border-t border-[var(--border)] bg-[var(--bg-card)]/10 px-6 py-4">
+                        <button type="button" onClick={() => setHelpOpen(false)} className={BUTTON_CLASS}>Close</button>
+                    </div>
+                </Modal>
             </div>
             {/* The window's pop-ups (select menus, pickers) render here, so the camera moves them with the window */}
             <div ref={cameraPortalRef} className="tnr-portal tour-camera-portal" />
@@ -578,54 +657,18 @@ export default function App() {
             </div>
         </div>
 
+        <button type="button" className="tour-mode" data-mode={run.running ? 'demo' : 'interactive'}
+            onClick={run.running ? run.skip : restartDemo}>
+            {run.running
+                ? <span><b>Demo Mode.</b> Click anywhere to enter Interactive Mode.</span>
+                : <span><b>Interactive Mode.</b> Click here to enter Demo Mode.</span>}
+        </button>
+
         {frame.mobile && frame.portrait && !rotateDismissed && <div className="tour-rotate" role="status">
             <Smartphone className="tour-rotate-icon" size={22} aria-hidden="true" />
             <span>Rotate your phone to landscape for a better experience</span>
             <button type="button" onClick={() => setRotateDismissed(true)} aria-label="Dismiss"><X size={16} /></button>
         </div>}
-
-        <Modal open={dialogOpen} onClose={() => setDialogOpen(false)} labelledBy="open-title" width="w-[560px]">
-            <div className="flex shrink-0 items-center justify-between border-b border-[var(--border)] px-6 py-4" data-tour="open-dialog">
-                <div>
-                    <div id="open-title" className="text-xs font-mono font-bold uppercase tracking-widest text-[var(--text-primary)]">Load Session Data</div>
-                    <div className="mt-1 text-[10px] font-mono uppercase tracking-wider text-[var(--text-secondary)]">Documents › Track-N-Race</div>
-                </div>
-                <button type="button" onClick={() => setDialogOpen(false)} aria-label="Close" className="flex h-9 w-9 items-center justify-center rounded-lg text-[var(--text-secondary)] transition-colors hover:text-[#e10600]"><X size={18} /></button>
-            </div>
-            <div className="flex flex-col gap-2 p-5">
-                {FILES.map(file => <button key={file.id} type="button" data-tour={`file-${file.id}`} onClick={() => openFile(file.id)}
-                    className="flex items-center gap-3 rounded-lg border border-[var(--border)] bg-[var(--bg-card)]/30 p-3 text-left transition-colors hover:border-[var(--border-focus)] hover:bg-[var(--bg-hover)]">
-                    <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded bg-[var(--border-focus)] text-white"><FileText size={15} /></span>
-                    <span className="min-w-0 flex-1">
-                        <span className="block text-[11px] font-bold uppercase tracking-wider text-[var(--text-primary)]">{file.track} · Race</span>
-                        <span className="mt-0.5 block truncate text-[10px] text-[var(--text-secondary)]">{file.name}</span>
-                    </span>
-                    <span className="shrink-0 text-right text-[10px] text-[var(--text-secondary)] tabular-nums">{file.laps} laps<br />{file.size}</span>
-                </button>)}
-            </div>
-            <div className="flex shrink-0 justify-end border-t border-[var(--border)] bg-[var(--bg-card)]/10 px-6 py-4">
-                <button type="button" onClick={() => setDialogOpen(false)} className={BUTTON_CLASS}>Cancel</button>
-            </div>
-        </Modal>
-
-        <Modal open={helpOpen} onClose={() => setHelpOpen(false)} labelledBy="analysis-controls-help-title" width="w-[680px]">
-            <div className="flex shrink-0 items-center justify-between border-b border-[var(--border)] px-6 py-4">
-                <div>
-                    <div id="analysis-controls-help-title" className="text-xs font-mono font-bold uppercase tracking-widest text-[var(--text-primary)]">Analysis Controls</div>
-                    <div className="mt-1 text-[10px] font-mono uppercase tracking-wider text-[var(--text-secondary)]">Views, chart options, and interactions</div>
-                </div>
-                <button type="button" onClick={() => setHelpOpen(false)} aria-label="Close Analysis controls help" className="flex h-9 w-9 items-center justify-center rounded-lg text-[var(--text-secondary)] transition-colors hover:text-[#e10600]"><X size={18} /></button>
-            </div>
-            <div className="min-h-0 overflow-y-auto p-5">
-                <div className="mb-2 text-[9px] font-bold uppercase tracking-widest text-[var(--text-secondary)]">Sidebar controls</div>
-                <div className="grid grid-cols-2 gap-2">{HELP_ITEMS.map(([icon, label, text]) => <AnalysisHelpItem key={label} icon={icon} label={label}>{text}</AnalysisHelpItem>)}</div>
-                <div className="mb-2 mt-5 text-[9px] font-bold uppercase tracking-widest text-[var(--text-secondary)]">Chart interactions</div>
-                <div className="grid grid-cols-2 gap-2">{HELP_INTERACTIONS.map(([icon, label, text]) => <AnalysisHelpItem key={label} icon={icon} label={label}>{text}</AnalysisHelpItem>)}</div>
-            </div>
-            <div className="flex shrink-0 justify-end border-t border-[var(--border)] bg-[var(--bg-card)]/10 px-6 py-4">
-                <button type="button" onClick={() => setHelpOpen(false)} className={BUTTON_CLASS}>Close</button>
-            </div>
-        </Modal>
 
     </AppCtx.Provider>
 }

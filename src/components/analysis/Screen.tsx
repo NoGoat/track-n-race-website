@@ -1,24 +1,26 @@
 // The Analysis screen (electron-frontend components/AnalyzeScreen.tsx): the sidebar of view toggles, map layer,
 // lap groups and metric cards, the chart toolbar with its sector delta readout, and the charts/split/map surfaces.
 // Markup and classes ported as written.
-import { memo, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
+import { memo, useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import { createPortal } from 'react-dom'
 import {
     ArrowLeft, ArrowRight, Axis3d, ChartNoAxesCombined, ChevronLeft, ChevronRight, CircleHelp, Columns2, Columns3, Disc3, Eye, Gauge,
-    GripVertical, LineChart, ListChevronsUpDown, Map as MapIcon, Palette, PanelLeftClose, PanelLeftOpen, Plus, RotateCcw, Rows3,
-    Search, SeparatorVertical, Trash2, Upload, X, ZoomIn, ZoomOut,
+    GripVertical, LineChart, ListChevronsUpDown, Map as MapIcon, Palette, PanelLeftClose, PanelLeftOpen, PanelRightClose, PanelRightOpen,
+    Plus, RotateCcw, Rows3, Search, SeparatorVertical, Trash2, Upload, X, ZoomIn, ZoomOut,
 } from 'lucide-react'
+import BrakingZones, { AnalysisPanelHandle, DEFAULT_ZONES_WIDTH, MAX_ZONES_WIDTH, MIN_ZONES_WIDTH } from './BrakingZones'
 import Select, { buildSelectStyles, displayOnlySelectComponents, portalTarget, selectComponents, SELECT_MENU_ANIMATION_MS } from './select'
 import Charts from './Charts'
 import { toCamera } from './camera'
 import ColorPicker from './ColorPicker'
-import MapPane, { mapHooks } from './MapPane'
+import MapPane, { mapHooks, resolveMapResult } from './MapPane'
 import PlaybackBar from './PlaybackBar'
 import { useClock } from './clock'
-import { useApp, type AnalyzeConfig } from './ctx'
+import { useApp, type AnalyzeConfig, type DriverGroup } from './ctx'
+import { showUnavailable } from './unavailable'
 import {
     COMBINED_BY_ID, METRICS, METRIC_BY_ID, METRIC_CATEGORIES, TYRE_CORNERS, TYRE_ROWS, compoundColor, compoundName, fmtDelta, fmtLap,
-    indexAtTime, channelAt, cornerKeyOf, sanitizeCorners, seriesLineColor, seriesScaleDef,
+    indexAtTime, channelAt, cornerKeyOf, sanitizeCorners, seriesLineColor, seriesScaleDef, timeAtDistance,
     DEFAULT_DELTA_NEGATIVE_COLOR, DEFAULT_DELTA_POSITIVE_COLOR, type SeriesConfig, type TourData,
 } from './lib'
 
@@ -30,6 +32,7 @@ export const BUTTON_CLASS = `${BUTTON_BASE_CLASS} text-[10px] font-semibold norm
 export const MAP_COLORING_OPTIONS = [
     { value: 'none', label: 'None' },
     { value: 'dominance', label: 'Track Dominance' },
+    { value: 'racing', label: 'Racing Line' },
     { value: 'inputs', label: 'Driver Inputs' },
     { value: 'speed', label: 'Speed' },
     { value: 'ers', label: 'ERS Usage' },
@@ -38,6 +41,8 @@ export const MAP_COLORING_OPTIONS = [
 
 const lapSelectStyles = buildSelectStyles({ solidBg: true, controlHeight: 32, labelStyleGroupHeadings: true, menuWidth: 'calc(100% + 50px)' })
 const driverSelectStyles = buildSelectStyles({ solidBg: true, controlHeight: 32, labelStyleGroupHeadings: true, menuWidth: 'max(260px, calc(100% + 50px))' })
+// The Layer menu's names are short, so it matches its field's width like a regular select
+const layerSelectStyles = buildSelectStyles({ solidBg: true, controlHeight: 32, labelStyleGroupHeadings: true })
 
 // ── Laps ────────────────────────────────────────────────────────────────────
 interface LapOption { value: string; lapNum: number; compound: string | null; compoundColor: string | null; lapTime: string | null; isFastest: boolean; isDisabled: boolean; label: string }
@@ -53,15 +58,17 @@ function formatLapOption(option: LapOption) {
         {option.isFastest && <FastestLapChip />}
     </span>
 }
-export function lapOptions(data: TourData | null): LapOption[] {
-    if (!data) return []
-    // Only the laps this page has data for
-    return data.lapTimes.filter(([lap]) => !!data.laps[lap]).map(([lap, time, , visual, actual]) => {
+/** A driver's laps, as lap options; only the laps this page has data for */
+export function lapOptions(data: TourData | null, driverIndex: number | null): LapOption[] {
+    const driver = data?.drivers.find(d => d.index === driverIndex)
+    if (!data || !driver) return []
+    const keyOf = (lap: number) => driver.player ? String(lap) : `${driver.index}:${lap}`
+    return driver.lapTimes.filter(([lap]) => !!data.laps[keyOf(lap)]).map(([lap, time, , visual, actual]) => {
         const compound = compoundName(actual)
         const lapTime = time > 0 ? fmtLap(time) : null
         return {
-            value: String(lap), lapNum: lap, compound, compoundColor: compound ? compoundColor(visual) : null, lapTime,
-            isFastest: lap === data.fastestLap, isDisabled: !data.laps[lap],
+            value: keyOf(lap), lapNum: lap, compound, compoundColor: compound ? compoundColor(visual) : null, lapTime,
+            isFastest: lap === driver.fastestLap, isDisabled: false,
             label: `${compound ? `${compound} · ` : ''}Lap ${lap}${lapTime ? ` · ${lapTime}` : ''}`,
         }
     })
@@ -100,14 +107,16 @@ function DriverOptionRow({ option }: { option: any }) {
         <span className="w-[3px] h-3.5 rounded-full shrink-0" style={{ background: option.teamColor }} />
         <span className="w-5 shrink-0 text-right tabular-nums font-semibold" style={{ color: 'var(--text-secondary)' }}>{option.number}</span>
         <span className="truncate font-medium">{option.label}</span>
-        <span className="ml-auto truncate text-[10px]" style={{ color: 'var(--text-secondary)' }}>Player</span>
+        <span className="ml-auto truncate text-[10px]" style={{ color: 'var(--text-secondary)' }}>{option.teamName}</span>
     </div>
 }
-function AnalyzeDriverField({ id, value, options, displayOnly = false, isDisabled = false }: { id: string; value: any; options: any[]; displayOnly?: boolean; isDisabled?: boolean }) {
-    return <div className="flex items-center">
+function AnalyzeDriverField({ id, value, options, onChange, displayOnly = false, isDisabled = false, forceOpen = false }: {
+    id: string; value: any; options: any[]; onChange?: (option: any) => void; displayOnly?: boolean; isDisabled?: boolean; forceOpen?: boolean
+}) {
+    return <div className="flex items-center" data-tour={`${id}-field`}>
         <label htmlFor={id} className="mr-2 w-11 shrink-0 text-[9px] uppercase tracking-widest text-[var(--text-secondary)]">Driver</label>
         <div className="min-w-0 flex-1">
-            <Select inputId={id} value={value} options={options} placeholder="Select driver…" styles={driverSelectStyles}
+            <Select inputId={id} value={value} options={options} placeholder="Select driver…" styles={driverSelectStyles} onChange={onChange} forceOpen={forceOpen}
                 formatOptionLabel={(option: any, { context }: any) => context === 'value' ? option.label : <DriverOptionRow option={option} />}
                 components={displayOnly ? displayOnlySelectComponents : selectComponents}
                 isSearchable={false} isClearable={false} isDisabled={isDisabled || displayOnly} />
@@ -115,9 +124,9 @@ function AnalyzeDriverField({ id, value, options, displayOnly = false, isDisable
     </div>
 }
 
-function AnalyzeComparisonGroup({ title, colorPicker, showColorPicker, driverValue, lapValue, driverOptions, driverDisplayOnly = false, children }: {
+function AnalyzeComparisonGroup({ title, colorPicker, showColorPicker, driverValue, lapValue, driverOptions, driverDisplayOnly = false, onDriverChange, driverMenuOpen = false, children }: {
     title: string; colorPicker: ReactNode; showColorPicker: boolean; driverValue: any; lapValue: LapOption | null; driverOptions: any[]
-    driverDisplayOnly?: boolean; children: ReactNode
+    driverDisplayOnly?: boolean; onDriverChange?: (driverIndex: number) => void; driverMenuOpen?: boolean; children: ReactNode
 }) {
     const idBase = title.toLowerCase().replace(/\s+/g, '-')
     const [collapsed, setCollapsed] = useState(false)
@@ -148,7 +157,8 @@ function AnalyzeComparisonGroup({ title, colorPicker, showColorPicker, driverVal
         <div className={`analyze-comparison-group__body ${collapsed ? '' : 'analyze-comparison-group__body--expanded'}`} aria-hidden={collapsed}>
             <div className="analyze-comparison-group__body-inner">
                 <div className="space-y-1.5 p-2">
-                    <AnalyzeDriverField id={`analyze-${idBase}-driver`} value={driverValue} options={driverOptions} displayOnly={driverDisplayOnly} isDisabled={driverOptions.length <= 1} />
+                    <AnalyzeDriverField id={`analyze-${idBase}-driver`} value={driverValue} options={driverOptions} displayOnly={driverDisplayOnly}
+                        isDisabled={driverOptions.length <= 1} forceOpen={driverMenuOpen} onChange={o => { if (o) onDriverChange?.(o.index) }} />
                     {children}
                 </div>
             </div>
@@ -299,7 +309,7 @@ function AnalysisDeltaReadout() {
     const { data, primary, comparison } = app
     const values = useMemo(() => {
         if (!data || !primary || !comparison) return [null, null, null, null]
-        const delta = data.deltas[`${primary.lap}-${comparison.lap}`]
+        const delta = data.deltas[`${primary.key}-${comparison.key}`]
         if (!delta) return [null, null, null, null]
         const pts = delta.samples.filter(s => s[2])
         const at = (d: number) => { const p = pts.find(([pd]) => pd >= d); return p ? p[1] : pts[pts.length - 1]?.[1] ?? 0 }
@@ -317,12 +327,12 @@ function AnalysisDeltaReadout() {
     const positive = series?.color ?? DEFAULT_DELTA_POSITIVE_COLOR
     const negative = series?.negativeColor ?? DEFAULT_DELTA_NEGATIVE_COLOR
     if (!app.shows('readout')) return null
-    return <div className="rv flex h-full items-center gap-3 font-mono tabular-nums" data-tour="delta-readout">
+    return <div className="analysis-delta-readout rv flex h-full items-center gap-3 font-mono tabular-nums" data-tour="delta-readout">
         {(['S1', 'S2', 'S3', 'Lap'] as const).map((label, index) => {
             const v = values[index]
-            return <span key={label} className="flex h-full items-center gap-1.5">
-                <span className="text-[9px] font-bold uppercase leading-none tracking-wider text-[var(--text-secondary)]">{label}</span>
-                <span className="inline-block w-[3.5rem] text-left text-[11px] font-semibold leading-none"
+            return <span key={label} title={label} className="analysis-delta-readout__item flex h-full items-center gap-1.5">
+                <span className="analysis-delta-readout__caption text-[9px] font-bold uppercase leading-none tracking-wider text-[var(--text-secondary)]">{label}</span>
+                <span className="analysis-delta-readout__value inline-block w-[3.5rem] text-left text-[11px] font-semibold leading-none"
                     style={{ color: v === null || Math.abs(v) < 0.0005 ? 'var(--text-secondary)' : v > 0 ? positive : negative }}>{fmtDelta(v)}</span>
             </span>
         })}
@@ -375,11 +385,29 @@ export default memo(function Screen() {
     const splitView = primaryView === 'split'
     const chartsVisible = primaryView !== 'map'
 
-    const options = useMemo(() => lapOptions(data), [data])
-    const groups = useMemo(() => [{ label: 'Primary File', options }], [options])
-    const optionFor = (lap: number | null) => options.find(o => o.lapNum === lap) ?? null
-    const driverOptions = useMemo(() => data ? [{ value: 'file1:0', label: data.driver.name, number: data.driver.number, teamColor: '#5794F2' }] : [], [data])
-    const driverValue = driverOptions[0] ?? null
+    // The cars with laps on the page, by race number as the app orders its pickers, each with its laps
+    const playerIndex = data?.driver.index ?? null
+    const driverOptions = useMemo(() => [...(data?.drivers ?? [])].sort((a, b) => a.number - b.number).map(d => ({
+        value: `file1:${d.index}`, index: d.index, label: d.name, number: d.number, teamColor: d.teamColor, teamName: d.teamName,
+    })), [data])
+    const lapsByDriver = useMemo(() => new Map((data?.drivers ?? []).map(d => [d.index, lapOptions(data, d.index)])), [data])
+    const optionFor = (key: string | number | null) => key === null ? null
+        : [...lapsByDriver.values()].flat().find(o => o.value === String(key)) ?? null
+    const driverValueOf = (index: number | null) => driverOptions.find(o => o.index === index) ?? null
+    /** A lap group's car: its lap's, else the one picked for it, else the player's */
+    const groupDriver = (group: DriverGroup, key: string | null) =>
+        (key !== null ? data?.laps[key]?.driver : undefined) ?? app.groupDrivers[group] ?? playerIndex
+    const lapGroupsFor = (index: number | null) => [{ label: 'Primary File', options: index === null ? [] : lapsByDriver.get(index) ?? [] }]
+    /** Another car for a lap group: its lap follows, to the same lap number if that car has it on the page, else to
+     *  its fastest here */
+    const switchDriver = (group: DriverGroup, key: string | null, index: number, apply: (key: string | null) => void) => {
+        app.setGroupDriver(group, index)
+        if (!data || key === null || data.laps[key]?.driver === index) return
+        const laps = lapsByDriver.get(index) ?? []
+        const same = laps.find(o => o.lapNum === data.laps[key]?.lap)
+        const fastest = [...laps].sort((a, b) => data.laps[a.value].time - data.laps[b.value].time)[0]
+        apply((same ?? fastest)?.value ?? null)
+    }
     // The Layer menu gains each layer as the run reaches it
     const layerOptions = MAP_COLORING_OPTIONS.filter(o => shows(`layer:${o.value}`))
     const set = (patch: Partial<AnalyzeConfig>) => save({ ...config, ...patch })
@@ -470,6 +498,39 @@ export default memo(function Screen() {
     }
     useEffect(() => { if (!fixed.enabled) setXRange(null) }, [fixed.enabled])
 
+    // The Braking Zones sidebar: recordings only, and on show with the rest of the screen once the run is done
+    const zonesShown = rest && !!playbackFilename
+    const zonesOpen = zonesShown && config.zonesPanel
+    const [draftZonesWidth, setDraftZonesWidth] = useState<number | null>(null)
+    const zonesWidth = draftZonesWidth ?? config.zonesWidth
+    const rootRef = useRef<HTMLDivElement>(null)
+    const zonesSidebarRef = useRef<HTMLElement>(null)
+    // Mounted closed, then opened, so it slides in rather than appearing at full width
+    const [zonesReady, setZonesReady] = useState(false)
+    useEffect(() => {
+        if (!zonesShown) { setZonesReady(false); return }
+        const frame = requestAnimationFrame(() => setZonesReady(true))
+        return () => cancelAnimationFrame(frame)
+    }, [zonesShown])
+    const zonesResult = useMemo(() => zonesOpen && data
+        ? resolveMapResult(data, 'braking', app.primary?.key ?? null, app.comparison?.key ?? null) : null,
+        [app.comparison, app.primary, data, zonesOpen])
+    // A zone clicked on the map, for the Braking Zones panel to select when it is open; seq tells a repeat click on
+    // the same zone from the last one
+    const [zoneRequest, setZoneRequest] = useState<{ row: number; seq: number } | null>(null)
+    const requestZone = useCallback((row: number) => {
+        setZoneRequest(previous => ({ row, seq: (previous?.seq ?? 0) + 1 }))
+    }, [])
+    // A chosen zone puts the cursors at its braking point, without changing the view
+    const inspectZone = (distanceM: number) => {
+        const lap = app.primary
+        if (!lap) return
+        const elapsed = timeAtDistance(lap.trace, distanceM)
+        if (!Number.isFinite(elapsed)) return
+        if (fixed.enabled) app.fixedClock.set({ time: elapsed, playing: false })
+        else app.clock.set({ time: lap.start + elapsed, playing: false })
+    }
+
     const view = (next: AnalyzeConfig['view']) => { set({ view: next }); app.emit(`view:${next}`) }
     const toggle = (key: keyof AnalyzeConfig, event?: string) => {
         const next = !config[key]
@@ -481,7 +542,7 @@ export default memo(function Screen() {
     const labelInput = (id: string, placeholder: string, key: 'currentLabel' | 'compareLabel' | 'lapALabel' | 'lapBLabel') =>
         <AnalyzeLabelInput id={id} label="Name" placeholder={placeholder} value={config[key]} onChange={v => set({ [key]: v } as Partial<AnalyzeConfig>)} />
 
-    return <div className="h-full flex overflow-hidden border-t border-[var(--border)] bg-[var(--bg-panel)]">
+    return <div ref={rootRef} className="h-full flex overflow-hidden border-t border-[var(--border)] bg-[var(--bg-panel)]">
         <aside className={`${config.collapsed ? 'w-0 border-r-0' : 'w-[315px] border-r'} shrink-0 border-[var(--border)] overflow-hidden bg-[var(--bg-panel)] transition-[width] duration-200`}>
             <div className={`w-[315px] h-full flex flex-col ${config.collapsed ? 'invisible' : 'visible'}`}>
                 <div className="h-11 px-3 flex items-center gap-3 border-b border-[var(--border)] shrink-0">
@@ -514,7 +575,7 @@ export default memo(function Screen() {
                         {shows('comparison') && <button type="button" data-tour="comparison-toggle" aria-label="Comparison" aria-pressed={fixed.enabled} title="Comparison" disabled={!playbackFilename || !allowed('comparison')}
                             onClick={() => {
                                 const enabled = !fixed.enabled
-                                setFixed({ enabled, lapA: fixed.lapA ?? app.currentLap, lapB: fixed.lapB ?? app.compareLap })
+                                setFixed({ enabled, lapA: fixed.lapA ?? (app.currentLap !== null ? String(app.currentLap) : null), lapB: fixed.lapB ?? app.compareLap })
                                 app.fixedClock.set({ time: 0, playing: false })
                             }}
                             className={`rv ${ANALYZE_TOGGLE_BUTTON_CLASS} ${fixed.enabled ? 'analyze-toggle-button--active' : ''}`}><ListChevronsUpDown size={15} /></button>}
@@ -536,41 +597,46 @@ export default memo(function Screen() {
                                     if (v !== config.mapColoring) mapHooks.crossfade?.()
                                     set({ mapColoring: v }); app.emit(`layer:${v}`)
                                 }}
-                                styles={lapSelectStyles} components={selectComponents} isSearchable={false} />
+                                styles={layerSelectStyles} components={selectComponents} isSearchable={false} />
                         </div>
                     </div>}
                     {playbackFilename && rest && <div className="rv mb-1 space-y-1">
                         <div className="h-8 flex items-center gap-1 min-w-0">
                             <span className="flex-1 min-w-0 truncate text-[11px] text-[var(--text-secondary)]">Choose file</span>
-                            <button type="button" title="Open Secondary File" aria-label="Open Secondary File"
+                            <button type="button" title="Open Secondary File" aria-label="Open Secondary File" onClick={showUnavailable}
                                 className="w-7 h-7 rounded flex items-center justify-center shrink-0 text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-hover)] transition-colors disabled:opacity-40"><Upload size={14} /></button>
                         </div>
                     </div>}
                     {(shows('lapA') || rest) && <div className="analyze-lap-mode-switch -mx-3">
                         <div className={`analyze-lap-mode-panel ${fixed.enabled ? 'analyze-lap-mode-panel--visible' : 'analyze-lap-mode-panel--hidden-left'}`} aria-hidden={!fixed.enabled}>
-                            {shows('lapA') && <div className="rv"><AnalyzeComparisonGroup title="Lap A" showColorPicker={mapVisible} driverValue={driverValue} lapValue={optionFor(fixed.lapA)} driverOptions={driverOptions}
+                            {shows('lapA') && <div className="rv"><AnalyzeComparisonGroup title="Lap A" showColorPicker={mapVisible} driverValue={driverValueOf(groupDriver('lapA', fixed.lapA))} lapValue={optionFor(fixed.lapA)} driverOptions={driverOptions}
+                                driverMenuOpen={app.forcedMenu === 'driver:lapA'}
+                                onDriverChange={index => switchDriver('lapA', fixed.lapA, index, lapA => { setFixed({ ...fixed, lapA }); app.fixedClock.set({ time: 0 }) })}
                                 colorPicker={mapColorPicker('Lap A', config.mapCurrentColor, 'mapCurrentColor')}>
-                                <AnalyzeComparisonSelector id="analyze-lap-a" forceOpen={app.forcedMenu === 'lapA'} label="Lap" value={optionFor(fixed.lapA)} options={groups} placeholder="Select lap…"
-                                    onChange={o => { setFixed({ ...fixed, lapA: o?.lapNum ?? null }); app.fixedClock.set({ time: 0 }) }} />
+                                <AnalyzeComparisonSelector id="analyze-lap-a" forceOpen={app.forcedMenu === 'lapA'} label="Lap" value={optionFor(fixed.lapA)} options={lapGroupsFor(groupDriver('lapA', fixed.lapA))} placeholder="Select lap…"
+                                    onChange={o => { setFixed({ ...fixed, lapA: o?.value ?? null }); app.fixedClock.set({ time: 0 }) }} />
                                 {labelInput('analyze-lap-a-label', 'Lap A', 'lapALabel')}
                             </AnalyzeComparisonGroup></div>}
-                            {shows('lapB') && <div className="rv"><AnalyzeComparisonGroup title="Lap B" showColorPicker={mapVisible} driverValue={driverValue} lapValue={optionFor(fixed.lapB)} driverOptions={driverOptions}
+                            {shows('lapB') && <div className="rv"><AnalyzeComparisonGroup title="Lap B" showColorPicker={mapVisible} driverValue={driverValueOf(groupDriver('lapB', fixed.lapB))} lapValue={optionFor(fixed.lapB)} driverOptions={driverOptions}
+                                driverMenuOpen={app.forcedMenu === 'driver:lapB'}
+                                onDriverChange={index => switchDriver('lapB', fixed.lapB, index, lapB => { setFixed({ ...fixed, lapB }); app.fixedClock.set({ time: 0 }) })}
                                 colorPicker={mapColorPicker('Lap B', config.mapComparisonColor, 'mapComparisonColor')}>
-                                <AnalyzeComparisonSelector id="analyze-lap-b" forceOpen={app.forcedMenu === 'lapB'} label="Lap" value={optionFor(fixed.lapB)} options={groups} placeholder="Select lap…"
-                                    onChange={o => { setFixed({ ...fixed, lapB: o?.lapNum ?? null }); app.fixedClock.set({ time: 0 }) }} />
+                                <AnalyzeComparisonSelector id="analyze-lap-b" forceOpen={app.forcedMenu === 'lapB'} label="Lap" value={optionFor(fixed.lapB)} options={lapGroupsFor(groupDriver('lapB', fixed.lapB))} placeholder="Select lap…"
+                                    onChange={o => { setFixed({ ...fixed, lapB: o?.value ?? null }); app.fixedClock.set({ time: 0 }) }} />
                                 {labelInput('analyze-lap-b-label', 'Lap B', 'lapBLabel')}
                             </AnalyzeComparisonGroup></div>}
                         </div>
                         {rest && <div className={`analyze-lap-mode-panel ${!fixed.enabled ? 'analyze-lap-mode-panel--visible' : 'analyze-lap-mode-panel--hidden-right'}`} aria-hidden={fixed.enabled}>
-                            <AnalyzeComparisonGroup title="Current" showColorPicker={mapVisible} driverDisplayOnly driverValue={driverValue} lapValue={optionFor(app.currentLap)} driverOptions={driverOptions}
+                            <AnalyzeComparisonGroup title="Current" showColorPicker={mapVisible} driverDisplayOnly driverValue={driverValueOf(playerIndex)} lapValue={optionFor(app.currentLap)} driverOptions={driverOptions}
                                 colorPicker={mapColorPicker('Current', config.mapCurrentColor, 'mapCurrentColor')}>
                                 <AnalyzeComparisonSelector id="analyze-current-lap" label="Lap" placeholder="No current lap" value={optionFor(app.currentLap)} options={[]} onChange={() => { }} displayOnly />
                                 {labelInput('analyze-current-label', 'Current', 'currentLabel')}
                             </AnalyzeComparisonGroup>
-                            <AnalyzeComparisonGroup title="Compare" showColorPicker={mapVisible} driverValue={driverValue} lapValue={optionFor(app.compareLap)} driverOptions={driverOptions}
+                            <AnalyzeComparisonGroup title="Compare" showColorPicker={mapVisible} driverValue={driverValueOf(groupDriver('compare', app.compareLap))} lapValue={optionFor(app.compareLap)} driverOptions={driverOptions}
+                                onDriverChange={index => switchDriver('compare', app.compareLap, index, app.setCompareLap)}
                                 colorPicker={mapColorPicker('Compare', config.mapComparisonColor, 'mapComparisonColor')}>
-                                <AnalyzeComparisonSelector id="analyze-compare-lap" label="Lap" placeholder="Select lap…" value={optionFor(app.compareLap)} options={groups}
-                                    onChange={o => app.setCompareLap(o?.lapNum ?? null)} isDisabled={!playbackFilename} />
+                                <AnalyzeComparisonSelector id="analyze-compare-lap" label="Lap" placeholder="Select lap…" value={optionFor(app.compareLap)} options={lapGroupsFor(groupDriver('compare', app.compareLap))}
+                                    onChange={o => app.setCompareLap(o?.value ?? null)} isDisabled={!playbackFilename} />
                                 {labelInput('analyze-compare-label', 'Compare', 'compareLabel')}
                             </AnalyzeComparisonGroup>
                         </div>}
@@ -634,33 +700,42 @@ export default memo(function Screen() {
         </aside>
 
         <section className="flex-1 min-w-0 flex flex-col">
-            <div className="h-11 px-2 border-b border-[var(--border)] flex items-center gap-1 shrink-0">
+            <div className="analysis-toolbar h-11 px-2 border-b border-[var(--border)] flex items-center gap-1 shrink-0"
+                data-chart-controls={primaryView !== 'map' ? '' : undefined}>
                 {rest && <button title={config.collapsed ? 'Open Analysis controls' : 'Collapse Analysis controls'} onClick={() => set({ collapsed: !config.collapsed })}
                     className="rv w-7 h-7 rounded flex items-center justify-center shrink-0 text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-hover)]">
                     {config.collapsed ? <PanelLeftOpen size={15} /> : <PanelLeftClose size={15} />}
                 </button>}
                 {primaryView !== 'map' && rest && <>
-                    <span className="h-5 w-px mx-1 bg-[var(--border)]" />
-                    <span className="px-1 text-[9px] uppercase tracking-widest text-[var(--text-secondary)]">Zoom</span>
+                    <span className="analysis-toolbar__divider h-5 w-px mx-1 bg-[var(--border)]" />
+                    <span className="analysis-toolbar__label px-1 text-[9px] uppercase tracking-widest text-[var(--text-secondary)]">Zoom</span>
                     <button disabled={!zoomEnabled} title="Zoom out" onClick={() => zoom(2)} className="w-7 h-7 rounded flex items-center justify-center text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-hover)] disabled:opacity-25 disabled:pointer-events-none"><ZoomOut size={14} /></button>
                     <button disabled={!zoomEnabled} title="Zoom in" onClick={() => zoom(0.5)} className="w-7 h-7 rounded flex items-center justify-center text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-hover)] disabled:opacity-25 disabled:pointer-events-none"><ZoomIn size={14} /></button>
-                    <span className="h-5 w-px mx-1 bg-[var(--border)]" />
-                    <span className="px-1 text-[9px] uppercase tracking-widest text-[var(--text-secondary)]">Pan</span>
+                    <span className="analysis-toolbar__divider h-5 w-px mx-1 bg-[var(--border)]" />
+                    <span className="analysis-toolbar__label px-1 text-[9px] uppercase tracking-widest text-[var(--text-secondary)]">Pan</span>
                     <button disabled={!zoomEnabled} title="Pan left" onClick={() => pan(-1)} className="w-7 h-7 rounded flex items-center justify-center text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-hover)] disabled:opacity-25 disabled:pointer-events-none"><ArrowLeft size={14} /></button>
                     <button disabled={!zoomEnabled} title="Pan right" onClick={() => pan(1)} className="w-7 h-7 rounded flex items-center justify-center text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-hover)] disabled:opacity-25 disabled:pointer-events-none"><ArrowRight size={14} /></button>
                     <button disabled={!zoomEnabled} title="Reset zoom" onClick={() => setXRange(null)} className="w-7 h-7 rounded flex items-center justify-center text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-hover)] disabled:opacity-25 disabled:pointer-events-none"><RotateCcw size={13} /></button>
                 </>}
-                <div className="ml-auto flex shrink-0 items-center gap-3 pr-1">
+                <div className="analysis-toolbar__end ml-auto flex shrink-0 items-center gap-3 pr-1">
                     <AnalysisDeltaReadout />
                     {rest && <button type="button" title="Analysis controls help" aria-label="Open Analysis controls help" onClick={app.openHelp}
                         className="rv w-7 h-7 rounded flex items-center justify-center shrink-0 text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-hover)]"><CircleHelp size={15} /></button>}
+                    {zonesShown && <button type="button" data-tour="zones-button"
+                        title={zonesOpen ? 'Close Braking Zones' : 'Open Braking Zones'}
+                        aria-label={zonesOpen ? 'Close Braking Zones' : 'Open Braking Zones'}
+                        aria-expanded={zonesOpen}
+                        onClick={() => set({ zonesPanel: !config.zonesPanel })}
+                        className="analysis-toolbar__zones rv -ml-2 w-7 h-7 rounded flex items-center justify-center shrink-0 text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-hover)]">
+                        {zonesOpen ? <PanelRightClose size={15} /> : <PanelRightOpen size={15} />}
+                    </button>}
                 </div>
             </div>
             <div ref={splitRef} className="flex-1 min-h-0 relative flex">
                 <div className={`analysis-view-surface ${splitView ? 'relative shrink-0 grow-0 min-w-0 overflow-hidden' : 'absolute inset-0'} ${chartsVisible ? 'analysis-view-surface--visible' : ''}`}
                     style={splitView ? { flexBasis: `${splitRatio * 100}%` } : undefined} aria-hidden={!chartsVisible}>
                     {data && <Charts series={config.series} current={app.primary} comparison={app.comparison}
-                        delta={app.primary && app.comparison ? data.deltas[`${app.primary.lap}-${app.comparison.lap}`] ?? null : null}
+                        delta={app.primary && app.comparison ? data.deltas[`${app.primary.key}-${app.comparison.key}`] ?? null : null}
                         stacked={config.individualGraphs} sectorBoundaries={config.sectorBoundaries} sectorDelta={config.sectorDelta}
                         syncedTooltip={config.syncedTooltip} trackLength={data.trackLengthM} xRange={xRange} elapsedSource={app.elapsedSource}
                         showMapCursors={splitView && fixed.enabled && config.splitCursors} mapCurrentColor={config.mapCurrentColor} mapComparisonColor={config.mapComparisonColor}
@@ -691,10 +766,59 @@ export default memo(function Screen() {
                         currentLabel={labelsOf(app)[0]} comparisonLabel={labelsOf(app)[1]}
                         mapColoring={config.mapColoring} brakingPoints={config.brakingPoints} showInputPanel={config.inputPanel}
                         elapsedSource={app.elapsedSource} fixedMode={fixed.enabled} fixedBar={<FixedBar />}
-                        onMarkHover={kind => { if (kind) app.emit(kind) }} />
+                        onMarkHover={kind => { if (kind) app.emit(kind) }}
+                        onBrakingZoneClick={zonesOpen ? requestZone : undefined} zoomable={rest} />
                 </div>}
             </div>
         </section>
+
+        {zonesOpen && zonesReady && <AnalysisPanelHandle
+            orientation="vertical"
+            label="Resize Braking Zones"
+            value={zonesWidth}
+            min={MIN_ZONES_WIDTH}
+            max={MAX_ZONES_WIDTH}
+            defaultValue={DEFAULT_ZONES_WIDTH}
+            step={10}
+            reversed
+            valueAt={clientX => {
+                // In the window's own pixels: it scales down on narrow screens and under the run's camera
+                const root = rootRef.current, sidebar = zonesSidebarRef.current
+                if (!root || !sidebar) return zonesWidth
+                const k = root.getBoundingClientRect().width / (root.offsetWidth || 1) || 1
+                return (sidebar.getBoundingClientRect().right - clientX) / k
+            }}
+            onPreview={setDraftZonesWidth}
+            onCommit={width => {
+                setDraftZonesWidth(null)
+                if (width !== config.zonesWidth) set({ zonesWidth: width })
+            }}
+        />}
+
+        {/* After the Analysis sidebar, which the run's split view takes as the window's first aside */}
+        {zonesShown && <aside
+            ref={zonesSidebarRef}
+            aria-label="Braking Zones"
+            aria-hidden={!zonesOpen}
+            inert={!zonesOpen}
+            style={{ width: zonesOpen && zonesReady ? zonesWidth : 0 }}
+            className={`${zonesOpen && zonesReady ? 'border-l' : 'border-l-0'} shrink-0 border-[var(--border)] overflow-hidden bg-[var(--bg-panel)] ${draftZonesWidth === null ? 'transition-[width] duration-200 motion-reduce:transition-none' : ''}`}
+        >
+            <div className="h-full" style={{ width: zonesWidth }}>
+                <BrakingZones
+                    result={zonesResult}
+                    lapChosen={!!app.primary}
+                    currentLabel={labelsOf(app)[0]}
+                    currentColor={config.mapCurrentColor}
+                    comparisonLabel={labelsOf(app)[1]}
+                    comparisonColor={config.mapComparisonColor}
+                    onZoneActivated={inspectZone}
+                    selectRequest={zoneRequest}
+                    listRatio={config.zonesListRatio}
+                    onListRatioCommit={zonesListRatio => set({ zonesListRatio })}
+                />
+            </div>
+        </aside>}
     </div>
 })
 
@@ -707,7 +831,7 @@ export function labelsOf(app: { config: AnalyzeConfig; fixed: { enabled: boolean
 
 export const HELP_ITEMS: [ReactNode, string, string][] = [
     [<LineChart size={15} />, 'Graphs', 'Shows the data in Graphs.'],
-    [<Columns2 size={15} />, 'Split Mode', 'Map on left, Graph on right. What more do you want?'],
+    [<Columns2 size={15} />, 'Split Mode', 'Graph on left, Map on right.'],
     [<MapIcon size={15} />, 'Map', 'Shows a map of the laps.'],
     [<Rows3 size={15} />, 'Individual Graphs', 'Instead of cramming all data into one graph, it splits them off into separate graphs.'],
     [<SyncedTooltipIcon size={15} />, 'Synced Tooltip', 'When hovering over the graph, the tooltip will show the data for all visible graphs at that point.'],
@@ -717,6 +841,7 @@ export const HELP_ITEMS: [ReactNode, string, string][] = [
     [<Palette size={15} />, 'Map Layer', "Track Dominance colors each stretch by the faster lap. Driver Inputs shows braking, full and partial throttle, and coasting, one map per lap. Speed colours each lap from its slowest to its fastest point on one scale, one map per lap; hover a corner's mark for its apex speed. ERS Usage shows where each lap deployed ERS, one map per lap. Full colour is the car's peak MGU-K output in the recording for the grip it was driving in. ERS Harvest shows where each lap harvested energy, full colour at the car's peak harvest power."],
     [<Disc3 size={15} />, 'Braking Points', "Marks each corner's braking zone (dimmed) and acceleration zone on the racing line, in the colour of the lap that was quicker through it. Hover a zone to compare the two laps."],
     [<Gauge size={15} />, 'Data Comparison Panel', 'Shows or hides the steering, pedals, ERS, speed and gear panel on the map.'],
+    [<PanelRightOpen size={15} />, 'Braking Zones', 'Every braking zone with the time gap through it. Select one to see both laps head to head and move the map\'s cursors there.'],
     [<SeparatorVertical size={15} />, 'Split Cursors', 'In Split Mode while comparing, shows where both cars are on the lap as lines on the graphs.'],
 ]
 export const HELP_INTERACTIONS: [ReactNode, string, string][] = [

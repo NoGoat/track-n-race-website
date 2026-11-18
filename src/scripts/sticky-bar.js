@@ -1,5 +1,6 @@
-// TNRD version rail and Gallery header: they go edge to edge once they stick under the navbar
-const stickyBar = document.querySelector('.fmt-rail, .gallery-head');
+// TNRD version rail, Download platform tabs, Gallery header and Frontends section rail: they go edge to edge once
+// they stick under the navbar
+const stickyBar = document.querySelector('.fmt-rail, .gallery-head, .dl-bar, .cmp-nav');
 if (stickyBar) {
     let railFrame = 0;
     const syncRail = () => {

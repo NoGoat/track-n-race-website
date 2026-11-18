@@ -4,6 +4,8 @@
    ========================================================================== */
 /* Blocks the questionnaire's answers rule out (data-when), and display rules below must not bring them back */
 .setup-quiz [hidden],
+.setup-launch [hidden],
+.setup-launch[hidden],
 .setup-result [hidden],
 .setup-result[hidden] {
     display: none !important;
@@ -14,6 +16,22 @@
     display: flex;
     flex-direction: column;
     margin-bottom: 1rem;
+}
+
+/* Opening the app the first time, above the questions (?os_instructions=<os>) */
+.setup-launch {
+    margin-bottom: 2.5rem;
+    animation: fadeIn 0.3s ease;
+}
+
+.setup-launch .result-title {
+    margin-bottom: 1.25rem;
+}
+
+.launch-next {
+    margin-top: 1.25rem;
+    font-size: 0.9rem;
+    color: var(--text-2);
 }
 
 /* Result: the answer, as a diagram and then the steps */
@@ -55,10 +73,9 @@
     align-items: stretch;
     list-style: none;
     margin-bottom: 1.5rem;
-    padding: 1.25rem;
-    background: var(--surface);
-    border: 1px solid var(--line);
-    border-radius: var(--radius-lg);
+    padding: 1.25rem 0;
+    border-top: 1px solid var(--line);
+    border-bottom: 1px solid var(--line);
 }
 
 .flow-node {
@@ -68,11 +85,8 @@
     flex-direction: column;
     align-items: center;
     gap: 0.2rem;
-    padding: 1rem 0.75rem;
+    padding: 0.75rem;
     text-align: center;
-    background: var(--surface-2);
-    border: 1px solid var(--line-strong);
-    border-radius: var(--radius);
 }
 
 .flow-icon {
@@ -108,24 +122,25 @@
     text-align: center;
 }
 
-/* The arrow: a line through the middle, behind the labels, with a head at its end */
+/* The arrow: a solid 2px line through the middle, behind the labels, ending where its filled head begins */
 .flow-link::before {
     content: "";
     position: absolute;
-    top: 50%;
+    top: calc(50% - 1px);
     left: 0.25rem;
-    right: 0.25rem;
-    height: 1px;
-    background: linear-gradient(90deg, var(--line-strong), var(--accent));
+    right: calc(0.25rem + 9px);
+    height: 2px;
+    border-radius: 1px;
+    background: var(--accent);
 }
 
 .flow-link::after {
     content: "";
     position: absolute;
-    top: calc(50% - 4px);
+    top: calc(50% - 6px);
     right: 0.25rem;
-    border: 4px solid transparent;
-    border-left: 6px solid var(--accent);
+    border: 6px solid transparent;
+    border-left: 10px solid var(--accent);
     border-right: 0;
 }
 
@@ -133,7 +148,7 @@
 .flow-link-detail {
     position: relative;
     padding: 0 0.4rem;
-    background: var(--surface);
+    background: var(--bg);
 }
 
 .flow-link-label {
@@ -142,13 +157,13 @@
     font-weight: 500;
     letter-spacing: 0.04em;
     color: var(--text);
-    transform: translateY(-0.6rem);
+    transform: translateY(-0.8rem);
 }
 
 .flow-link-detail {
     font-size: 0.72rem;
     color: var(--text-3);
-    transform: translateY(0.6rem);
+    transform: translateY(0.8rem);
 }
 
 .mode-explainer {
@@ -180,11 +195,7 @@
     color: #fff;
 }
 
-/* Recording: what each "drivers to save" option keeps, and the playback list under it */
-.record-scopes {
-    margin-top: 0.75rem;
-}
-
+/* A heading inside a step card (the no-JavaScript Setup's "The first launch") */
 .record-subtitle {
     margin: 1.75rem 0 0.85rem;
     font-size: 0.95rem;
@@ -192,24 +203,42 @@
     letter-spacing: -0.01em;
 }
 
-/* What to do on each device, side by side */
+/* What to do on each device: open columns between hairlines, split by a centred divider */
 .device-steps {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 0.75rem;
+    column-gap: 3.5rem;
+    border-top: 1px solid var(--line);
+    border-bottom: 1px solid var(--line);
 }
 
 .device-col {
-    padding: 1rem 1.1rem;
-    background: var(--surface);
-    border: 1px solid var(--line);
-    border-radius: var(--radius);
+    position: relative;
+    padding: 1.25rem 0 1.5rem;
+}
+
+.device-col + .device-col:not(.device-col-wide)::before {
+    content: "";
+    position: absolute;
+    top: 1.25rem;
+    bottom: 1.5rem;
+    left: -1.75rem;
+    width: 1px;
+    background: var(--line);
 }
 
 .device-col:only-child,
 .device-col-wide,
 .device-steps:has(> .device-col[hidden]) > .device-col {
     grid-column: 1 / -1;
+}
+
+.device-col-wide {
+    border-top: 1px solid var(--line);
+}
+
+.device-steps:has(> .device-col[hidden]) > .device-col::before {
+    content: none;
 }
 
 .device-col-title {
@@ -248,20 +277,13 @@
 }
 
 .task-list li::before {
-    content: counter(task);
+    content: counter(task, decimal-leading-zero);
     position: absolute;
     left: 0;
-    top: 0.15em;
-    width: 1.3rem;
-    height: 1.3rem;
-    display: grid;
-    place-items: center;
+    top: 0.2em;
     font-family: var(--font-mono);
-    font-size: 0.7rem;
-    color: var(--text);
-    background: var(--surface-3);
-    border: 1px solid var(--line-strong);
-    border-radius: 50%;
+    font-size: 0.75rem;
+    color: var(--text-3);
 }
 
 .task-list strong {
@@ -353,14 +375,12 @@
     color: var(--text);
 }
 
-/* Settings rows — one bordered table, rows split by hairlines */
+/* Settings rows: open, between hairlines, label left and value right */
 .config-list {
     display: flex;
     flex-direction: column;
-    border: 1px solid var(--line);
-    border-radius: var(--radius);
-    background: var(--surface);
-    overflow: hidden;
+    border-top: 1px solid var(--line);
+    border-bottom: 1px solid var(--line);
 }
 
 .config-item {
@@ -368,7 +388,7 @@
     align-items: center;
     justify-content: space-between;
     gap: 1.25rem;
-    padding: 0.85rem 1.1rem;
+    padding: 0.9rem 0;
 }
 
 .config-item + .config-item {
@@ -404,20 +424,14 @@
 .code-pill {
     display: inline-flex;
     align-items: center;
-    padding: 0.2rem 0.55rem;
     font-family: var(--font-mono);
-    font-size: 0.8rem;
+    font-size: 0.85rem;
     font-weight: 500;
     color: var(--text);
-    background: var(--surface-2);
-    border: 1px solid var(--line);
-    border-radius: 5px;
 }
 
 .code-pill.green {
     color: var(--ok);
-    background: var(--ok-soft);
-    border-color: var(--ok-line);
 }
 
 .copy-action-btn {
@@ -457,62 +471,110 @@
     flex-shrink: 0;
 }
 
+/* A note under a step's methods, in the Download page's rule style (.dl-recommended): hairlines above and below,
+   mono capitals, the icon at the size of the text */
 .step-callout {
     display: flex;
-    align-items: flex-start;
-    gap: 0.6rem;
-    margin-top: 1rem;
-    font-size: 0.85rem;
-    line-height: 1.55;
-    color: var(--text-2);
+    align-items: center;
+    gap: 0.75rem;
+    margin-top: 1.5rem;
+    padding: 0.85rem 0;
+    border-top: 1px solid rgba(56, 189, 248, 0.3);
+    border-bottom: 1px solid rgba(56, 189, 248, 0.3);
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    font-weight: 500;
+    line-height: 1.6;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: #38bdf8;
+}
+
+/* A warning, in the same rule style in red (the Compare page's "no" red, #f87171). Spaced from the text above it,
+   since it can come straight after a step's description */
+.step-callout-danger {
+    margin-top: 0;
+    margin-bottom: 0.5rem;
+    border-color: rgba(248, 113, 113, 0.35);
+    color: #f87171;
 }
 
 .step-callout svg {
     flex-shrink: 0;
     width: 16px;
     height: 16px;
-    margin-top: 2px;
-    color: var(--text-3);
 }
 
+/* The info notes in sky blue (#38bdf8), the rails at 30% like the green Recommended rule. Commands and file names keep their case and spacing */
+.step-callout code {
+    font-size: 1em;
+    letter-spacing: 0;
+    text-transform: none;
+    color: var(--text);
+}
+
+/* A step's ways to do it as a ledger: one row per method, its letter and name on the left, the steps on the right */
 .platform-pane {
     display: flex;
     flex-direction: column;
-    gap: 0.75rem;
+    border-top: 1px solid var(--line);
 }
 
 .platform-method-card {
-    display: flex;
-    flex-direction: column;
-    gap: 0.6rem;
-    padding: 1rem 1.1rem;
-    background: var(--surface);
-    border: 1px solid var(--line);
-    border-radius: var(--radius);
+    display: grid;
+    grid-template-columns: minmax(0, 11rem) minmax(0, 1fr);
+    column-gap: 2rem;
+    padding: 1.5rem 0;
+    border-bottom: 1px solid var(--line);
+}
+
+.platform-method-card > * {
+    grid-column: 2;
+}
+
+/* Spacing by margin, not row-gap: the badge spans spare rows, and a row-gap would add up across them */
+.platform-method-card > * + * {
+    margin-top: 0.75rem;
+}
+
+.platform-method-card > .platform-method-badge + * {
+    margin-top: 0;
 }
 
 .platform-method-badge {
+    grid-column: 1;
+    grid-row: 1 / span 20;
+    align-self: start;
+    display: grid;
+    gap: 0.4rem;
     font-family: var(--font-mono);
     font-size: 0.7rem;
     font-weight: 500;
+    line-height: 1.5;
     letter-spacing: 0.08em;
     text-transform: uppercase;
-    color: var(--text-3);
+    color: var(--text);
 }
 
+.platform-method-letter {
+    font-size: 1.6rem;
+    line-height: 1;
+    letter-spacing: 0;
+}
+
+/* A command on its own ruled row: the prompt, the command, and a mono Copy link at the end */
 .command-box {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 0.85rem;
-    padding: 0.5rem 0.5rem 0.5rem 0.85rem;
-    background: var(--bg);
-    border: 1px solid var(--line);
-    border-radius: var(--radius-sm);
+    gap: 1rem;
+    padding: 0.75rem 0;
+    border-top: 1px solid var(--line);
+    border-bottom: 1px solid var(--line);
 }
 
 .command-box code {
-    font-size: 0.85rem;
+    font-size: 0.88rem;
     color: var(--text);
     /* Long commands (the macOS quarantine one) wrap instead of widening the page */
     min-width: 0;
@@ -522,6 +584,25 @@
 .command-box code::before {
     content: "$ ";
     color: var(--text-3);
+}
+
+.command-box .copy-action-btn {
+    flex-shrink: 0;
+    padding: 0;
+    border: 0;
+    background: none;
+    font-family: var(--font-mono);
+    font-size: 0.68rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.command-box .copy-action-btn:hover {
+    background: none;
+}
+
+.command-box .copy-action-btn.copied {
+    background: none;
 }
 
 kbd {
@@ -590,6 +671,209 @@ kbd {
     font-weight: 500;
 }
 
+/* ==========================================================================
+   Pre-race checklist (components/SetupResult.astro, CheckItem.astro): one ruled row per item, grouped by device
+   under mono headings. A tick box on the left, the value to set or a How button on the right.
+   ========================================================================== */
+.checklist-progress {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.checklist-bar {
+    flex: 1;
+    height: 4px;
+    border-radius: 2px;
+    background: var(--surface-3);
+    overflow: hidden;
+}
+
+.checklist-bar i {
+    display: block;
+    width: 0;
+    height: 100%;
+    background: var(--ok);
+    transition: width 0.3s var(--ease);
+}
+
+.checklist-progress span {
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    color: var(--text-2);
+    white-space: nowrap;
+}
+
+.check-group {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.45rem;
+    margin-top: 2rem;
+    padding-bottom: 0.6rem;
+    border-bottom: 1px solid var(--line-strong);
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text-2);
+}
+
+.checklist-progress + .check-group,
+.checklist-progress + .check-group[hidden] + .check-group {
+    margin-top: 0;
+}
+
+.check-group svg {
+    width: 14px;
+    height: 14px;
+    color: var(--accent);
+}
+
+.check-item {
+    border-bottom: 1px solid var(--line);
+}
+
+.check-row {
+    display: grid;
+    grid-template-columns: 22px minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 0.9rem;
+    padding: 0.8rem 0;
+}
+
+.check-tick {
+    display: grid;
+    place-items: center;
+    width: 20px;
+    height: 20px;
+    padding: 0;
+    border: 1.5px solid var(--line-hover);
+    border-radius: 5px;
+    background: none;
+    color: transparent;
+    cursor: pointer;
+    transition: background var(--fast), border-color var(--fast);
+}
+
+.check-tick svg {
+    width: 13px;
+    height: 13px;
+}
+
+.check-tick:hover {
+    border-color: var(--text-2);
+}
+
+.check-tick[aria-checked="true"] {
+    border-color: var(--ok);
+    background: var(--ok);
+    color: #05210f;
+}
+
+.check-tick:focus-visible,
+.check-how:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+}
+
+.check-text {
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+    min-width: 0;
+}
+
+.check-title {
+    font-size: 0.93rem;
+    font-weight: 500;
+    color: var(--text);
+}
+
+.check-sub {
+    font-size: 0.8rem;
+    line-height: 1.5;
+    color: var(--text-3);
+}
+
+.check-item.done .check-title {
+    color: var(--text-3);
+    text-decoration: line-through;
+    text-decoration-color: var(--line-hover);
+}
+
+.check-value {
+    justify-content: flex-end;
+}
+
+.check-how {
+    padding: 0.3rem 0;
+    border: 0;
+    background: none;
+    font-family: var(--font-mono);
+    font-size: 0.68rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text-3);
+    cursor: pointer;
+}
+
+.check-how:hover,
+.check-how[aria-expanded="true"] {
+    color: var(--text);
+}
+
+/* The detail under an item, lined up with its title */
+.check-body {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    padding: 0 0 1.5rem calc(22px + 0.9rem);
+}
+
+.check-body .step-desc {
+    margin-bottom: 0;
+}
+
+.check-body .info-box-checklist {
+    grid-column: auto;
+}
+
+/* The Troubleshooting step: the likely problems for this setup, then a way to all of them */
+.fix-links {
+    border-top: 1px solid var(--line);
+}
+
+.fix-links a {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 0.85rem 0;
+    border-bottom: 1px solid var(--line);
+    font-size: 0.93rem;
+    color: var(--text);
+    text-decoration: none;
+}
+
+.fix-links a::after {
+    content: "\2192";
+    font-family: var(--font-mono);
+    color: var(--text-3);
+    transition: color var(--fast), transform var(--fast);
+}
+
+.fix-links a:hover::after {
+    color: var(--accent);
+    transform: translateX(3px);
+}
+
+.fix-all {
+    justify-self: start;
+    margin-top: 1.5rem;
+}
+
 @media (max-width: 860px) {
     .setup-step-card,
     .info-box {
@@ -610,6 +894,27 @@ kbd {
         margin-bottom: 1rem;
     }
 
+    /* The ledger's letter and name go above the steps, side by side */
+    .platform-method-card {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .platform-method-card > *,
+    .platform-method-badge {
+        grid-column: 1;
+    }
+
+    .platform-method-card > .platform-method-badge + * {
+        margin-top: 0.75rem;
+    }
+
+    .platform-method-badge {
+        grid-row: auto;
+        display: flex;
+        align-items: baseline;
+        gap: 0.75rem;
+    }
+
     .info-box-text > strong {
         margin-bottom: 1rem;
     }
@@ -618,6 +923,14 @@ kbd {
 @media (max-width: 680px) {
     .device-steps {
         grid-template-columns: 1fr;
+    }
+
+    .device-col + .device-col {
+        border-top: 1px solid var(--line);
+    }
+
+    .device-col + .device-col::before {
+        content: none;
     }
 
     .flow-diagram {
@@ -634,21 +947,20 @@ kbd {
 
     .flow-link::before {
         top: 0.25rem;
-        bottom: 0.25rem;
-        left: 50%;
+        bottom: calc(0.25rem + 9px);
+        left: calc(50% - 1px);
         right: auto;
-        width: 1px;
+        width: 2px;
         height: auto;
-        background: linear-gradient(180deg, var(--line-strong), var(--accent));
     }
 
     .flow-link::after {
         top: auto;
         bottom: 0.25rem;
         right: auto;
-        left: calc(50% - 4px);
-        border: 4px solid transparent;
-        border-top: 6px solid var(--accent);
+        left: calc(50% - 6px);
+        border: 6px solid transparent;
+        border-top: 10px solid var(--accent);
         border-bottom: 0;
     }
 

@@ -1,6 +1,8 @@
 ---
-// One build's card in a Download page guide (pages/download.astro). Styles in styles/download.css and
-// download-build.css.
+// One build's column in a Download page guide (pages/download.astro): its role, its title in the frontend's colour,
+// the stack, the one thing to know, the description, pros and cons, the Recommended badge on the default build, the
+// P.S. if it has one, the first-launch note, the memory and file rows, then the download. Styles in
+// styles/download.css and download-build.css.
 //
 // For more than one OS (Windows and Linux share a guide), every per-OS value and link is rendered, marked data-os-only,
 // and the page's CSS shows the chosen platform's; for one OS, the values are picked here.
@@ -8,6 +10,7 @@
 // build for scripts/download-next.js.
 import type { Build, PerOs } from '../data/downloads';
 import { osLabels } from '../data/downloads';
+import { VERSION } from '../version';
 
 interface Props {
     build: Build;
@@ -18,34 +21,60 @@ const single = oses.length === 1 ? oses[0] : null;
 const pick = (value: PerOs) => typeof value === 'string' ? value : value[single!];
 
 const downloadIcon = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>';
-// Lucide-style: a check for the default pick, a feather for the lighter fallback, a warning for a catch
-const badgeIcons = {
-    pick: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/></svg>',
-    alt: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20.24 12.24a6 6 0 0 0-8.49-8.49L5 10.5V19h8.5z"/><line x1="16" y1="8" x2="2" y2="22"/><line x1="17.5" y1="15" x2="9" y2="15"/></svg>',
-    warn: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>',
-};
+const shieldIcon = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>';
+const checkIcon = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>';
+const arrowIcon = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>';
+const launchNotes = build.launch
+    ? single || typeof build.launch === 'string' ? [[undefined, pick(build.launch)]] : Object.entries(build.launch).filter(([os]) => oses.includes(os))
+    : [];
 ---
-<article class="dl-build">
-    {build.stack && (
-        <p class="eyebrow dl-build-stack">
-            {single || typeof build.stack === 'string' ? pick(build.stack) : Object.entries(build.stack).map(([os, v]) => (
-                <span data-os-only={os}>{v}</span>
-            ))}
-        </p>
-    )}
-    <h3 class="download-build-name">{build.name}</h3>
-    {build.badge && (
-        <p class="dl-badge" data-tone={build.badge.tone}>
-            <Fragment set:html={badgeIcons[build.badge.tone]} />
-            <span>{build.badge.text}</span>
-        </p>
-    )}
+<article class="dl-build" data-tone={build.badge?.tone} style={`--build: var(--trace-${build.color})`}>
+    <div class="dl-build-head">
+        {build.badge && <p class="dl-role">{build.badge.label}</p>}
+        <h3 class="dl-build-title">{build.title[0]} <span>{build.title[1]}</span></h3>
+        {build.stack && (
+            <p class="dl-build-stack">
+                {single || typeof build.stack === 'string' ? pick(build.stack) : Object.entries(build.stack).map(([os, v]) => (
+                    <span data-os-only={os}>{v}</span>
+                ))}
+            </p>
+        )}
+    </div>
+    {build.badge && <p class="dl-why">{build.badge.text}</p>}
     <p class="download-build-desc">{build.desc}</p>
     <ul class="dl-points">
         {build.pros.map(t => <li class="dl-pro"><span class="visually-hidden">Advantage: </span>{t}</li>)}
         {build.cons.map(t => <li class="dl-con"><span class="visually-hidden">Disadvantage: </span>{t}</li>)}
     </ul>
+    {build.badge?.tone === 'pick' && (
+        <p class="dl-recommended"><Fragment set:html={checkIcon} /><span>Recommended for most users</span></p>
+    )}
+    {build.ps && build.ps.length > 0 && (
+        <div class="dl-ps">
+            <p class="dl-ps-label">P.S.</p>
+            {build.ps.map(t => <p>{t}</p>)}
+        </div>
+    )}
+    {launchNotes.map(([os, text]) => (
+        <div class="dl-launch" data-os-only={os}>
+            <p class="dl-launch-head">
+                <Fragment set:html={shieldIcon} />
+                <span>{build.launchTitle ?? 'First launch'}</span>
+            </p>
+            <p>{text}</p>
+            <a class="dl-launch-go" href={`/setup/?os_instructions=${os ?? single}`} data-astro-prefetch>
+                <span>{build.launchLink ?? 'How to launch the app'}</span>
+                <Fragment set:html={arrowIcon} />
+            </a>
+        </div>
+    ))}
     <dl class="download-build-specs">
+        {build.memory && (
+            <div><dt>Memory use</dt><dd>
+                <span class="dl-meter" aria-hidden="true">{[1, 2, 3].map(n => <i class={n <= build.memory!.level ? 'on' : undefined}></i>)}</span>
+                {build.memory.label}
+            </dd></div>
+        )}
         {build.specs.map(([label, value]) => (
             <div><dt>{label}</dt><dd>
                 {single || typeof value === 'string' ? pick(value) : Object.entries(value).map(([os, v]) => (
@@ -59,6 +88,7 @@ const badgeIcons = {
             href={`/download/${build.slug}/${os}`} rel="nofollow">
             <Fragment set:html={downloadIcon} />
             <span>{build.cta ?? `Download ${build.name}`}<span class="visually-hidden"> for {osLabels[os]}</span></span>
+            <span class="download-build-ver">{VERSION}</span>
         </a>
     ))}
 </article>

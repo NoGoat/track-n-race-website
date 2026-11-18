@@ -16,7 +16,7 @@
 
 @font-face {
     font-family: 'Cascadia Code';
-    src: url('/assets/fonts/CascadiaCode.woff2') format('woff2-variations');
+    src: url('../assets/fonts/CascadiaCode.woff2') format('woff2-variations');
     font-weight: 200 700;
     font-style: normal;
     font-display: swap;
@@ -519,6 +519,69 @@
 
 .analysis-chart-empty-state--visible {
     opacity: 1;
+}
+
+/* A braking zone's hover card and its rows come in */
+@keyframes brakingCardIn {
+    from { opacity: 0; transform: translateY(6px) scale(0.97); }
+    to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@keyframes brakingRowIn {
+    from { opacity: 0; transform: translateX(-4px); }
+    to { opacity: 1; transform: translateX(0); }
+}
+
+.braking-card { animation: brakingCardIn 140ms cubic-bezier(0.2, 0.8, 0.2, 1) both; transform-origin: top left; }
+.braking-row { animation: brakingRowIn 180ms ease-out both; }
+
+@media (prefers-reduced-motion: reduce) {
+    .braking-card, .braking-row { animation: none; }
+}
+
+/* The Analysis toolbar narrows with both side panels. Sheds text and spacing in steps so every control and delta
+   value stays on screen. */
+.analysis-toolbar {
+    container-name: analysis-toolbar;
+    container-type: inline-size;
+}
+
+@container analysis-toolbar (max-width: 750px) {
+    .analysis-toolbar[data-chart-controls] .analysis-toolbar__label {
+        display: none;
+    }
+}
+
+@container analysis-toolbar (max-width: 664px) {
+    .analysis-toolbar[data-chart-controls] .analysis-toolbar__divider {
+        display: none;
+    }
+
+    .analysis-toolbar[data-chart-controls] .analysis-toolbar__end {
+        gap: 0.25rem;
+    }
+
+    .analysis-toolbar[data-chart-controls] .analysis-toolbar__zones {
+        margin-left: 0;
+    }
+
+    .analysis-toolbar[data-chart-controls] .analysis-delta-readout {
+        gap: 0.5rem;
+    }
+
+    .analysis-toolbar[data-chart-controls] .analysis-delta-readout__item {
+        gap: 0.25rem;
+    }
+
+    .analysis-toolbar[data-chart-controls] .analysis-delta-readout__value {
+        width: 3rem;
+    }
+}
+
+@container analysis-toolbar (max-width: 570px) {
+    .analysis-toolbar[data-chart-controls] .analysis-delta-readout__caption {
+        display: none;
+    }
 }
 
 /* The playback bar's range input (PlaybackBar.tsx uses Tailwind's arbitrary variants for its thumb) */

@@ -2,7 +2,16 @@
 // The Setup page's result: the steps for the answers given. Every block is marked data-when / data-fill, and
 // scripts/setup.js shows the ones that apply, numbers the steps and fills in the names as the answers change.
 // Without JavaScript the page shows components/SetupAll.astro instead, so a change here may belong there too.
+//
+// The result is short: opening the app the first time, one Pre-race checklist for everything to set, and links into
+// the Troubleshooting page for when it doesn't work.
 import { icon } from '../data/setup';
+import FirstLaunch from './FirstLaunch.astro';
+import CheckItem from './CheckItem.astro';
+import AddressMethods from './AddressMethods.astro';
+import FirewallFix from './FirewallFix.astro';
+import ForwardSteps from './ForwardSteps.astro';
+import ForwardPorts from './ForwardPorts.astro';
 ---
 <!-- Your setup: shown once every question that applies is answered -->
 <section class="setup-result js-only" id="setupResult" data-when="complete=yes" aria-labelledby="resultTitle" tabindex="-1">
@@ -70,413 +79,282 @@ import { icon } from '../data/setup';
     </p>
 
     <div class="setup-flow">
-        <!-- Opening it on macOS. Track N Race isn't signed or notarised with an Apple Developer certificate, so
-             Gatekeeper stops the first launch. -->
-        <div class="setup-step-card result-step" data-when="os=macos">
-            <div class="setup-step-card-header">
-                <div class="setup-step-title-group">
-                    <div class="setup-step-badge">01</div>
-                    <h3 class="setup-step-title">Open it on macOS</h3>
-                </div>
-            </div>
-            <div class="gatekeeper">
-                <p class="step-desc">
-                    Track N Race isn't signed with an Apple Developer certificate, so the first time you
-                    open it macOS blocks it with <strong>"Track N Race" Not Opened</strong> (or "cannot be
-                    opened because Apple cannot check it for malicious software"). That's expected. To let it run:
-                </p>
-                <div class="platform-pane">
-                    <div class="platform-method-card">
-                        <span class="platform-method-badge">Option A &bull; System Settings</span>
-                        <ol class="task-list">
-                            <li>Open the <code>.dmg</code> and drag <strong>Track N Race</strong> into <strong>Applications</strong>.</li>
-                            <li>Open it once. When macOS blocks it, click <strong>Done</strong> (not <strong>Move to Trash</strong>).</li>
-                            <li>Go to <strong>System Settings</strong> &rarr; <strong>Privacy &amp; Security</strong>, scroll down to <strong>Security</strong>, and click <strong>Open Anyway</strong> next to the Track N Race message.</li>
-                            <li>Open Track N Race again and click <strong>Open Anyway</strong>, then enter your password if asked. macOS remembers this, so you only do it once per version.</li>
-                        </ol>
-                    </div>
-                    <div class="platform-method-card">
-                        <span class="platform-method-badge">Option B &bull; Terminal, if it says the app "is damaged"</span>
-                        <p class="config-subtext">
-                            A damaged message means macOS has quarantined the download. After copying the
-                            app to Applications, clear the quarantine flag:
-                        </p>
-                        <div class="command-box">
-                            <code>xattr -dr com.apple.quarantine "/Applications/Track N Race.app"</code>
-                            <button class="copy-action-btn" type="button" data-copy='xattr -dr com.apple.quarantine "/Applications/Track N Race.app"'>
-                                <Fragment set:html={icon.copy} />
-                                <span class="copy-label">Copy</span><span class="visually-hidden"> the xattr command</span>
-                            </button>
-                        </div>
-                    </div>
-                </div>
-                <p class="step-callout">
-                    <Fragment set:html={icon.info} />
-                    <span>The Minimal Recorder is unsigned too: use the same steps, with its own app name in the command.<span data-when="link=paired"> This is separate from the keychain password prompt in step <span data-step-ref="pair">04</span>.</span></span>
-                </p>
-            </div>
-        </div>
+        <!-- Opening it the first time, for the computer's OS -->
+        <FirstLaunch when="os" />
 
-        <!-- Find the receiving device's IP -->
-        <div class="setup-step-card result-step" data-step="ip" data-when="ip=windows,macos,linux,android">
+        <!-- Everything to set, as one list to tick off: grouped by device, in the order it's done -->
+        <div class="setup-step-card result-step" data-step="checklist">
             <div class="setup-step-card-header">
                 <div class="setup-step-title-group">
                     <div class="setup-step-badge">02</div>
-                    <h3 class="setup-step-title">Find <span data-fill="ip-owner">its</span> IP address</h3>
+                    <h3 class="setup-step-title">Pre-race checklist</h3>
                 </div>
             </div>
-            <p class="step-desc">
-                The game needs the local network address of <strong data-fill="ip-device">the device</strong>
-                running Track N Race. It looks like <code>192.168.1.150</code>.
-            </p>
+            <div class="checklist" data-checklist>
+                <div class="checklist-progress">
+                    <div class="checklist-bar"><i data-check-bar></i></div>
+                    <span data-check-count>0 of 0</span>
+                </div>
 
-            <div class="platform-pane" data-when="ip=windows">
-                <div class="platform-method-card">
-                    <span class="platform-method-badge">Option A &bull; Command Line (Fastest)</span>
-                    <p class="config-subtext">
-                        Press <kbd>Win</kbd> + <kbd>R</kbd>, type <code>cmd</code> or open PowerShell, then run:
-                    </p>
-                    <div class="command-box">
-                        <code>ipconfig</code>
-                        <button class="copy-action-btn" type="button" data-copy="ipconfig">
-                            <Fragment set:html={icon.copy} />
-                            <span class="copy-label">Copy</span><span class="visually-hidden"> ipconfig</span>
-                        </button>
+                <!-- Android, Direct mode: the phone does it all -->
+                <p class="check-group" data-when="link=direct"><Fragment set:html={icon.phone} />On your phone: Track N Race</p>
+                <CheckItem id="ck-d-open" when="link=direct">
+                    <Fragment slot="title">Open Track N Race and allow Nearby devices</Fragment>
+                    <Fragment slot="sub">Without it the app can't hear the game</Fragment>
+                    <p class="step-desc">Android 17 and later ask on first launch. Missed it? Open Android's <strong>Settings</strong> &rarr; <strong>Apps</strong> &rarr; <strong>Track N Race</strong> &rarr; <strong>Permissions</strong> and allow <strong>Nearby devices</strong>.</p>
+                </CheckItem>
+                <CheckItem id="ck-d-source" when="link=direct">
+                    <Fragment slot="title">Check the source is Direct UDP</Fragment>
+                    <Fragment slot="sub">It's the default</Fragment>
+                    <p class="step-desc">Open <strong>Settings</strong> &rarr; <strong>Telemetry</strong> &rarr; <strong>Source</strong> and choose <strong>Direct UDP</strong>.</p>
+                </CheckItem>
+                <CheckItem id="ck-d-addr" when="link=direct">
+                    <Fragment slot="title">Copy the phone's address</Fragment>
+                    <Fragment slot="sub">Tap the menu button. It shows after Direct UDP</Fragment>
+                    <p class="step-desc">Tap the <strong>menu</strong> button in the top bar. The source line shows the phone's address after <strong>Direct UDP</strong>.</p>
+                    <p class="step-desc">The phone has to be on the same Wi-Fi as <span data-fill="platform-name">your device</span>, with any VPN turned off.</p>
+                </CheckItem>
+                <CheckItem id="ck-d-rec" when="link=direct">
+                    <Fragment slot="title">Turn on recording</Fragment>
+                    <Fragment slot="sub">Optional. Saves every session as a .tnrd file to replay and analyse</Fragment>
+                    <p class="step-desc">Open <strong>Settings</strong> &rarr; <strong>Recording</strong> and turn on <strong>Record sessions</strong>. Recordings go to the app's Documents folder, in <code>Track N Race</code>. To use another folder, tap <strong>Recording folder</strong>.</p>
+                    <p class="step-desc">To watch one back, tap the <strong>menu</strong> button &rarr; <strong>Open recording</strong>.</p>
+                </CheckItem>
+
+                <!-- On the computer: first-time setup covers most of these -->
+                <p class="check-group" data-when="link=desktop,paired"><Fragment set:html={icon.laptop} />On <span data-fill="host-name">your computer</span>: Track N Race</p>
+                <CheckItem id="ck-open" when="link=desktop,paired">
+                    <Fragment slot="title">Open Track N Race</Fragment>
+                    <Fragment slot="sub">First-time setup starts by itself</Fragment>
+                    <p class="step-desc">It walks you through most of this list. Every step has <strong>Skip</strong>, and everything can be changed later in <strong>Settings</strong>.</p>
+                </CheckItem>
+                <CheckItem id="ck-rec" when="link=desktop,paired">
+                    <Fragment slot="title">Turn on recording</Fragment>
+                    <Fragment slot="sub">Optional. Saves every session as a .tnrd file to replay and analyse</Fragment>
+                    <p class="step-desc">First-time setup asks first: turn on <strong>Record Session Data</strong> and pick a folder.</p>
+                    <ul class="info-box-checklist">
+                        <li><strong>Electron, later:</strong> <strong>Settings</strong> &rarr; <strong>Data Storage</strong>, turn on <strong>Record Session Data</strong>, then <strong>Browse</strong> for a folder.</li>
+                        <li data-when="native=yes"><strong>Native, later:</strong> <strong>Settings</strong> &rarr; <strong>Recording</strong>, tick <strong>Start recording when a session starts</strong>, then <strong>Change…</strong> the folder.</li>
+                        <li><strong>Drivers to save:</strong> <strong>All Drivers</strong> keeps every car, so you can compare against anyone. <strong>Driver Only</strong> keeps just yours, in smaller files.</li>
+                        <li data-when="link=paired"><strong>Paired mode:</strong> the computer records. The phone doesn't save a second copy.</li>
+                    </ul>
+                </CheckItem>
+                <CheckItem id="ck-addr" when="ip=windows,macos,linux">
+                    <Fragment slot="title">Copy <span data-fill="ip-owner">its</span> address</Fragment>
+                    <Fragment slot="sub">Track N Race shows it under This PC's address</Fragment>
+                    <p class="step-desc">First-time setup's <strong>Connect the game</strong> step shows it, ticked and marked <strong>Console or another PC</strong>. Click <strong>Copy</strong> beside it.</p>
+                    <p class="step-desc">Later, it's in <strong>Settings</strong> &rarr; <strong>Network</strong><span data-when="native=yes"> in Electron, or <strong>Settings</strong> &rarr; <strong>Connection</strong> in Native</span>. VPN and virtual machine adapters are hidden, so they don't get picked by mistake.</p>
+                    <details class="fix-fold">
+                        <summary>Find it without the app</summary>
+                        <div class="fix-fold-body">
+                            <div data-when="ip=windows"><AddressMethods os="windows" /></div>
+                            <div data-when="ip=macos"><AddressMethods os="macos" /></div>
+                            <div data-when="ip=linux"><AddressMethods os="linux" /></div>
+                        </div>
+                    </details>
+                </CheckItem>
+                <CheckItem id="ck-loop" when="ip=loopback">
+                    <Fragment slot="title">Pick "This PC only"</Fragment>
+                    <Fragment slot="sub">The game sends to 127.0.0.1</Fragment>
+                    <p class="step-desc">In first-time setup's <strong>Connect the game</strong> step, tick <strong>This PC only</strong>. The game and Track N Race are on the same PC, so nothing leaves it.</p>
+                </CheckItem>
+                <CheckItem id="ck-fw" when="fw=yes">
+                    <Fragment slot="title">
+                        <span data-when="os=windows">Allow it through Windows Firewall</span>
+                        <span data-when="os=macos">Allow incoming connections</span>
+                        <span data-when="os=linux">Open port 20777 in your firewall</span>
+                    </Fragment>
+                    <Fragment slot="sub">
+                        <span data-when="os=windows">Check connection shows Allowed</span>
+                        <span data-when="os=macos,linux">Only if your firewall is on</span>
+                    </Fragment>
+                    <div data-when="os=windows"><FirewallFix os="windows" /></div>
+                    <div data-when="os=macos"><FirewallFix os="macos" /></div>
+                    <div data-when="os=linux"><FirewallFix os="linux" /></div>
+                </CheckItem>
+                <CheckItem id="ck-pair" when="link=paired">
+                    <Fragment slot="title">Pair your phone</Fragment>
+                    <Fragment slot="sub">You only pair once</Fragment>
+                    <div class="device-steps">
+                        <div class="device-col">
+                            <p class="device-col-title"><Fragment set:html={icon.laptop} /> On <span data-fill="host-name">your computer</span></p>
+                            <ol class="task-list">
+                                <li>Open <strong>Settings</strong> &rarr; <strong>Paired Devices</strong>.</li>
+                                <li data-when="os=macos">Turn on <strong>Allow keychain access</strong> and restart the app. macOS then asks for your login password, because the app isn't signed with an Apple certificate.</li>
+                                <li>Turn on <strong>Enable paired mode</strong>.</li>
+                                <li>Click <strong>Pair a device</strong>. A QR code and an 8-character code appear for two minutes.</li>
+                            </ol>
+                        </div>
+                        <div class="device-col">
+                            <p class="device-col-title"><Fragment set:html={icon.phone} /> On your phone</p>
+                            <ol class="task-list">
+                                <li>Open Track N Race. Allow <strong>Nearby devices</strong> if asked: without it the app can't find the desktop.</li>
+                                <li>Open <strong>Settings</strong> &rarr; <strong>Telemetry</strong> &rarr; <strong>Pair a desktop</strong>.</li>
+                                <li>Tap <strong>Scan desktop QR</strong> and point it at the screen. Or pick your computer under <strong>Nearby desktops</strong> and type the code.</li>
+                            </ol>
+                        </div>
+                        <div class="device-col device-col-wide">
+                            <p class="device-col-title"><Fragment set:html={icon.both} /> To finish</p>
+                            <ol class="task-list">
+                                <li>The desktop asks <strong>Allow &lt;your phone&gt;?</strong> Click <strong>Allow</strong>.</li>
+                                <li>The phone shows whatever the desktop shows, live or in playback.</li>
+                            </ol>
+                        </div>
                     </div>
-                    <p class="config-subtext">
-                        Look for <strong>IPv4 Address</strong> under your active connection.
+                    <p class="step-callout" data-when="os=windows,linux">
+                        <Fragment set:html={icon.info} />
+                        <span>First-time setup's Paired mode step does all of this in one place.</span>
                     </p>
-                </div>
-                <div class="platform-method-card">
-                    <span class="platform-method-badge">Option B &bull; Windows Settings</span>
-                    <p class="config-subtext">
-                        Open <strong>Settings</strong> &rarr; <strong>Network &amp; internet</strong> &rarr;
-                        click <strong>Wi-Fi</strong> or <strong>Ethernet</strong> &rarr; scroll down to
-                        <strong>Properties</strong> to view the <strong>IPv4 address</strong>.
-                    </p>
-                </div>
-            </div>
+                </CheckItem>
 
-            <div class="platform-pane" data-when="ip=macos">
-                <div class="platform-method-card">
-                    <span class="platform-method-badge">Option A &bull; System Settings</span>
-                    <p class="config-subtext">
-                        Open the <strong>Apple menu</strong> &rarr; <strong>System Settings</strong>
-                        &rarr; <strong>Network</strong> &rarr; select your connected network
-                        (<strong>Wi-Fi</strong> or <strong>Ethernet</strong>) &rarr; click
-                        <strong>Details...</strong> to view your <strong>IP Address</strong>.
-                    </p>
-                </div>
-                <div class="platform-method-card">
-                    <span class="platform-method-badge">Option B &bull; Terminal</span>
-                    <p class="config-subtext">
-                        Open <strong>Terminal</strong> and run the command for your active interface:
-                    </p>
-                    <div class="command-box">
-                        <code>ipconfig getifaddr en0</code>
-                        <button class="copy-action-btn" type="button" data-copy="ipconfig getifaddr en0">
-                            <Fragment set:html={icon.copy} />
-                            <span class="copy-label">Copy</span><span class="visually-hidden"> ipconfig getifaddr en0</span>
-                        </button>
-                    </div>
-                    <p class="config-subtext">
-                        Use <code>en0</code> for Wi-Fi or <code>en1</code> for Ethernet.
-                    </p>
-                </div>
-            </div>
+                <!-- In the game -->
+                <p class="check-group">
+                    <Fragment set:html={icon.gamepad} />
+                    <span data-when="platform=console">On your console:</span><span data-when="platform=pc">In</span>
+                    <span data-fill="game-name">the game</span> &rarr; Settings &rarr; Telemetry Settings
+                </p>
+                <CheckItem id="ck-g-on">
+                    <Fragment slot="title">UDP Telemetry</Fragment>
+                    <Fragment slot="value"><span class="code-pill green">On</span></Fragment>
+                </CheckItem>
+                <CheckItem id="ck-g-broadcast">
+                    <Fragment slot="title">UDP Broadcast Mode</Fragment>
+                    <Fragment slot="sub">Sends to one address instead of the whole network</Fragment>
+                    <Fragment slot="value"><span class="code-pill">Off</span></Fragment>
+                </CheckItem>
+                <CheckItem id="ck-g-ip">
+                    <Fragment slot="title">UDP IP Address</Fragment>
+                    <Fragment slot="sub">
+                        <span data-when="ip=loopback">Means "this same PC"</span>
+                        <span data-when="ip=windows,macos,linux">The address you copied from Track N Race</span>
+                        <span data-when="ip=android">The phone's address, from the app's menu</span>
+                    </Fragment>
+                    <Fragment slot="value"><span class="code-pill green" id="ipPill" data-fill="ip-target">127.0.0.1</span></Fragment>
+                </CheckItem>
+                <CheckItem id="ck-g-port">
+                    <Fragment slot="title">UDP Port</Fragment>
+                    <Fragment slot="sub">
+                        <span data-when="link=desktop,paired">Track N Race's default, unless you changed it in its Settings</span>
+                        <span data-when="link=direct">Track N Race's default, unless you changed it in Settings &rarr; Telemetry &rarr; UDP listener</span>
+                    </Fragment>
+                    <Fragment slot="value"><span class="code-pill">20777</span></Fragment>
+                </CheckItem>
+                <CheckItem id="ck-g-rate">
+                    <Fragment slot="title">UDP Send Rate</Fragment>
+                    <Fragment slot="sub">Any of these works. 60Hz is the smoothest. Drop to 20–30Hz if the Wi-Fi struggles</Fragment>
+                    <Fragment slot="value">
+                        <span class="code-pill">10Hz</span>
+                        <span class="code-pill">20Hz</span>
+                        <span class="code-pill">30Hz</span>
+                        <span class="code-pill green">60Hz</span>
+                    </Fragment>
+                </CheckItem>
+                <CheckItem id="ck-g-format">
+                    <Fragment slot="title">UDP Format</Fragment>
+                    <Fragment slot="sub">
+                        <span data-when="game=f124">The only format Track N Race reads from F1 24. 2022 and 2023 aren't supported</span>
+                        <span data-when="game=f125">Either works. 2025 has the most data</span>
+                        <span data-when="game=f126">Any of these works. 2026 has the newest data; older formats miss it</span>
+                    </Fragment>
+                    <Fragment slot="value">
+                        <span class="code-pill" data-when="game=f125,f126">2024</span>
+                        <span class="code-pill green" data-when="game=f124">2024</span>
+                        <span class="code-pill" data-when="game=f126">2025</span>
+                        <span class="code-pill green" data-when="game=f125">2025</span>
+                        <span class="code-pill green" data-when="game=f126">2026</span>
+                    </Fragment>
+                </CheckItem>
 
-            <div class="platform-pane" data-when="ip=linux">
-                <div class="platform-method-card">
-                    <span class="platform-method-badge">Terminal</span>
-                    <p class="config-subtext">Open your terminal and run:</p>
-                    <div class="command-box">
-                        <code>hostname -I</code>
-                        <button class="copy-action-btn" type="button" data-copy="hostname -I">
-                            <Fragment set:html={icon.copy} />
-                            <span class="copy-label">Copy</span><span class="visually-hidden"> hostname -I</span>
-                        </button>
-                    </div>
-                    <p class="config-subtext">
-                        On second thought, why am I even telling you this. You are on Linux. You either know how to do this, or know how to Google how to do this.
-                    </p>
-                </div>
-            </div>
-
-            <div class="platform-pane" data-when="ip=android">
-                <div class="platform-method-card">
-                    <span class="platform-method-badge">Option A &bull; In Track N Race (Easiest)</span>
-                    <p class="config-subtext">
-                        Open Track N Race and tap the <strong>menu</strong> button in the top bar. The source
-                        line shows the phone's address, like <code>Direct UDP · 192.168.1.42</code>.
-                    </p>
-                </div>
-                <div class="platform-method-card">
-                    <span class="platform-method-badge">Option B &bull; Wi-Fi Settings</span>
-                    <p class="config-subtext">
-                        Open <strong>Settings</strong> &rarr; <strong>Network &amp; internet</strong> &rarr;
-                        <strong>Internet</strong> &rarr; tap the gear icon next to your connected
-                        <strong>Wi-Fi</strong> network to view the <strong>IP address</strong>. On Samsung
-                        phones, go to <strong>Settings</strong> &rarr; <strong>Connections</strong> &rarr;
-                        <strong>Wi-Fi</strong> instead. Menu names vary between manufacturers.
-                    </p>
-                </div>
+                <!-- Go -->
+                <p class="check-group"><Fragment set:html={icon.flag} />Go</p>
+                <CheckItem id="ck-drive">
+                    <Fragment slot="title">Start a session and drive out</Fragment>
+                    <Fragment slot="sub">
+                        <span data-when="link=desktop,paired">Check connection turns to Receiving</span>
+                        <span data-when="link=direct">Leave Track N Race running</span>
+                    </Fragment>
+                    <p class="step-desc">The game only sends telemetry on track or in the garage, not from the menus. The dashboard fills in within a second.</p>
+                    <p class="step-desc" data-when="link=direct">The listener keeps running in the background, even with the screen off. It only stops when you stop it from its notification or close the app from the Recents menu.</p>
+                </CheckItem>
             </div>
         </div>
 
-        <!-- In-game telemetry settings -->
-        <div class="setup-step-card result-step">
+        <!-- Optional: passing the game's data on to a wheel or another telemetry app (UDP forwarding) -->
+        <div class="setup-step-card result-step" data-step="forwarding">
             <div class="setup-step-card-header">
                 <div class="setup-step-title-group">
                     <div class="setup-step-badge">03</div>
-                    <h3 class="setup-step-title">Set up the game</h3>
+                    <h3 class="setup-step-title">Other telemetry apps</h3>
                 </div>
             </div>
-            <p class="step-desc">
-                In <span data-fill="game-name">the game</span>, open <strong>Settings</strong> &rarr;
-                <strong>Telemetry Settings</strong> and set:
+            <p class="mode-explainer">
+                <strong>UDP forwarding:</strong> the game sends its telemetry to one address and one port, so only
+                one app gets it. To use Track N Race with your wheel or another telemetry app, have the game send to
+                Track N Race, and turn on forwarding. Track N Race then sends a copy of every packet, exactly as the
+                game sent it, to up to 15 other apps. Only using Track N Race? Skip this step.
             </p>
-            <div class="config-list">
-                <div class="config-item">
-                    <div class="config-info"><span class="config-label">UDP Telemetry</span></div>
-                    <div class="config-value-group"><span class="code-pill green">On</span></div>
-                </div>
-                <div class="config-item">
-                    <div class="config-info">
-                        <span class="config-label">UDP Broadcast Mode</span>
-                        <span class="config-subtext">Sends to one address instead of the whole network.</span>
-                    </div>
-                    <div class="config-value-group"><span class="code-pill">Off</span></div>
-                </div>
-                <div class="config-item">
-                    <div class="config-info">
-                        <span class="config-label">UDP IP Address</span>
-                        <span class="config-subtext" data-when="ip=loopback">Means "this same PC".</span>
-                        <span class="config-subtext" data-when="ip=windows,macos,linux,android">The address from step <span data-step-ref="ip">02</span>.</span>
-                    </div>
-                    <div class="config-value-group">
-                        <span class="code-pill green" id="ipPill" data-fill="ip-target">127.0.0.1</span>
-                    </div>
-                </div>
-                <div class="config-item">
-                    <div class="config-info">
-                        <span class="config-label">UDP Port</span>
-                        <span class="config-subtext" data-when="link=desktop,paired">Track N Race's default. If you changed it in the app's
-                            <strong>Settings</strong> &rarr; <strong>Network</strong>, use that instead.</span>
-                        <span class="config-subtext" data-when="link=direct">The Android app always listens on this port.</span>
-                    </div>
-                    <div class="config-value-group"><span class="code-pill">20777</span></div>
-                </div>
-                <div class="config-item">
-                    <div class="config-info">
-                        <span class="config-label">UDP Send Rate</span>
-                        <span class="config-subtext">Higher is smoother. Drop to 20–30Hz if the
-                            <span data-when="link=direct">phone</span><span data-when="link=desktop,paired">connection</span> struggles.</span>
-                    </div>
-                    <div class="config-value-group"><span class="code-pill green">60Hz</span></div>
-                </div>
-                <div class="config-item">
-                    <div class="config-info">
-                        <span class="config-label">UDP Format</span>
-                        <span class="config-subtext" data-when="game=f124">The only format F1 24 offers.</span>
-                        <span class="config-subtext" data-when="game=f125">The newest format F1 25 offers.</span>
-                        <span class="config-subtext" data-when="game=f126">The 2026 Season Pack's format. Older formats work too, but miss the newest data.</span>
-                    </div>
-                    <div class="config-value-group"><span class="code-pill green" data-fill="format">2025</span></div>
-                </div>
-            </div>
-        </div>
 
-        <!-- Track N Race on a computer, on its own -->
-        <div class="setup-step-card result-step" data-when="link=desktop">
-            <div class="setup-step-card-header">
-                <div class="setup-step-title-group">
-                    <div class="setup-step-badge">04</div>
-                    <h3 class="setup-step-title">Start Track N Race</h3>
-                </div>
-            </div>
-            <ol class="task-list">
-                <li>Open Track N Race. It starts listening on port <code>20777</code> straight away.</li>
-                <li data-when="host=other os=windows">If Windows asks whether to allow Track N Race on the network, allow it on <strong>Private networks</strong>.</li>
-                <li data-when="host=other os=macos">If macOS asks whether Track N Race may accept incoming network connections, choose <strong>Allow</strong>.</li>
-                <li>Leave the session menu and get on track. The dashboard fills in within a second.</li>
+            <ol class="flow-diagram" aria-label="How forwarded telemetry travels">
+                <li class="flow-node">
+                    <span class="flow-icon" set:html={icon.gamepad} />
+                    <span class="flow-name"><span data-fill="game-name">F1</span></span>
+                    <span class="flow-detail">sends once</span>
+                </li>
+                <li class="flow-link">
+                    <span class="flow-link-label">UDP · 20777</span>
+                </li>
+                <li class="flow-node">
+                    <span class="flow-icon" set:html={icon.laptop} data-when="link=desktop,paired" />
+                    <span class="flow-icon" set:html={icon.phone} data-when="link=direct" />
+                    <span class="flow-name">Track N Race</span>
+                    <span class="flow-detail">receives and forwards</span>
+                </li>
+                <li class="flow-link">
+                    <span class="flow-link-label">Forwarded</span>
+                    <span class="flow-link-detail">unchanged</span>
+                </li>
+                <li class="flow-node">
+                    <span class="flow-icon" set:html={icon.monitor} />
+                    <span class="flow-name">Your other apps</span>
+                    <span class="flow-detail">up to 15</span>
+                </li>
             </ol>
+
+            <h4 class="record-subtitle">When you need it</h4>
+            <ul class="info-box-checklist">
+                <li><strong>A wheel, dash or motion rig:</strong> its software reads the game's telemetry for rev lights, the wheel's display or effects. Forward to it, and it keeps working while Track N Race runs.</li>
+                <li><strong>You already use another telemetry app:</strong> point the game at Track N Race and forward to that app, on this <span data-when="link=desktop,paired">computer</span><span data-when="link=direct">phone</span> or another device. If the other app can forward too, you can do it the other way round: leave the game pointed at it, and forward from it to Track N Race.</li>
+            </ul>
+
+            <h4 class="record-subtitle">Turn it on</h4>
+            <div data-when="link=desktop,paired"><ForwardSteps apps={['electron', 'native', 'minimal', 'android']} /></div>
+            <div data-when="link=direct"><ForwardSteps apps={['android', 'electron', 'native', 'minimal']} /></div>
+
+            <h4 class="record-subtitle">Pick the address and port</h4>
+            <ForwardPorts />
+            <p class="fix-caption">Only live data is forwarded. Playing back a recording doesn't send anything to other apps.</p>
         </div>
 
-        <!-- Direct mode -->
-        <div class="setup-step-card result-step" data-when="link=direct">
+        <!-- The problems most likely for this setup, then the rest of the Troubleshooting page -->
+        <div class="setup-step-card result-step" data-step="troubleshooting">
             <div class="setup-step-card-header">
                 <div class="setup-step-title-group">
                     <div class="setup-step-badge">04</div>
-                    <h3 class="setup-step-title">Set the app to Direct mode</h3>
+                    <h3 class="setup-step-title">Troubleshooting</h3>
                 </div>
             </div>
-            <div class="device-steps">
-                <div class="device-col">
-                    <p class="device-col-title"><Fragment set:html={icon.phone} /> On your phone</p>
-                    <ol class="task-list">
-                        <li>Open Track N Race. On Android 17 and later, allow <strong>Nearby devices</strong> when asked: without it the app can't hear the game.</li>
-                        <li>Go to <strong>Settings</strong> &rarr; <strong>Telemetry</strong> &rarr; <strong>Source</strong> and choose <strong>Direct UDP</strong>. It's the default.</li>
-                        <li>Keep the dashboard open on screen while you drive. Android pauses the listener when the app is in the background.</li>
-                    </ol>
-                </div>
+            <div class="fix-links">
+                <a href="/troubleshooting/#fix-game" data-fix-link>The game isn't sending anything</a>
+                <a href="/troubleshooting/#fix-fw-windows" data-fix-link data-when="fw=yes os=windows">Windows Firewall is blocking Track N Race</a>
+                <a href="/troubleshooting/#fix-fw-mac" data-fix-link data-when="fw=yes os=macos">The macOS firewall is blocking Track N Race</a>
+                <a href="/troubleshooting/#fix-fw-linux" data-fix-link data-when="fw=yes os=linux">Your Linux firewall is blocking port 20777</a>
+                <a href="/troubleshooting/#fix-address" data-fix-link data-when="ip=windows,macos,linux">The game is sending to the wrong address</a>
+                <a href="/troubleshooting/#fix-nearby" data-fix-link data-when="link=direct">Android hasn't let Track N Race listen</a>
+                <a href="/troubleshooting/#fix-not-found" data-fix-link data-when="link=paired">The phone can't find the desktop</a>
+                <a href="/troubleshooting/#fix-ap-isolation" data-fix-link data-when="ip=windows,macos,linux,android">Your router keeps devices apart</a>
+                <a href="/troubleshooting/#fix-port-shared" data-fix-link>Your wheel or other app stopped getting data</a>
             </div>
-        </div>
-
-        <!-- Paired mode -->
-        <div class="setup-step-card result-step" data-step="pair" data-when="link=paired">
-            <div class="setup-step-card-header">
-                <div class="setup-step-title-group">
-                    <div class="setup-step-badge">04</div>
-                    <h3 class="setup-step-title">Pair your phone</h3>
-                </div>
-            </div>
-            <p class="step-desc">
-                You only pair once. After that the phone finds the desktop by itself, even if its IP address changes.
-            </p>
-            <div class="device-steps">
-                <div class="device-col">
-                    <p class="device-col-title"><Fragment set:html={icon.laptop} /> On <span data-fill="host-name">your computer</span></p>
-                    <ol class="task-list">
-                        <li>Open Track N Race &rarr; <strong>Settings</strong> &rarr; <strong>Paired Devices</strong>.</li>
-                        <li data-when="os=macos">macOS only: turn on <strong>Allow keychain access</strong> and restart the app. macOS then asks for your login password, because the app isn't signed with an Apple certificate.</li>
-                        <li>Turn on <strong>Enable paired mode</strong>.</li>
-                        <li>Click <strong>Pair a device</strong>. A QR code and an 8-character matching code appear for two minutes.</li>
-                    </ol>
-                </div>
-                <div class="device-col">
-                    <p class="device-col-title"><Fragment set:html={icon.phone} /> On your phone</p>
-                    <ol class="task-list">
-                        <li>Open Track N Race &rarr; <strong>Settings</strong> &rarr; <strong>Telemetry</strong> &rarr; <strong>Pair a desktop</strong>. On Android 17 and later, allow <strong>Nearby devices</strong> when asked.</li>
-                        <li>Tap <strong>Scan desktop QR</strong> and point it at the screen. Or pick your computer under <strong>Nearby desktops</strong> and type the matching code.</li>
-                    </ol>
-                </div>
-                <div class="device-col device-col-wide">
-                    <p class="device-col-title"><Fragment set:html={icon.both} /> To finish</p>
-                    <ol class="task-list">
-                        <li>The desktop asks <strong>Allow &lt;your phone&gt;?</strong> Click <strong>Allow</strong>.</li>
-                        <li>The phone switches its source to <strong>Paired desktop</strong> and shows whatever the desktop shows, live or in playback. The top bar says which driver it's following.</li>
-                    </ol>
-                </div>
-            </div>
-            <p class="step-callout">
-                <Fragment set:html={icon.info} />
-                <span>Recording happens on the desktop in Paired mode. The phone doesn't save a second copy.</span>
-            </p>
-        </div>
-
-        <!-- Recording: on the desktop, or on the phone in Direct mode -->
-        <div class="setup-step-card result-step">
-            <div class="setup-step-card-header">
-                <div class="setup-step-title-group">
-                    <div class="setup-step-badge">05</div>
-                    <h3 class="setup-step-title">Record your sessions</h3>
-                </div>
-            </div>
-            <p class="step-desc">
-                Recording is off until you turn it on. Each session is saved as a <code>.tnrd</code> file
-                you can play back and analyse later, lap by lap.
-                <span data-when="link=paired">In Paired mode the desktop does the recording, so set it up there.</span>
-            </p>
-
-            <div class="device-steps" data-when="link=desktop,paired">
-                <div class="device-col">
-                    <p class="device-col-title"><Fragment set:html={icon.laptop} /> Electron app</p>
-                    <ol class="task-list">
-                        <li>Open <strong>Settings</strong> &rarr; <strong>Data Storage</strong>.</li>
-                        <li>Turn on <strong>Record Session Data</strong>.</li>
-                        <li>Next to <strong>Output Directory</strong>, click <strong>Browse</strong> and choose a folder.</li>
-                        <li>Under <strong>Practice</strong>, <strong>Qualifying</strong>, <strong>Race</strong> and <strong>Time Trial Sessions</strong>, choose which drivers to save.</li>
-                    </ol>
-                </div>
-                <div class="device-col" data-when="native=yes">
-                    <p class="device-col-title"><Fragment set:html={icon.laptop} /> Native app</p>
-                    <ol class="task-list">
-                        <li>Open <strong>Settings</strong> &rarr; <strong>Recording</strong>.</li>
-                        <li>Tick <strong>Start recording when a session starts</strong>.</li>
-                        <li>Next to <strong>Save to</strong>, click <strong>Change…</strong> and choose a folder.</li>
-                        <li>Under <strong>Drivers to Save</strong>, choose an option for each session type.</li>
-                    </ol>
-                </div>
-            </div>
-
-            <div class="config-list record-scopes" data-when="link=desktop,paired">
-                <div class="config-item">
-                    <div class="config-info">
-                        <span class="config-label">All Drivers</span>
-                        <span class="config-subtext">Every car on track. Lets you compare against anyone afterwards. The default.</span>
-                    </div>
-                </div>
-                <div class="config-item">
-                    <div class="config-info">
-                        <span class="config-label">Driver Only</span>
-                        <span class="config-subtext">Just your car, so the files are smaller.</span>
-                    </div>
-                </div>
-                <div class="config-item">
-                    <div class="config-info">
-                        <span class="config-label">Both</span>
-                        <span class="config-subtext">Saves two files per session: one with every car, one with only yours.</span>
-                    </div>
-                </div>
-                <div class="config-item">
-                    <div class="config-info">
-                        <span class="config-label">Ask</span>
-                        <span class="config-subtext">Records both, then asks which to keep when the session ends.</span>
-                    </div>
-                </div>
-            </div>
-
-            <div class="device-steps" data-when="link=direct">
-                <div class="device-col">
-                    <p class="device-col-title"><Fragment set:html={icon.phone} /> On your phone</p>
-                    <ol class="task-list">
-                        <li>Open <strong>Settings</strong> &rarr; <strong>Recording</strong> and turn on <strong>Record sessions</strong>.</li>
-                        <li>Recordings go to the app's Documents folder, in <code>Track N Race</code>. To save them somewhere else, tap <strong>Recording folder</strong> and pick one.</li>
-                        <li>Recording only works in Direct mode. When paired, the desktop records instead.</li>
-                    </ol>
-                </div>
-            </div>
-
-            <h4 class="record-subtitle">Watch a recording back</h4>
-            <ul class="info-box-checklist">
-                <li data-when="link=desktop,paired"><strong>Electron:</strong> click the upload icon in the title bar (<strong>Load Session Data File</strong>) and pick a <code>.tnrd</code> file.</li>
-                <li data-when="link=desktop,paired native=yes"><strong>Native:</strong> click <strong>Open File</strong> in the toolbar. It asks first, because opening a file closes any live session.</li>
-                <li data-when="link=paired"><strong>On the phone:</strong> start playback on the desktop and the phone follows it, pause, seek and speed included.</li>
-                <li data-when="link=direct"><strong>On the phone:</strong> tap the <strong>menu</strong> button &rarr; <strong>Open recording</strong> to play a session saved on the phone.</li>
-            </ul>
-
-            <p class="step-callout" data-when="link=desktop">
-                <Fragment set:html={icon.info} />
-                <span>Only want recordings, with no dashboard? The Minimal Recorder in the download menu records every session automatically once you choose a folder.</span>
-            </p>
-        </div>
-
-        <!-- Troubleshooting, for this setup only -->
-        <div class="setup-step-card result-step">
-            <div class="setup-step-card-header">
-                <div class="setup-step-title-group">
-                    <div class="setup-step-badge">05</div>
-                    <h3 class="setup-step-title">If nothing shows up</h3>
-                </div>
-            </div>
-            <ul class="info-box-checklist">
-                <li><strong>Be on track.</strong> The game only sends telemetry once you're in a session, not from the main menu.</li>
-                <li data-when="ip=windows,macos,linux,android"><strong>Same network.</strong> The
-                    <span data-fill="platform-name">game</span> and <span data-fill="ip-device">the device</span>
-                    must share a router. Guest Wi-Fi and some mesh systems block devices from talking to each other.</li>
-                <li data-when="ip=windows,macos,linux,android"><strong>IP changed?</strong> Routers can hand out a new address after a restart. Check it again, or reserve one for the device in your router's settings.</li>
-                <li data-when="ip=windows"><strong>Windows Firewall.</strong> Allow inbound UDP on port <code>20777</code> for Track N Race, and make sure your network is set to <strong>Private</strong>, not Public.</li>
-                <li data-when="ip=macos"><strong>macOS Firewall.</strong> In <strong>System Settings</strong> &rarr; <strong>Network</strong> &rarr; <strong>Firewall</strong> &rarr; <strong>Options</strong>, make sure Track N Race is allowed incoming connections.</li>
-                <li data-when="ip=linux"><strong>Firewall.</strong> Open UDP <code>20777</code> (for example <code>sudo ufw allow 20777/udp</code>).</li>
-                <li data-when="link=direct"><strong>"Local network access is off".</strong> Grant <strong>Nearby devices</strong> to Track N Race in Android's app settings.</li>
-                <li data-when="link=direct"><strong>Wi-Fi, not mobile data.</strong> Turn off any VPN on the phone; it can hide the Wi-Fi address from the game.</li>
-                <li data-when="link=paired"><strong>Desktop not in Nearby desktops?</strong> Some networks block discovery. Use <strong>Scan desktop QR</strong> instead: the QR carries the address.</li>
-                <li data-when="link=paired"><strong>Found but won't connect.</strong> Paired mode uses TCP port <code>20779</code> on the computer. Allow Track N Race through its firewall.</li>
-                <li data-when="link=paired"><strong>"Pairing is not open on the desktop".</strong> The pairing window lasts two minutes. Click <strong>Pair a device</strong> again.</li>
-                <li data-when="link=paired"><strong>"This is not the desktop this phone paired with".</strong> Track N Race was reinstalled on the computer. Use <strong>Forget paired desktop</strong> on the phone and pair again.</li>
-                <li data-when="link=desktop,paired"><strong>Port in use.</strong> Only one app can listen on <code>20777</code>. Close other telemetry tools, or change the port in both the game and Track N Race.</li>
-                <li data-when="link=desktop,paired"><strong>Wrong format.</strong> In Track N Race's <strong>Settings</strong> &rarr; <strong>Protocol</strong>, leave <strong>Protocol Version Override</strong> on <strong>Auto</strong> so it follows the game.</li>
-            </ul>
+            <a class="secondary-btn fix-all" href="/troubleshooting/" data-fix-link data-astro-prefetch>All troubleshooting</a>
         </div>
     </div>
 </section>

@@ -1,7 +1,8 @@
 ---
 // The Setup page without JavaScript (pages/setup.astro): no questionnaire, just the settings for every setup, in the
 // result's step cards. Shown only without JavaScript (.nojs-only); keep it in step with components/SetupResult.astro.
-import { icon } from '../data/setup';
+import ForwardSteps from './ForwardSteps.astro';
+import ForwardPorts from './ForwardPorts.astro';
 ---
 <div class="setup-flow nojs-only">
     <!-- Where the game sends its telemetry -->
@@ -36,6 +37,7 @@ import { icon } from '../data/setup';
         </div>
         <h3 class="record-subtitle">Finding an IP address</h3>
         <ul class="info-box-checklist">
+            <li><strong>In Track N Race on a computer (easiest):</strong> first-time setup shows it in its <strong>Connect the game</strong> step, and it's always in <strong>Settings</strong> &rarr; <strong>Network</strong> (Electron) or <strong>Settings</strong> &rarr; <strong>Connection</strong> (Native), under <strong>This PC's address</strong>. Use the one marked <strong>Console or another PC</strong> and click <strong>Copy</strong>.</li>
             <li><strong>Windows:</strong> run <code>ipconfig</code> and look for <strong>IPv4 Address</strong> under your active connection.</li>
             <li><strong>macOS:</strong> run <code>ipconfig getifaddr en0</code> in Terminal (<code>en1</code> for Ethernet).</li>
             <li><strong>Linux:</strong> run <code>hostname -I</code>.</li>
@@ -76,16 +78,44 @@ import { icon } from '../data/setup';
             <div class="config-item">
                 <div class="config-info">
                     <span class="config-label">UDP Send Rate</span>
-                    <span class="config-subtext">Drop to 20–30Hz if the connection struggles.</span>
+                    <span class="config-subtext">Any of these works. 60Hz is the smoothest. Drop to 20–30Hz if the connection struggles.</span>
                 </div>
-                <div class="config-value-group"><span class="code-pill green">60Hz</span></div>
+                <div class="config-value-group">
+                    <span class="code-pill">10Hz</span>
+                    <span class="code-pill">20Hz</span>
+                    <span class="code-pill">30Hz</span>
+                    <span class="code-pill green">60Hz</span>
+                </div>
             </div>
             <div class="config-item">
                 <div class="config-info">
-                    <span class="config-label">UDP Format</span>
-                    <span class="config-subtext">2024 for F1 24, 2025 for F1 25, 2026 with the 2026 Season Pack.</span>
+                    <span class="config-label">UDP Format, F1 25 + 2026 Season Pack</span>
+                    <span class="config-subtext">Any of these works. 2026 has the newest data.</span>
                 </div>
-                <div class="config-value-group"><span class="code-pill green">Newest</span></div>
+                <div class="config-value-group">
+                    <span class="code-pill">2024</span>
+                    <span class="code-pill">2025</span>
+                    <span class="code-pill green">2026</span>
+                </div>
+            </div>
+            <div class="config-item">
+                <div class="config-info">
+                    <span class="config-label">UDP Format, F1 25</span>
+                    <span class="config-subtext">Either works. 2025 has the most data.</span>
+                </div>
+                <div class="config-value-group">
+                    <span class="code-pill">2024</span>
+                    <span class="code-pill green">2025</span>
+                </div>
+            </div>
+            <div class="config-item">
+                <div class="config-info">
+                    <span class="config-label">UDP Format, F1 24</span>
+                    <span class="config-subtext">2022 and 2023 aren't supported.</span>
+                </div>
+                <div class="config-value-group">
+                    <span class="code-pill green">2024</span>
+                </div>
             </div>
         </div>
     </div>
@@ -100,28 +130,59 @@ import { icon } from '../data/setup';
         </div>
         <ul class="info-box-checklist">
             <li><strong>On a computer:</strong> open it. It listens on port <code>20777</code> straight away. If the system asks, allow it on the network.</li>
-            <li><strong>On Android, Direct mode:</strong> open <strong>Settings</strong> &rarr; <strong>Telemetry</strong> &rarr; <strong>Source</strong> and choose <strong>Direct UDP</strong> (the default). Allow <strong>Nearby devices</strong> if asked, and keep the app on screen.</li>
-            <li><strong>On Android, Paired mode:</strong> on the computer, open <strong>Settings</strong> &rarr; <strong>Paired Devices</strong>, turn on <strong>Enable paired mode</strong> and click <strong>Pair a device</strong>. On the phone, open <strong>Settings</strong> &rarr; <strong>Telemetry</strong> &rarr; <strong>Pair a desktop</strong> and scan the QR code.</li>
+            <li><strong>First-time setup:</strong> the first time it opens on a computer, Track N Race walks you through recordings, the dashboard's look, the address and settings for the game, and a connection check that can allow it through Windows Firewall for you. Every step has <strong>Skip</strong>.</li>
+            <li><strong>On Android, Direct mode:</strong> open <strong>Settings</strong> &rarr; <strong>Telemetry</strong> &rarr; <strong>Source</strong> and choose <strong>Direct UDP</strong> (the default). Allow <strong>Nearby devices</strong> if asked. The listener keeps running in the background until you stop it from its notification or close the app from Recents.</li>
+            <li><strong>On Android, Paired mode:</strong> on the computer, open <strong>Settings</strong> &rarr; <strong>Paired Devices</strong>, turn on <strong>Enable paired mode</strong> and click <strong>Pair a device</strong>. On the phone, allow <strong>Nearby devices</strong> if asked, then open <strong>Settings</strong> &rarr; <strong>Telemetry</strong> &rarr; <strong>Pair a desktop</strong> and scan the QR code, allowing the camera when asked.</li>
         </ul>
-        <p class="step-callout">
-            <Fragment set:html={icon.info} />
-            <span>On macOS, the first launch is blocked because the app isn't signed. Go to <strong>System Settings</strong> &rarr; <strong>Privacy &amp; Security</strong> and click <strong>Open Anyway</strong>.</span>
-        </p>
+        <h3 class="record-subtitle">The first launch</h3>
+        <ul class="info-box-checklist">
+            <li><strong>Windows:</strong> the app isn't code-signed, so SmartScreen says <strong>Windows protected your PC</strong>. Click <strong>More info</strong> &rarr; <strong>Run anyway</strong>. Extract the Minimal Recorder's <code>.zip</code> first.</li>
+            <li><strong>macOS:</strong> the app isn't signed, so the first launch is blocked. Go to <strong>System Settings</strong> &rarr; <strong>Privacy &amp; Security</strong> and click <strong>Open Anyway</strong>.</li>
+            <li><strong>Linux:</strong> mark the AppImage executable with <code>chmod +x Track-N-Race-*.AppImage</code>, or tick <strong>Allow executing file as program</strong> in its Properties. If it still won't start, install <code>libfuse2</code>.</li>
+        </ul>
     </div>
 
-    <!-- Troubleshooting -->
+    <!-- Optional: passing the game's data on to a wheel or another telemetry app (UDP forwarding) -->
     <div class="setup-step-card">
         <div class="setup-step-card-header">
             <div class="setup-step-title-group">
                 <div class="setup-step-badge">04</div>
-                <h2 class="setup-step-title">If nothing shows up</h2>
+                <h2 class="setup-step-title">Other telemetry apps</h2>
             </div>
         </div>
+        <p class="mode-explainer">
+            <strong>UDP forwarding:</strong> the game sends its telemetry to one address and one port, so only one app
+            gets it. To use Track N Race with your wheel or another telemetry app, have the game send to Track N Race,
+            and turn on forwarding. Track N Race then sends a copy of every packet, exactly as the game sent it, to up
+            to 15 other apps. Only using Track N Race? Skip this step.
+        </p>
+        <h3 class="record-subtitle">When you need it</h3>
         <ul class="info-box-checklist">
-            <li><strong>Be on track.</strong> The game only sends telemetry once you're in a session.</li>
-            <li><strong>Same network.</strong> The game and Track N Race must share a router. Guest Wi-Fi can block this.</li>
-            <li><strong>Firewall.</strong> Allow inbound UDP on port <code>20777</code> for Track N Race (and TCP <code>20779</code> for Paired mode).</li>
-            <li><strong>Port in use.</strong> Close other telemetry tools listening on <code>20777</code>.</li>
+            <li><strong>A wheel, dash or motion rig:</strong> its software reads the game's telemetry for rev lights, the wheel's display or effects. Forward to it, and it keeps working while Track N Race runs.</li>
+            <li><strong>You already use another telemetry app:</strong> point the game at Track N Race and forward to that app, on the same device or another one. If the other app can forward too, you can do it the other way round: leave the game pointed at it, and forward from it to Track N Race.</li>
         </ul>
+        <h3 class="record-subtitle">Turn it on</h3>
+        <ForwardSteps />
+        <h3 class="record-subtitle">Pick the address and port</h3>
+        <ForwardPorts />
+        <p class="fix-caption">Only live data is forwarded. Playing back a recording doesn't send anything to other apps.</p>
+    </div>
+
+    <!-- Troubleshooting: its own page -->
+    <div class="setup-step-card">
+        <div class="setup-step-card-header">
+            <div class="setup-step-title-group">
+                <div class="setup-step-badge">05</div>
+                <h2 class="setup-step-title">Troubleshooting</h2>
+            </div>
+        </div>
+        <div class="fix-links">
+            <a href="/troubleshooting/#fix-game">The game isn't sending anything</a>
+            <a href="/troubleshooting/#fix-fw-windows">Windows Firewall is blocking Track N Race</a>
+            <a href="/troubleshooting/#fix-address">The game is sending to the wrong address</a>
+            <a href="/troubleshooting/#fix-ap-isolation">Your router keeps devices apart</a>
+            <a href="/troubleshooting/#fix-port-shared">Your wheel or other app stopped getting data</a>
+        </div>
+        <a class="secondary-btn fix-all" href="/troubleshooting/">All troubleshooting</a>
     </div>
 </div>

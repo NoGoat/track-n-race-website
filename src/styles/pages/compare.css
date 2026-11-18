@@ -1,5 +1,4 @@
-/* Frontends page (/electron-vs-qt/): every stylesheet it uses, in cascade order. The build inlines them into one file. */
+/* Frontends page (/frontends/): every stylesheet it uses, in cascade order. The build inlines them into one file. */
 @import '../base.css';
 @import '../site.css';
-@import '../matrix.css';
 @import '../compare.css';

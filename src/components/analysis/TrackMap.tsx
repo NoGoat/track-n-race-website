@@ -1,8 +1,9 @@
 // The app's track map (electron-frontend components/TrackMap.tsx), as Analysis uses it: the bundled
 // track_<id>.json drawn in sector colours with the 2026 SLM overlay, speed traps and the start/finish line,
-// painted by a map layer, with braking/apex marks and two labelled lap markers. Drawing code ported as written.
-import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
-import type { TrackPaint } from './lib'
+// painted by a map layer or stripped to the laps' racing lines, with braking/apex marks, two labelled lap markers,
+// and scroll to zoom / drag to pan. Drawing code ported as written.
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode } from 'react'
+import { MAP_ZOOM_MAX, type TrackPaint } from './lib'
 import { canvasDpr, useCanvasBoost } from './camera'
 
 const SECTOR_COLORS = ['#E8002D', '#0090D0', '#FFD700']
@@ -27,10 +28,34 @@ const ACCENT_W = 3
 const LABEL_TEXT_PAD_X = 6
 const LABEL_FONT = 'bold 9px "Cascadia Code", ui-monospace, monospace'
 const MARK_HOVER_PX = 8
+const RACING_LINE_PX = 1.5
+const RACING_MARK_PX = 9
+const RACING_MARK_ALPHA = 0.4
+// A caret mark, in pixels at 1x zoom: the gap from the track's edge to its tip, its length, and half its base
+const CARET_GAP_PX = 1.6
+const CARET_LENGTH_PX = 7
+const CARET_HALF_BASE_PX = 3.8
+// The hover card sits this far from the pointer
+const MARK_CARD_GAP_PX = 12
+// A press that moves further than this before release is a drag, not a click
+const MARK_CLICK_SLOP_PX = 4
 
 type Pt = [number, number]
-export interface TrackMark { fromFraction: number; toFraction: number; color: string; opacity?: number; tooltip?: ReactNode }
+export interface TrackMark {
+    fromFraction: number; toFraction: number; color: string; opacity?: number; tooltip?: ReactNode
+    /** Draws a caret on the inside of the bend at the stretch's middle instead of painting the stretch */
+    caret?: boolean
+    /** On the Racing Line layer: the stretch along a lap's own path, in world coordinates */
+    points?: readonly { x: number; z: number }[]
+    /** Clicking the stretch (not dragging the map) calls this */
+    onClick?: () => void
+}
 export interface TrackMapMarker { x: number; z: number; label: string; color: string }
+/** One lap's recorded path, in world coordinates */
+export interface RacingLine { points: readonly { x: number; z: number }[]; color: string }
+/** How far the map is zoomed (1 is the whole circuit) and the map point at its centre. Mutable: the maps read it
+ *  every frame, and maps shown side by side share one. */
+export interface TrackMapView { zoom: number; cx: number; cy: number }
 
 function rotatePoint(px: number, py: number, cos: number, sin: number, cx: number, cy: number): Pt {
     const dx = px - cx, dy = py - cy
@@ -173,7 +198,7 @@ function prepareMap(map: any) {
     if (total > 0) for (let i = 0; i < lapFraction.length; i++) lapFraction[i] /= total
     return {
         sectors, slmDry, speedTraps, startFinish, overtakeDetection, overtakeActivation, s1pts, sfIdx, junctions,
-        lapLine, lapFraction, bounds: { minX, minY, w: maxX - minX, h: maxY - minY }, cos, sin, cx, cy,
+        lapLine, lapFraction, bounds: { minX, minY, w: maxX - minX, h: maxY - minY }, cos, sin, cx, cy, transform: map.transform,
     }
 }
 type Prepared = ReturnType<typeof prepareMap>
@@ -182,6 +207,17 @@ function buildLayout(prep: Prepared, cw: number, ch: number) {
     const { minX, minY, w, h } = prep.bounds
     const scale = Math.min((cw - 2 * MAP_FIT_PAD) / w, (ch - 2 * MAP_FIT_PAD) / h)
     return { scale, ox: (cw - w * scale) / 2 - minX * scale, oy: (ch - h * scale) / 2 - minY * scale }
+}
+type Layout = ReturnType<typeof buildLayout>
+
+/** Keeps a zoomed view inside what the whole-circuit layout shows */
+function clampView(view: TrackMapView, base: Layout, cw: number, ch: number) {
+    view.zoom = Math.min(MAP_ZOOM_MAX, Math.max(1, view.zoom))
+    const room = (1 - 1 / view.zoom) / (2 * base.scale)
+    const midX = (cw / 2 - base.ox) / base.scale
+    const midY = (ch / 2 - base.oy) / base.scale
+    view.cx = Math.min(midX + cw * room, Math.max(midX - cw * room, view.cx))
+    view.cy = Math.min(midY + ch * room, Math.max(midY - ch * room, view.cy))
 }
 
 function drawPolyline(ctx: CanvasRenderingContext2D, pts: Pt[], scale: number, ox: number, oy: number, color: string, lineWidth: number) {
@@ -194,15 +230,15 @@ function drawPolyline(ctx: CanvasRenderingContext2D, pts: Pt[], scale: number, o
     pts.forEach((p, i) => { const [x, y] = toCanvas(p, scale, ox, oy); if (i) ctx.lineTo(x, y); else ctx.moveTo(x, y) })
     ctx.stroke()
 }
-function drawOffsetLine(ctx: CanvasRenderingContext2D, pts: Pt[], sign: 1 | -1, scale: number, ox: number, oy: number, color: string) {
+function drawOffsetLine(ctx: CanvasRenderingContext2D, pts: Pt[], sign: 1 | -1, scale: number, ox: number, oy: number, color: string, z = 1, tz = 1) {
     if (pts.length < 2) return
     ctx.beginPath()
     ctx.strokeStyle = color
-    ctx.lineWidth = DRS_PX
+    ctx.lineWidth = DRS_PX * z
     ctx.lineCap = 'butt'
     ctx.lineJoin = 'miter'
-    ctx.setLineDash([3, 3])
-    const offset = Math.max(DRS_OFFSET, TRACK_PX / 2 + 8)
+    ctx.setLineDash([3 * z, 3 * z])
+    const offset = Math.max(DRS_OFFSET * z, (TRACK_PX * tz) / 2 + 8 * z)
     pts.forEach((p, i) => {
         const [nx, ny] = perp(pts, i), [x, y] = toCanvas(p, scale, ox, oy)
         if (i) ctx.lineTo(x + nx * offset * sign, y + ny * offset * sign); else ctx.moveTo(x + nx * offset * sign, y + ny * offset * sign)
@@ -210,10 +246,10 @@ function drawOffsetLine(ctx: CanvasRenderingContext2D, pts: Pt[], sign: 1 | -1, 
     ctx.stroke()
     ctx.setLineDash([])
 }
-function drawDot(ctx: CanvasRenderingContext2D, pt: Pt, scale: number, ox: number, oy: number, color: string) {
+function drawDot(ctx: CanvasRenderingContext2D, pt: Pt, scale: number, ox: number, oy: number, color: string, z = 1, tz = 1) {
     const [x, y] = toCanvas(pt, scale, ox, oy)
     ctx.beginPath()
-    ctx.arc(x, y, Math.max(TRAP_R, TRACK_PX / 2 + 4), 0, Math.PI * 2)
+    ctx.arc(x, y, Math.max(TRAP_R * z, (TRACK_PX * tz) / 2 + 4 * z), 0, Math.PI * 2)
     ctx.fillStyle = color
     ctx.fill()
 }
@@ -256,9 +292,95 @@ function drawPaintedTrack(ctx: CanvasRenderingContext2D, prep: Prepared, paint: 
     }
     flush()
 }
-function drawTrackMarks(ctx: CanvasRenderingContext2D, prep: Prepared, marks: readonly TrackMark[], scale: number, ox: number, oy: number): Pt[][] {
+/** A caret on the inside of the bend at a stretch's middle, pointing at the track. The inside comes from the drawn
+ *  line, over twice the stretch's length either side. Returns the caret's centre, for hover. */
+function drawCaret(ctx: CanvasRenderingContext2D, prep: Prepared, mark: TrackMark, to: number, scale: number, ox: number, oy: number, tz: number): Pt {
+    const from = mark.fromFraction
+    const middle = (from + to) / 2
+    const reach = (to - from) * 2
+    const at = (fraction: number) => toCanvas(lapPointAt(prep, fraction), scale, ox, oy)
+    const [x, y] = at(middle)
+    const [beforeX, beforeY] = at(middle - reach)
+    const [afterX, afterY] = at(middle + reach)
+    const [startX, startY] = at(from)
+    const [endX, endY] = at(to)
+    const length = Math.hypot(endX - startX, endY - startY) || 1
+    const tangentX = (endX - startX) / length
+    const tangentY = (endY - startY) / length
+    // Canvas y runs down, so a positive cross product is a clockwise bend, whose inside is on the right of the
+    // direction of travel
+    const bend = (x - beforeX) * (afterY - y) - (y - beforeY) * (afterX - x)
+    const inward = bend >= 0 ? 1 : -1
+    const normalX = -tangentY * inward
+    const normalY = tangentX * inward
+    const trackEdge = TRACK_PX * tz / 2
+    const tip = trackEdge + CARET_GAP_PX * tz
+    const base = tip + CARET_LENGTH_PX * tz
+    const halfBase = CARET_HALF_BASE_PX * tz
+    const baseX = x + normalX * base
+    const baseY = y + normalY * base
+    ctx.save()
+    ctx.globalAlpha = mark.opacity ?? 1
+    ctx.fillStyle = mark.color
+    ctx.beginPath()
+    ctx.moveTo(x + normalX * tip, y + normalY * tip)
+    ctx.lineTo(baseX + tangentX * halfBase, baseY + tangentY * halfBase)
+    ctx.lineTo(baseX - tangentX * halfBase, baseY - tangentY * halfBase)
+    ctx.closePath()
+    ctx.fill()
+    ctx.restore()
+    const centre = (tip + base) / 2
+    return [x + normalX * centre, y + normalY * centre]
+}
+
+function worldToCanvas(prep: Prepared, wx: number, wz: number, scale: number, ox: number, oy: number): Pt {
+    const [vx, vy] = rawToViewBox(wx, wz, prep.transform)
+    return toCanvas(rotatePoint(vx, vy, prep.cos, prep.sin, prep.cx, prep.cy), scale, ox, oy)
+}
+
+/** Braking zones as translucent bands along a lap's path, for under the lines so both stay readable. Returns the
+ *  canvas points along each mark, for hover. */
+function drawRacingLineMarks(ctx: CanvasRenderingContext2D, prep: Prepared, marks: readonly TrackMark[], scale: number, ox: number, oy: number): Pt[][] {
+    ctx.lineWidth = RACING_MARK_PX
+    ctx.lineCap = 'butt'
+    ctx.lineJoin = 'round'
+    return marks.map(mark => {
+        const path = (mark.points ?? []).map(point => worldToCanvas(prep, point.x, point.z, scale, ox, oy))
+        if (path.length < 2) return path
+        ctx.beginPath()
+        path.forEach(([x, y], index) => (index === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y)))
+        ctx.save()
+        ctx.globalAlpha = (mark.opacity ?? 1) * RACING_MARK_ALPHA
+        ctx.strokeStyle = mark.color
+        ctx.stroke()
+        ctx.restore()
+        return path
+    })
+}
+
+/** Each lap's path through every recorded position */
+function drawRacingLines(ctx: CanvasRenderingContext2D, prep: Prepared, lines: readonly RacingLine[], scale: number, ox: number, oy: number) {
+    ctx.lineWidth = RACING_LINE_PX
+    ctx.lineCap = 'round'
+    ctx.lineJoin = 'round'
+    for (const line of lines) {
+        ctx.beginPath()
+        let started = false
+        for (const point of line.points) {
+            if (!Number.isFinite(point.x) || !Number.isFinite(point.z)) continue
+            const [x, y] = worldToCanvas(prep, point.x, point.z, scale, ox, oy)
+            if (started) ctx.lineTo(x, y)
+            else ctx.moveTo(x, y)
+            started = true
+        }
+        ctx.strokeStyle = line.color
+        ctx.stroke()
+    }
+}
+
+function drawTrackMarks(ctx: CanvasRenderingContext2D, prep: Prepared, marks: readonly TrackMark[], scale: number, ox: number, oy: number, tz = 1): Pt[][] {
     const paths: Pt[][] = []
-    const width = TRACK_PX + 3
+    const width = TRACK_PX * tz + 3
     const fr = prep.lapFraction
     for (const mark of marks) {
         const from = mark.fromFraction
@@ -267,6 +389,11 @@ function drawTrackMarks(ctx: CanvasRenderingContext2D, prep: Prepared, marks: re
         for (let lap = 0; lap <= 1; lap++) for (let k = 0; k < fr.length; k++) { const f = fr[k] + lap; if (f > from && f < to) steps.push(f) }
         steps.push(to)
         const path = steps.map(f => toCanvas(lapPointAt(prep, f), scale, ox, oy))
+        if (mark.caret) {
+            path.push(drawCaret(ctx, prep, mark, to, scale, ox, oy, tz))
+            paths.push(path)
+            continue
+        }
         const trace = () => { ctx.beginPath(); path.forEach(([x, y], k) => (k ? ctx.lineTo(x, y) : ctx.moveTo(x, y))) }
         ctx.lineCap = 'butt'
         ctx.lineJoin = 'round'
@@ -286,28 +413,56 @@ function drawTrackMarks(ctx: CanvasRenderingContext2D, prep: Prepared, marks: re
     return paths
 }
 
-function renderBackground(ctx: CanvasRenderingContext2D, cw: number, ch: number, prep: Prepared, layout: ReturnType<typeof buildLayout>,
-    sectorColors: boolean, paint: TrackPaint | null, marks: readonly TrackMark[] | null): Pt[][] {
+function renderBackground(ctx: CanvasRenderingContext2D, cw: number, ch: number, prep: Prepared, layout: Layout, effectiveZoom: number,
+    sectorColors: boolean, paint: TrackPaint | null, marks: readonly TrackMark[] | null, racingLines: readonly RacingLine[] | null): Pt[][] {
     ctx.clearRect(0, 0, cw, ch)
     const { scale, ox, oy } = layout
+    const z = Math.sqrt(effectiveZoom)
+    // Stronger scaling factor specifically for track width so cars don't float off-track
+    const tz = Math.pow(effectiveZoom, 0.8)
     const trackColor = '#ffffff'
-    if (paint) drawPaintedTrack(ctx, prep, paint, scale, ox, oy, TRACK_PX)
-    else for (const sector of prep.sectors) drawPolyline(ctx, sector.points, scale, ox, oy, sectorColors ? (SECTOR_COLORS[sector.index - 1] ?? trackColor) : trackColor, TRACK_PX)
+    const half = (base: number) => Math.max(base * z, (TRACK_PX * tz) / 2 + 4 * z)
+    const startFinish = (color: string) => {
+        if (!prep.startFinish) return
+        const [nx, ny] = perp(prep.s1pts, prep.sfIdx)
+        drawTick(ctx, prep.startFinish, nx, ny, half(SF_HALF), 2.5 * z, color, scale, ox, oy)
+    }
+    // Racing Line: the sector boundaries are all that is left of the map
+    if (racingLines) {
+        const markPaths = marks ? drawRacingLineMarks(ctx, prep, marks, scale, ox, oy) : []
+        drawRacingLines(ctx, prep, racingLines, scale, ox, oy)
+        prep.junctions.forEach((j: any, idx: number) => drawTick(ctx, j.pt, j.nx, j.ny, half(JUNC_HALF), 3 * z, SECTOR_COLORS[idx + 1] ?? trackColor, scale, ox, oy))
+        startFinish(SF_COLOR)
+        return markPaths
+    }
+    if (paint) drawPaintedTrack(ctx, prep, paint, scale, ox, oy, TRACK_PX * tz)
+    else for (const sector of prep.sectors) drawPolyline(ctx, sector.points, scale, ox, oy, sectorColors ? (SECTOR_COLORS[sector.index - 1] ?? trackColor) : trackColor, TRACK_PX * tz)
     const sectorTrack = sectorColors && !paint
-    prep.junctions.forEach((j, idx) => drawTick(ctx, j.pt, j.nx, j.ny, Math.max(JUNC_HALF, TRACK_PX / 2 + 4), 3, sectorTrack ? trackColor : (SECTOR_COLORS[idx + 1] ?? trackColor), scale, ox, oy))
+    prep.junctions.forEach((j: any, idx: number) => drawTick(ctx, j.pt, j.nx, j.ny, half(JUNC_HALF), 3 * z, sectorTrack ? trackColor : (SECTOR_COLORS[idx + 1] ?? trackColor), scale, ox, oy))
     // F1 26 recordings: the SLM overlay (full grip set), with the overtake markers
-    for (const zone of prep.slmDry) drawOffsetLine(ctx, zone.track_points, zone.outwardSign, scale, ox, oy, SLM_DRY_COLOR)
-    if (prep.overtakeDetection && !paint) drawDot(ctx, prep.overtakeDetection, scale, ox, oy, OVERTAKE_COLOR)
+    for (const zone of prep.slmDry) drawOffsetLine(ctx, zone.track_points, zone.outwardSign, scale, ox, oy, SLM_DRY_COLOR, z, tz)
+    if (prep.overtakeDetection && !paint) drawDot(ctx, prep.overtakeDetection, scale, ox, oy, OVERTAKE_COLOR, z, tz)
     if (prep.overtakeActivation && !paint) {
         const a = prep.overtakeActivation
-        drawTick(ctx, a.pt, a.nx, a.ny, Math.max(JUNC_HALF, TRACK_PX / 2 + 4), 3, OVERTAKE_COLOR, scale, ox, oy)
+        drawTick(ctx, a.pt, a.nx, a.ny, half(JUNC_HALF), 3 * z, OVERTAKE_COLOR, scale, ox, oy)
     }
-    if (!paint) for (const trap of prep.speedTraps) drawDot(ctx, trap, scale, ox, oy, TRAP_COLOR)
-    if (prep.startFinish) {
-        const [nx, ny] = perp(prep.s1pts, prep.sfIdx)
-        drawTick(ctx, prep.startFinish, nx, ny, Math.max(SF_HALF, TRACK_PX / 2 + 4), 2.5, sectorTrack ? trackColor : SF_COLOR, scale, ox, oy)
+    if (!paint) for (const trap of prep.speedTraps) drawDot(ctx, trap, scale, ox, oy, TRAP_COLOR, z, tz)
+    startFinish(sectorTrack ? trackColor : SF_COLOR)
+    return marks?.length ? drawTrackMarks(ctx, prep, marks, scale, ox, oy, tz) : []
+}
+
+/** Where a mark's hover card goes inside the map: below and right of the pointer, flipped above or to the left where
+ *  it would run past the map's edge, and held inside the map when it fits on neither side. Hidden until measured. */
+function markCardPlacement(at: { x: number; y: number }, size: { width: number; height: number } | null, width: number, height: number): CSSProperties {
+    if (!size) return { left: 0, top: 0, visibility: 'hidden' }
+    const place = (pointer: number, extent: number, room: number) => {
+        const after = pointer + MARK_CARD_GAP_PX
+        if (after + extent <= room) return after
+        const before = pointer - MARK_CARD_GAP_PX - extent
+        if (before >= 0) return before
+        return Math.max(0, room - extent)
     }
-    return marks?.length ? drawTrackMarks(ctx, prep, marks, scale, ox, oy) : []
+    return { left: place(at.x, size.width, width), top: place(at.y, size.height, height) }
 }
 
 const labelCache = new Map<string, { canvas: HTMLCanvasElement; labelWidth: number }>()
@@ -363,13 +518,21 @@ function useSize<T extends HTMLElement>() {
 }
 export { useSize }
 
-export default function TrackMap({ map, sectorColors = true, trackPaint = null, trackMarks = null, markerSource, onMarkHover }: {
+export default function TrackMap({ map, sectorColors = true, trackPaint = null, trackMarks = null, racingLines = null, markerSource, onMarkHover, view, onViewChange, onViewFit }: {
     map: any
     sectorColors?: boolean
     trackPaint?: TrackPaint | null
     trackMarks?: readonly TrackMark[] | null
+    /** Draws these paths on a map stripped to its sector boundaries */
+    racingLines?: readonly RacingLine[] | null
     markerSource?: () => readonly TrackMapMarker[]
     onMarkHover?: (index: number | null) => void
+    /** Turns on scroll to zoom and drag to pan, read and written here */
+    view?: TrackMapView
+    /** The user zoomed or started panning; receives the zoom */
+    onViewChange?: (zoom: number) => void
+    /** Double-click: back to the whole circuit */
+    onViewFit?: () => void
 }) {
     const { ref: wrapRef, width, height } = useSize<HTMLDivElement>()
     const bgRef = useRef<HTMLCanvasElement>(null)
@@ -381,82 +544,190 @@ export default function TrackMap({ map, sectorColors = true, trackPaint = null, 
     const sourceRef = useRef(markerSource)
     sourceRef.current = markerSource
     const boost = useCanvasBoost()
-
-    useEffect(() => {
-        const canvas = bgRef.current
-        if (!canvas || !prep || !layout) return
-        const dpr = canvasDpr(width, height)
-        canvas.width = Math.round(width * dpr)
-        canvas.height = Math.round(height * dpr)
-        canvas.style.width = `${width}px`
-        canvas.style.height = `${height}px`
-        const ctx = canvas.getContext('2d')!
-        ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
-        pathsRef.current = renderBackground(ctx, width, height, prep, layout, sectorColors, trackPaint, trackMarks)
-    }, [height, layout, prep, sectorColors, trackMarks, trackPaint, width, boost])
+    // What the background draws, read each frame; a change marks it for redrawing
+    const drawn = useRef({ sectorColors, trackPaint, trackMarks, racingLines })
+    drawn.current = { sectorColors, trackPaint, trackMarks, racingLines }
+    const dirtyRef = useRef(true)
+    useEffect(() => { dirtyRef.current = true }, [sectorColors, trackPaint, trackMarks, racingLines])
+    const viewRef = useRef(view)
+    viewRef.current = view
+    const dragRef = useRef<{ x: number; y: number; cx: number; cy: number } | null>(null)
 
     // New marks invalidate what was hovered
     useEffect(() => { setHovered(null); onMarkHover?.(null) }, [trackMarks]) // eslint-disable-line react-hooks/exhaustive-deps
 
+    // One loop draws both canvases: the background when what it shows or the view changes (maps side by side share
+    // one view, so a zoom on either redraws both), the lap markers every frame
     useEffect(() => {
-        const canvas = fgRef.current
-        if (!canvas || !prep || !layout || !map) return
+        const bg = bgRef.current, fg = fgRef.current
+        if (!bg || !fg || !prep || !layout || !map) return
         const dpr = canvasDpr(width, height)
-        canvas.width = Math.round(width * dpr)
-        canvas.height = Math.round(height * dpr)
-        canvas.style.width = `${width}px`
-        canvas.style.height = `${height}px`
-        const ctx = canvas.getContext('2d')!
+        for (const canvas of [bg, fg]) {
+            canvas.width = Math.round(width * dpr)
+            canvas.height = Math.round(height * dpr)
+            canvas.style.width = `${width}px`
+            canvas.style.height = `${height}px`
+        }
+        const bctx = bg.getContext('2d')!, ctx = fg.getContext('2d')!
+        bctx.setTransform(dpr, 0, 0, dpr, 0, 0)
         ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
+        let last: Layout | null = null
         let frame = 0
-        const loop = () => {
+        const draw = () => {
+            let current = layout
+            const v = viewRef.current
+            if (v) {
+                clampView(v, layout, width, height)
+                if (v.zoom > 1) {
+                    const scale = layout.scale * v.zoom
+                    current = { scale, ox: width / 2 - v.cx * scale, oy: height / 2 - v.cy * scale }
+                }
+                const cursor = v.zoom <= 1 ? '' : dragRef.current ? 'grabbing' : 'grab'
+                if (bg.style.cursor !== cursor) bg.style.cursor = cursor
+            } else if (bg.style.cursor) bg.style.cursor = ''
+            if (dirtyRef.current || !last || last.scale !== current.scale || last.ox !== current.ox || last.oy !== current.oy) {
+                const d = drawn.current
+                pathsRef.current = renderBackground(bctx, width, height, prep, current, current.scale / layout.scale,
+                    d.sectorColors, d.trackPaint, d.trackMarks, d.racingLines)
+                last = current
+                dirtyRef.current = false
+            }
             ctx.clearRect(0, 0, width, height)
             const markers = sourceRef.current?.() ?? []
             const placed = markers.filter(m => Number.isFinite(m.x) && Number.isFinite(m.z)).map(m => {
                 const [vx, vy] = rawToViewBox(m.x, m.z, map.transform)
                 const r = rotatePoint(vx, vy, prep.cos, prep.sin, prep.cx, prep.cy)
-                return { ...m, p: toCanvas(r, layout.scale, layout.ox, layout.oy) }
+                return { ...m, p: toCanvas(r, current.scale, current.ox, current.oy) }
             })
             for (const m of placed) { ctx.beginPath(); ctx.arc(m.p[0], m.p[1], DOT_R, 0, Math.PI * 2); ctx.fillStyle = m.color; ctx.fill() }
             for (const m of placed) drawLabel(ctx, m.p[0], m.p[1], m.label, m.color)
-            frame = requestAnimationFrame(loop)
         }
+        // Drawn straight away, so a resized canvas never shows a blank frame
+        draw()
+        const loop = () => { draw(); frame = requestAnimationFrame(loop) }
         frame = requestAnimationFrame(loop)
         return () => cancelAnimationFrame(frame)
     }, [height, layout, map, prep, width, boost])
 
-    const handleMove = (event: React.MouseEvent<HTMLDivElement>) => {
-        if (!trackMarks?.length) return
+    // Scroll zooms about the pointer. A native listener, because React's wheel handlers are passive and could not
+    // stop the page scrolling too.
+    useEffect(() => {
+        const canvas = bgRef.current
+        if (!view || !canvas) return
+        const handleWheel = (event: WheelEvent) => {
+            if (!layout) return
+            event.preventDefault()
+            const rect = canvas.getBoundingClientRect()
+            // Pointer in the map's own pixels (the window scales on narrow screens and under the camera)
+            const k = rect.width / (canvas.offsetWidth || rect.width) || 1
+            const px = (event.clientX - rect.left) / k - canvas.offsetWidth / 2
+            const py = (event.clientY - rect.top) / k - canvas.offsetHeight / 2
+            const before = layout.scale * view.zoom
+            const zoom = Math.min(MAP_ZOOM_MAX, Math.max(1, view.zoom * Math.exp(-event.deltaY * 0.0015)))
+            const after = layout.scale * zoom
+            view.cx += px / before - px / after
+            view.cy += py / before - py / after
+            view.zoom = zoom
+            onViewChange?.(zoom)
+        }
+        canvas.addEventListener('wheel', handleWheel, { passive: false })
+        return () => canvas.removeEventListener('wheel', handleWheel)
+    }, [layout, onViewChange, view])
+
+    const handleViewPointerDown = (event: React.PointerEvent<HTMLCanvasElement>) => {
+        if (!view || view.zoom <= 1 || event.button !== 0) return
+        event.currentTarget.setPointerCapture(event.pointerId)
+        dragRef.current = { x: event.clientX, y: event.clientY, cx: view.cx, cy: view.cy }
+        setHovered(null)
+        onMarkHover?.(null)
+        onViewChange?.(view.zoom)
+    }
+    const handleViewPointerMove = (event: React.PointerEvent<HTMLCanvasElement>) => {
+        const drag = dragRef.current
+        if (!view || !drag || !layout) return
         const rect = event.currentTarget.getBoundingClientRect()
-        const scale = rect.width / (event.currentTarget.offsetWidth || rect.width)
-        const x = (event.clientX - rect.left) / scale, y = (event.clientY - rect.top) / scale
-        let best = -1, bestD = MARK_HOVER_PX + TRACK_PX
+        const k = rect.width / (event.currentTarget.offsetWidth || rect.width) || 1
+        const scale = layout.scale * view.zoom
+        view.cx = drag.cx - (event.clientX - drag.x) / k / scale
+        view.cy = drag.cy - (event.clientY - drag.y) / k / scale
+    }
+    const handleViewPointerEnd = () => { dragRef.current = null }
+
+    // The nearest mark that `wanted` accepts, by its closest point to the pointer (in the map's own pixels); index -1
+    // when none is close enough. Later marks (apexes) draw over earlier ones (zones), so they win a tie.
+    const markAt = useCallback((x: number, y: number, wanted: (mark: TrackMark) => boolean) => {
+        const marks = drawn.current.trackMarks ?? []
+        let best = -1, bestD = MARK_HOVER_PX + TRACK_PX, bestX = x, bestY = y
         pathsRef.current.forEach((path, index) => {
-            for (let k = 1; k < path.length; k++) {
-                const [ax, ay] = path[k - 1], [bx, by] = path[k]
-                const dx = bx - ax, dy = by - ay, len = dx * dx + dy * dy || 1
-                const t = Math.max(0, Math.min(1, ((x - ax) * dx + (y - ay) * dy) / len))
-                const d = Math.hypot(x - (ax + dx * t), y - (ay + dy * t))
-                // Later marks (apexes) draw over earlier ones (zones), so they win a tie
-                if (d <= bestD) { bestD = d; best = index }
+            if (!marks[index] || !wanted(marks[index])) return
+            for (let k = 0; k < path.length; k++) {
+                const [ax, ay] = path[k], [bx, by] = path[Math.min(k + 1, path.length - 1)]
+                const dx = bx - ax, dy = by - ay, len = dx * dx + dy * dy
+                const t = len > 0 ? Math.max(0, Math.min(1, ((x - ax) * dx + (y - ay) * dy) / len)) : 0
+                const px = ax + dx * t, py = ay + dy * t
+                const d = Math.hypot(x - px, y - py)
+                if (d <= bestD) { bestD = d; best = index; bestX = px; bestY = py }
             }
         })
-        if (best < 0) { if (hovered) { setHovered(null); onMarkHover?.(null) } return }
-        if (hovered?.index !== best) onMarkHover?.(best)
-        setHovered({ index: best, x, y })
+        return { index: best, x: bestX, y: bestY }
+    }, [])
+    const local = (event: React.MouseEvent<HTMLDivElement>) => {
+        const rect = event.currentTarget.getBoundingClientRect()
+        const scale = rect.width / (event.currentTarget.offsetWidth || rect.width)
+        return { x: (event.clientX - rect.left) / scale, y: (event.clientY - rect.top) / scale }
     }
+
+    const handleMove = (event: React.MouseEvent<HTMLDivElement>) => {
+        if (dragRef.current || !trackMarks?.some(mark => mark.tooltip)) return
+        const at = local(event)
+        const { index: best, x: bestX, y: bestY } = markAt(at.x, at.y, mark => !!mark.tooltip)
+        if (best < 0) { if (hovered) { setHovered(null); onMarkHover?.(null) } return }
+        // As in the app (TrackMap.tsx handleMarkHover): the card pins to the point on the stretch nearest the pointer
+        // when the stretch is first hovered, and stays put while the pointer moves along it
+        if (hovered?.index === best) return
+        onMarkHover?.(best)
+        setHovered({ index: best, x: bestX, y: bestY })
+    }
+    // A click on a stretch, not the end of a drag across the map
+    const pressRef = useRef<{ x: number; y: number } | null>(null)
+    const handleMarkPress = (event: React.PointerEvent<HTMLDivElement>) => {
+        pressRef.current = event.button === 0 ? { x: event.clientX, y: event.clientY } : null
+    }
+    const handleMarkClick = (event: React.MouseEvent<HTMLDivElement>) => {
+        const press = pressRef.current
+        pressRef.current = null
+        if (!press || Math.hypot(event.clientX - press.x, event.clientY - press.y) > MARK_CLICK_SLOP_PX) return
+        const at = local(event)
+        const { index } = markAt(at.x, at.y, mark => !!mark.onClick)
+        if (index >= 0) trackMarks?.[index]?.onClick?.()
+    }
+    // The hover card's measured size, so it is placed inside the map: beside the pointer, flipped above or to its
+    // left where it would run off
+    const cardRef = useRef<HTMLDivElement>(null)
+    const [cardSize, setCardSize] = useState<{ width: number; height: number } | null>(null)
+    useLayoutEffect(() => {
+        const card = cardRef.current
+        if (!card) { setCardSize(null); return }
+        const measure = () => setCardSize(previous =>
+            previous?.width === card.offsetWidth && previous.height === card.offsetHeight
+                ? previous : { width: card.offsetWidth, height: card.offsetHeight })
+        measure()
+        const observer = new ResizeObserver(measure)
+        observer.observe(card)
+        return () => observer.disconnect()
+    }, [hovered])
 
     const tooltip = hovered && trackMarks?.[hovered.index]?.tooltip
     return <div ref={wrapRef} className="relative w-full h-full" onMouseMove={handleMove}
-        onMouseLeave={() => { setHovered(null); onMarkHover?.(null) }} style={{ cursor: hovered ? 'pointer' : undefined }}>
-        {tooltip && <div data-tour="map-tooltip"
-            className="pointer-events-none absolute z-20 w-max rounded-lg border border-[var(--border)] bg-[var(--bg-panel)] px-3 py-2.5 text-[10px] font-mono text-[var(--text-primary)] shadow-[0_6px_20px_rgba(0,0,0,0.4)]"
-            style={{
-                left: hovered!.x > width - 310 ? undefined : hovered!.x + 12,
-                right: hovered!.x > width - 310 ? width - hovered!.x + 12 : undefined,
-                top: Math.min(hovered!.y + 12, Math.max(0, height - 400)),
-            }}>{tooltip}</div>}
-        <canvas ref={bgRef} className="absolute inset-0" />
+        onMouseLeave={() => { setHovered(null); onMarkHover?.(null) }}
+        onPointerDown={handleMarkPress} onClick={handleMarkClick}
+        style={hovered && trackMarks?.[hovered.index]?.onClick ? { cursor: 'pointer' } : undefined}>
+        {tooltip && <div ref={cardRef} key={hovered!.index} data-tour="map-tooltip"
+            className="braking-card pointer-events-none absolute z-20 w-max rounded-lg border border-[var(--border)] bg-[var(--bg-panel)] px-3 py-2.5 text-[10px] font-mono text-[var(--text-primary)] shadow-[0_6px_20px_rgba(0,0,0,0.4)]"
+            style={markCardPlacement(hovered!, cardSize, width, height)}>{tooltip}</div>}
+        <canvas ref={bgRef} className="absolute inset-0"
+            onPointerDown={handleViewPointerDown} onPointerMove={handleViewPointerMove}
+            onPointerUp={handleViewPointerEnd} onPointerCancel={handleViewPointerEnd} onDoubleClick={onViewFit} />
         <canvas ref={fgRef} className="absolute inset-0 pointer-events-none" />
         {!map && <div className="absolute inset-0 flex items-center justify-center">
             <span className="text-[11px] uppercase tracking-widest text-[var(--text-secondary)]">No map data</span>
