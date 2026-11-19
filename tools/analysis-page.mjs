@@ -30,6 +30,7 @@ export function pageCss(shadows) {
     const shade = alpha => `rgba(0, 0, 0, ${+(alpha * shadows).toFixed(3)})`
     return `
 .navbar, .site-footer, astro-dev-toolbar { display: none !important; }
+.tour-mode { display: none !important; }
 html, body { overflow: hidden !important; scrollbar-width: none !important; }
 .tour { padding: max(0px, calc((100vh - clamp(640px, 100vh - 88px, 880px)) / 2)) var(--gutter) 0 !important; }
 .tnr-window { box-shadow: 0 40px 100px ${shade(0.65)}, 0 0 0 1px rgba(0, 0, 0, 0.6) !important; }
