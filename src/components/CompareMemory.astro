@@ -82,21 +82,23 @@ const less = (a: number, b: number) => Math.round((1 - b / a) * 100);
 </div>
 
 <details class="cmp-method">
-    <summary><span class="cmp-fold-icon" aria-hidden="true"></span>How this was measured</summary>
-    <!-- scripts/compare.js slides this open and shut -->
+    <summary>How this was measured<span class="cmp-fold-icon" aria-hidden="true"></span></summary>
+    <!-- scripts/compare.js slides this open and shut. Desktop and Android side by side, split like the callouts above. -->
     <div class="cmp-fold-body">
-        <p>
-            RAM is private memory on Windows 11, measured with the 92-minute S&atilde;o Paulo Grand Prix: its UDP data was
-            recorded once, then played back into each app at real speed by a script. Live figures are on Overview with
-            Current Lap, while recording to a file. Reviewing is the recording opened near the end of the race with All
-            Laps on every page. The Minimal Recorder doesn't play recordings back, so it has no reviewing figures.
-        </p>
-        <p>
-            <b>Android.</b> Measured on a Samsung Galaxy M12 (4 GB, Android 13) with the same race, played over Wi-Fi
-            into the phone at real speed. Live figures are on Drive with Current Lap, while recording. Reviewing is the
-            phone's own recording of the race opened near the end, with All Laps on every chart page. Android reports PSS rather than Windows private
-            memory, and the engine is newer than the one the desktop figures were taken with, so treat it as a sense of
-            scale.
-        </p>
+        <div class="cmp-method-cols">
+            <p>
+                RAM is private memory on Windows 11, measured with the 92-minute S&atilde;o Paulo Grand Prix: its UDP data was
+                recorded once, then played back into each app at real speed by a script. Live figures are on Overview with
+                Current Lap, while recording to a file. Reviewing is the recording opened near the end of the race with All
+                Laps on every page. The Minimal Recorder doesn't play recordings back, so it has no reviewing figures.
+            </p>
+            <p>
+                <b>Android.</b> Measured on a Samsung Galaxy M12 (4 GB, Android 13) with the same race, played over Wi-Fi
+                into the phone at real speed. Live figures are on Drive with Current Lap, while recording. Reviewing is the
+                phone's own recording of the race opened near the end, with All Laps on every chart page. Android reports PSS rather than Windows private
+                memory, and the engine is newer than the one the desktop figures were taken with, so treat it as a sense of
+                scale.
+            </p>
+        </div>
     </div>
 </details>

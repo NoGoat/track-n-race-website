@@ -35,6 +35,8 @@ export interface Screen {
 
 const FULL = [1280, 1920, 2624];
 
+// Make jokes only on the two most basic beaten to death telemetry concepts. Inputs and Standings.
+// Like c'mon. Anyone who has watched motorsport in the last three decades knows these concepts.
 const list: Screen[] = [
     {
         file: "overview", name: "Overview",

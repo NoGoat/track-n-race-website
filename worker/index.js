@@ -8,6 +8,9 @@
 //   /api/event               Counts a page event sent with navigator.sendBeacon (only the names listed below).
 //   /api/contact             The contact email, for the Privacy Policy (scripts/contact.js), once a Cloudflare
 //                            Turnstile challenge is solved. The address is the CONTACT_EMAIL secret, so it's in no page.
+//   /_astro/*.webm, *.mp4    The Analysis tour's recording, with byte ranges (see ranged): the static assets answer a
+//                            Range request with the whole file, and a <video> can't seek without 206 responses
+//                            (Safari won't play the MP4 at all without them).
 //
 // /download/ itself is the Download page (pages/download.astro): it matches /download/* too, so it reaches this
 // script and is handed straight back to the static assets.
@@ -126,10 +129,74 @@ const passedTurnstile = async (env, token) => {
     }
 };
 
+// The one byte range a Range header asks for, as [first, last] (inclusive), null for none or several (the whole file is
+// sent), or 'unsatisfiable'
+const parseRange = (header, size) => {
+    const m = /^bytes=(\d*)-(\d*)$/.exec(header?.trim() ?? '');
+    if (!m || (m[1] === '' && m[2] === '')) return null;
+    let first, last;
+    if (m[1] === '') {
+        // "-n": the last n bytes
+        first = Math.max(size - Number(m[2]), 0);
+        last = size - 1;
+    } else {
+        first = Number(m[1]);
+        last = m[2] === '' ? size - 1 : Math.min(Number(m[2]), size - 1);
+    }
+    return first > last || first >= size ? 'unsatisfiable' : [first, last];
+};
+
+// A static asset answered with byte ranges. When the assets layer gives the file's size, the asset is streamed and only
+// the asked-for bytes are passed on; when it doesn't (wrangler dev), the file is read whole to find it.
+const ranged = async (request, env) => {
+    const asset = await env.ASSETS.fetch(request);
+    // Not found, a 304, a HEAD, or ranges already handled by the assets layer
+    if (asset.status !== 200 || !asset.body) return asset;
+    const headers = new Headers(asset.headers);
+    headers.set('Accept-Ranges', 'bytes');
+    const rangeHeader = request.headers.get('Range');
+    if (!rangeHeader) return new Response(asset.body, { status: 200, headers });
+
+    const length = asset.headers.get('Content-Length');
+    const whole = length === null ? new Uint8Array(await asset.arrayBuffer()) : null;
+    const size = whole ? whole.byteLength : Number(length);
+    const range = parseRange(rangeHeader, size);    if (range === null) return new Response(whole ?? asset.body, { status: 200, headers });
+
+    if (range === 'unsatisfiable') {
+        if (!whole) asset.body.cancel();
+        headers.delete('Content-Length');
+        headers.set('Content-Range', `bytes */${size}`);
+        return new Response(null, { status: 416, headers });
+    }
+
+    const [first, last] = range;
+    headers.set('Content-Range', `bytes ${first}-${last}/${size}`);
+    if (whole) {
+        headers.delete('Content-Length');
+        return new Response(whole.subarray(first, last + 1), { status: 206, headers });
+    }
+    let at = 0;
+    const slice = new TransformStream({
+        transform(chunk, out) {
+            const from = Math.max(first - at, 0), to = Math.min(last + 1 - at, chunk.byteLength);
+            if (from < to) out.enqueue(chunk.subarray(from, to));
+            at += chunk.byteLength;
+            if (at > last) out.terminate();
+        },
+    });
+    // FixedLengthStream sends the slice's Content-Length instead of a chunked body
+    const sized = new FixedLengthStream(last - first + 1);
+    asset.body.pipeThrough(slice).pipeTo(sized.writable).catch(() => {});
+    headers.delete('Content-Length');
+    return new Response(sized.readable, { status: 206, headers });
+};
+
 export default {
     async fetch(request, env) {
         const url = new URL(request.url);
         const path = url.pathname.replace(/\/+$/, '');
+
+        if (path.startsWith('/_astro/') && (path.endsWith('.webm') || path.endsWith('.mp4'))) return ranged(request, env);
 
         // Trailing slashes are trimmed, so the Download page (/download/) doesn't match and falls through to the assets
         if (path.startsWith('/download/')) {

@@ -27,6 +27,223 @@
     box-shadow: 0 40px 100px rgba(0, 0, 0, 0.65), 0 0 0 1px rgba(0, 0, 0, 0.6);
 }
 
+/* With JavaScript, the recording in its own player (components/analysis/TourVideo.tsx): the frame moves from the video
+   to the player, and the controls are drawn over the bottom of the video on a soft fade */
+.tour-player {
+    position: relative;
+    margin-bottom: 1rem;
+    overflow: hidden;
+    border: 1px solid #23252e;
+    border-radius: 12px;
+    background: #0b0c10;
+    box-shadow: 0 40px 100px rgba(0, 0, 0, 0.65), 0 0 0 1px rgba(0, 0, 0, 0.6);
+    outline: none;
+    -webkit-tap-highlight-color: transparent;
+    user-select: none;
+}
+
+.tour-player:focus-visible {
+    outline: 2px solid var(--text);
+    outline-offset: 3px;
+}
+
+.tour-player .tour-video {
+    margin: 0;
+    border: 0;
+    border-radius: 0;
+    box-shadow: none;
+}
+
+.tour-player__surface {
+    position: absolute;
+    inset: 0;
+}
+
+.tour-player__ui {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    padding: 32px 4px 4px;
+    background: linear-gradient(to top, rgba(9, 9, 11, 0.9), rgba(9, 9, 11, 0));
+    pointer-events: none;
+    transition: opacity 0.25s ease;
+}
+
+.tour-player__ui > * {
+    pointer-events: auto;
+}
+
+/* Hidden while playing; keyboard focus inside keeps them */
+.tour-player[data-hidden]:not(:has(:focus-visible)) {
+    cursor: none;
+}
+
+.tour-player[data-hidden]:not(:has(:focus-visible)) .tour-player__ui {
+    opacity: 0;
+}
+
+.tour-player[data-hidden]:not(:has(:focus-visible)) .tour-player__ui > * {
+    pointer-events: none;
+}
+
+/* The seek bar: a tall hit area round a thin track that thickens under the pointer or a drag */
+.tour-player__seek {
+    position: relative;
+    display: flex;
+    align-items: center;
+    height: 20px;
+    margin: 0 8px;
+    cursor: pointer;
+    touch-action: none;
+}
+
+.tour-player__track {
+    position: relative;
+    width: 100%;
+    height: 3px;
+    background: rgba(255, 255, 255, 0.2);
+    transition: height 0.15s ease;
+}
+
+.tour-player__seek:hover .tour-player__track,
+.tour-player[data-scrubbing] .tour-player__track {
+    height: 5px;
+}
+
+.tour-player__seek:has(:focus-visible) .tour-player__track {
+    outline: 2px solid var(--text);
+    outline-offset: 4px;
+}
+
+.tour-player__buffered,
+.tour-player__played {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+}
+
+.tour-player__buffered {
+    width: calc(var(--buffered) * 100%);
+    background: rgba(255, 255, 255, 0.35);
+}
+
+.tour-player__played {
+    width: calc(var(--played) * 100%);
+    background: var(--accent);
+}
+
+.tour-player__thumb {
+    position: absolute;
+    top: 50%;
+    left: calc(var(--played) * 100%);
+    width: 13px;
+    height: 13px;
+    margin: -6.5px 0 0 -6.5px;
+    border-radius: 50%;
+    background: var(--accent);
+    transform: scale(0);
+    transition: transform 0.15s ease;
+}
+
+.tour-player__seek:hover .tour-player__thumb,
+.tour-player__seek:has(:focus-visible) .tour-player__thumb,
+.tour-player[data-scrubbing] .tour-player__thumb {
+    transform: scale(1);
+}
+
+/* The time under the pointer or the drag, kept inside the frame at the ends */
+.tour-player__tip {
+    position: absolute;
+    bottom: 22px;
+    left: clamp(24px, calc(var(--tip) * 100%), calc(100% - 24px));
+    transform: translateX(-50%);
+    padding: 5px 8px;
+    border: 1px solid var(--line-strong);
+    border-radius: var(--radius-sm);
+    background: rgba(9, 9, 11, 0.92);
+    color: #fff;
+    font: 600 12px/1 var(--font-mono);
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+    pointer-events: none;
+}
+
+/* For the keyboard and screen readers only; pointers use the seek bar around it */
+.tour-player__range {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    opacity: 0;
+    pointer-events: none;
+}
+
+.tour-player__bar {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    height: 40px;
+}
+
+.tour-player__btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    padding: 0;
+    border: 0;
+    border-radius: var(--radius-sm);
+    background: none;
+    color: #fff;
+    cursor: pointer;
+}
+
+.tour-player__btn:focus-visible {
+    outline: 2px solid #fff;
+    outline-offset: -4px;
+}
+
+.tour-player__speed {
+    width: auto;
+    min-width: 40px;
+    padding: 0 8px;
+    font: 600 12px/1 var(--font-mono);
+}
+
+.tour-player__time {
+    margin-left: 2px;
+    color: #fff;
+    font: 500 12px/1 var(--font-mono);
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+}
+
+.tour-player__time span {
+    color: rgba(255, 255, 255, 0.65);
+}
+
+.tour-player__spacer {
+    flex: 1;
+}
+
+/* Fullscreen: the player fills the screen and the video fits inside it */
+.tour-player:fullscreen {
+    display: flex;
+    align-items: center;
+    border: 0;
+    border-radius: 0;
+    background: #000;
+}
+
+.tour-player:fullscreen .tour-video {
+    height: 100%;
+    object-fit: contain;
+}
+
 .tour-nojs,
 .tour-video-note {
     padding: 1rem 1.2rem;
@@ -416,6 +633,12 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
+    .tour-player__ui,
+    .tour-player__track,
+    .tour-player__thumb {
+        transition: none;
+    }
+
     .tour-rotate-icon,
     .tour-rotate,
     .tour-frame,

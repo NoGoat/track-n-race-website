@@ -20,7 +20,7 @@ import '../styles/pages/analysis.css';
              TourGate plays it instead of the demo. Its sources are in components/analysis/video.ts. -->
         <noscript>
             <video class="tour-video" poster={TOUR_VIDEO.poster}
-                width={TOUR_VIDEO.width} height={TOUR_VIDEO.height} autoplay muted loop playsinline
+                width={TOUR_VIDEO.width} height={TOUR_VIDEO.height} autoplay controls muted loop playsinline
                 aria-label={TOUR_VIDEO.label}>
                 {TOUR_VIDEO.sources.map(source => <source {...source} />)}
             </video>

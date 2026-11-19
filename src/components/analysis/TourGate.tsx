@@ -2,8 +2,7 @@
 // the recording of it and a note saying why. A window resized across the line swaps between them; a phone or tablet
 // always gets the recording. The demo's code only downloads when it's going to run.
 import { Suspense, lazy, useSyncExternalStore } from 'react'
-import { reducedMotion } from './lib'
-import { TOUR_VIDEO } from './video'
+import TourPlayer from './TourVideo'
 
 const App = lazy(() => import('./App'))
 
@@ -26,13 +25,8 @@ const subscribeNarrow = (notify: () => void) => {
 const isNarrow = () => matchMedia(TOO_NARROW).matches
 
 function TourVideo({ note }: { note: string }) {
-    // Someone who asked for less motion starts it themselves
-    const still = reducedMotion()
     return <>
-        <video className="tour-video" poster={TOUR_VIDEO.poster} width={TOUR_VIDEO.width} height={TOUR_VIDEO.height}
-            autoPlay={!still} controls={still} muted loop playsInline aria-label={TOUR_VIDEO.label}>
-            {TOUR_VIDEO.sources.map(source => <source key={source.src} {...source} />)}
-        </video>
+        <TourPlayer />
         <p className="tour-video-note">{note}</p>
     </>
 }
