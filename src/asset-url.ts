@@ -10,7 +10,7 @@ const warned = new Set<string>();
 
 /**
  * The built URL of src/assets/<path>, e.g. asset('screenshots/qt/session.webp').
- * A file that isn't there yet (a screenshot still to capture, see the TODOs in data/screens.ts) doesn't stop the build:
+ * A file that isn't there yet (such as a screenshot not captured yet) doesn't stop the build:
  * it's named in the build output and the page gets an unhashed /assets/ path, which shows as a missing image.
  */
 export function asset(path: string): string {

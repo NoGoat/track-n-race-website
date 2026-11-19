@@ -18,13 +18,14 @@
 //
 // Needs:
 //   chrome-headless-shell   npx playwright install chromium-headless-shell   (or --chrome / CHROME=path)
-//   ffmpeg                  with NVENC (an NVIDIA GPU): on PATH, or --ffmpeg / FFMPEG=path
+//   ffmpeg                  with NVENC (an NVIDIA GPU): on PATH, or --ffmpeg / FFMPEG=path; or with libx264 for
+//                           --encoder x264 on a machine without one
 //
 // Options (all optional):
 //   --fps 180          frames per second
 //   --width 1920       output size; the page is laid out at this size in CSS pixels
 //   --height 1080
-//   --scale 2          supersampling: device pixels per CSS pixel while rendering (1 renders at the output size)
+//   --scale 2         supersampling: device pixels per CSS pixel while rendering (1 renders at the output size)
 //   --hold 3           seconds kept on the finished playground after the tour ends
 //   --shadows 0        strength of the drop shadows (window, split-view panes, menus, pickers, tips) against the
 //                      page's: 1 keeps them as on the site; on video even faint ones read as dark halos
@@ -34,6 +35,8 @@
 //   --url <url>        record a running server's page instead of building the site and serving dist/
 //   --no-build         serve the existing dist/ without running astro build first
 //   --limit <s>        only the first <s> seconds, for a quick check
+//   --encoder nvenc    nvenc: H.264 on an NVIDIA GPU; x264: H.264 on the CPU (libx264, CRF 12), for machines without
+//                      one. Slower, and it competes with the browsers for the CPU, so use fewer workers
 import { spawn, spawnSync } from 'node:child_process'
 import { existsSync, mkdirSync, readdirSync, rmSync, statSync, writeFileSync } from 'node:fs'
 import { constants, homedir, setPriority, tmpdir, uptime } from 'node:os'
@@ -57,6 +60,8 @@ const CHUNK = Math.round(Number(option('chunk', Math.ceil(95 / WORKERS))) * FPS)
 const OUT = resolve(option('out', join(ROOT, 'recordings', `analysis-${H}p${FPS}.mp4`)))
 const LIMIT = option('limit') ? Math.round(Number(option('limit')) * FPS) : Infinity
 const INTERVAL = 1000 / FPS
+const ENCODER = option('encoder', 'nvenc')
+if (!['nvenc', 'x264'].includes(ENCODER)) throw new Error(`--encoder must be nvenc or x264, not ${ENCODER}`)
 /** Run-end checks land on the same frames in every worker, so all of them agree where the tour ends */
 const CHECK_EVERY = Math.max(1, Math.round(FPS / 2))
 /** The longest the tour may take before the recording gives up */
@@ -213,14 +218,18 @@ async function renderChunk({ url, index, start, end, file, signal }) {
  * ffmpeg taking the browser's PNG frames on stdin: each is downscaled (Lanczos) into BT.709 YUV on the CPU, then
  * encoded on the GPU by NVENC as H.264 (visually lossless, the High profile, a keyframe every second). Not scaled on
  * the GPU: scale_cuda on RGB frames fringes and breaks up thin text. Not converted by NVENC: its RGB input uses the
- * BT.601 matrix and shifts saturated colours.
+ * BT.601 matrix and shifts saturated colours. With --encoder x264, libx264 on the CPU instead, at CRF 12 (also visually
+ * lossless) with the same keyframe interval and colour tags, so its chunks join the same way.
  */
 function openEncoder(file) {
+    const codec = ENCODER === 'x264'
+        ? ['-c:v', 'libx264', '-preset', 'medium', '-crf', '12', '-profile:v', 'high', '-g', String(FPS), '-keyint_min', String(FPS)]
+        : ['-c:v', 'h264_nvenc', '-preset', 'p7', '-tune', 'hq', '-rc', 'constqp', '-qp', '10', '-profile:v', 'high', '-g', String(FPS)]
     const ffmpeg = spawn(FFMPEG, [
         '-y', '-hide_banner', '-loglevel', 'error',
         '-f', 'image2pipe', '-framerate', String(FPS), '-c:v', 'png', '-i', '-',
         '-vf', `scale=${W}:${H}:flags=lanczos+accurate_rnd+full_chroma_int:out_color_matrix=bt709:out_range=tv,format=yuv420p`,
-        '-c:v', 'h264_nvenc', '-preset', 'p7', '-tune', 'hq', '-rc', 'constqp', '-qp', '10', '-profile:v', 'high', '-g', String(FPS),
+        ...codec,
         '-color_primaries', 'bt709', '-color_trc', 'bt709', '-colorspace', 'bt709', '-color_range', 'tv',
         file,
     ], { stdio: ['pipe', 'inherit', 'inherit'] })

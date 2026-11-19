@@ -52,12 +52,9 @@ const list: Screen[] = [
         desc: "If you don't want graphs, you can swap them out for tables.",
         alt: "Overview screen with the charts swapped for data tables of speed, RPM, ERS and tyre temperatures",
         width: 2624, height: 1624, widths: FULL, qtWidths: FULL,
-        // TODO: Android screenshot. Capture it and add it as src/assets/screenshots/android/overview_table.webp,
-        // plus overview_table-1280.avif, overview_table-1920.avif and overview_table-2560.avif (and the .png source).
-        // Check the caption and alt text against the capture.
         android: {
-            desc: "Swap the Drive tab's graphs for tables, if that's how you'd rather read it.",
-            alt: "Android Drive tab with the graphs swapped for data tables",
+            desc: "Show any Charts tab as a table instead, if that's how you'd rather read it.",
+            alt: "Android Charts page with the Speed tab shown as a data table of distance, speed, RPM and ERS",
         },
     },
     {
@@ -75,12 +72,9 @@ const list: Screen[] = [
         desc: "Enable or disable cards based on your needs.",
         alt: "Layout editor for choosing which sections appear on the overview screen",
         width: 2624, height: 1624, widths: FULL, qtWidths: FULL,
-        // TODO: Android screenshot. Capture it and add it as src/assets/screenshots/android/editor.webp,
-        // plus editor-1280.avif, editor-1920.avif and editor-2560.avif (and the .png source).
-        // Check the caption and alt text against the capture.
         android: {
-            desc: "Pick which cards the Drive tab shows.",
-            alt: "Android layout editor for choosing which cards appear on the Drive tab",
+            desc: "Show or hide each chart on the Charts page.",
+            alt: "Android Edit layout on the Charts page's Inputs tab, with the gear and accelerator and brake charts shown and steering hidden",
         },
     },
     {
@@ -172,13 +166,10 @@ const list: Screen[] = [
         desc: "View previous lap and sector times for all drivers.",
         alt: "Lap times popup from the standings, listing every lap with sector splits and the fastest lap and sectors highlighted",
         width: 2624, height: 1624, widths: FULL, qtWidths: FULL,
-        // TODO: Android screenshot. Capture it and add it as src/assets/screenshots/android/previous_lap_times.webp,
-        // plus previous_lap_times-1280.avif, previous_lap_times-1920.avif and previous_lap_times-2560.avif (and the
-        // .png source). Check the caption and alt text against the capture.
         android: {
             name: "Driver Lap Times",
             desc: "Every lap and sector for any driver, from the timing tower.",
-            alt: "Android driver lap times listing every lap with sector splits and the fastest lap and sectors highlighted",
+            alt: "Android driver lap times for Antonelli, with a chart of every lap time above the list of laps and the pit stop marked",
         },
     },
     {
@@ -194,13 +185,13 @@ const list: Screen[] = [
     },
     {
         file: "analyze", name: "Analysis",
-        desc: "Compare any channel across your own laps, a rival’s, or a lap from an older session.",
-        alt: "Analysis view overlaying throttle, speed, RPM, gear and MGU-K power traces for two laps",
+        desc: "Compare any channel across your own laps, a rival’s, or a lap from an older session, with every braking zone broken down.",
+        alt: "Analysis split view comparing Antonelli's lap 7 with Leclerc's lap 9: delta, throttle, speed, ERS and brake traces beside the track map, and a braking zones panel with the gap in each zone",
         width: 2624, height: 1624, widths: FULL, qtWidths: FULL,
         android: {
             name: "Analysis",
-            desc: "Two of your laps side by side, with the map and sector deltas.",
-            alt: "Android Analysis split view comparing laps 7 and 9 with delta, throttle, speed, ERS and brake traces beside the track map",
+            desc: "Two laps on the map, coloured by who was faster, with every braking zone broken down.",
+            alt: "Android Analysis map comparing Antonelli's lap 7 with Leclerc's lap 9: the track coloured by the faster lap, ten numbered braking zones, and zone 4's braking, apex, ERS and throttle figures for both laps",
         },
     },
     {
