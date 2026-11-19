@@ -49,8 +49,9 @@ export default defineConfig({
                 "font-src 'self'",
                 // The Analysis tour's recording (src/components/analysis/video.ts)
                 "media-src 'self'",
-                // Same-site fetches only: tour data, licences, the .tnrd diagram, /api/contact
-                "connect-src 'self'",
+                // Same-site fetches: tour data, licences, the .tnrd diagram, /api/contact. Plus Cloudflare Web
+                // Analytics' beacon, which reports there (or to this site's own /cdn-cgi/rum when auto-injected)
+                "connect-src 'self' https://cloudflareinsights.com",
                 // The Turnstile widget on the Privacy Policy runs in Cloudflare's iframe (scripts/contact.js)
                 "frame-src https://challenges.cloudflare.com",
                 "object-src 'none'",
@@ -58,8 +59,9 @@ export default defineConfig({
                 "form-action 'self'",
             ],
             scriptDirective: {
-                // Turnstile's script, loaded on demand by scripts/contact.js
-                resources: ["'self'", 'https://challenges.cloudflare.com'],
+                // Turnstile's script, loaded on demand by scripts/contact.js, and Cloudflare Web Analytics' beacon,
+                // which Cloudflare injects into every page at the edge (an external script, so no hash needed)
+                resources: ["'self'", 'https://challenges.cloudflare.com', 'https://static.cloudflareinsights.com'],
                 // The one is:inline script Astro doesn't hash: the no-js → js swap in layouts/Base.astro.
                 // Change that line and this hash must change with it.
                 hashes: ['sha256-e2g5HkZP+fghbsY1m7moq4GopOo7zRRaAHNyQ2Q7oSI='],
