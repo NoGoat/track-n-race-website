@@ -139,19 +139,55 @@
     white-space: nowrap;
 }
 
+/* A drawn + whose upright folds away into a red – as the card opens */
 .fix-card-mark {
-    font-family: var(--font-mono);
-    text-align: right;
+    position: relative;
+    justify-self: end;
+    width: 10px;
+    height: 10px;
     color: var(--text-3);
+    transition: color 0.25s var(--ease);
+}
+
+.fix-card-mark::before,
+.fix-card-mark::after {
+    content: "";
+    position: absolute;
+    background: currentColor;
+    border-radius: 1px;
 }
 
 .fix-card-mark::before {
-    content: "+";
+    left: 0;
+    right: 0;
+    top: calc(50% - 0.75px);
+    height: 1.5px;
 }
 
-.fix-card[open] .fix-card-mark::before {
-    content: "–";
+.fix-card-mark::after {
+    top: 0;
+    bottom: 0;
+    left: calc(50% - 0.75px);
+    width: 1.5px;
+    transition: transform 0.25s var(--ease);
+}
+
+.fix-card > summary:hover .fix-card-mark {
+    color: var(--text);
+}
+
+.fix-card[open]:not(.is-closing) .fix-card-mark {
     color: var(--accent);
+}
+
+.fix-card[open]:not(.is-closing) .fix-card-mark::after {
+    transform: scaleY(0);
+}
+
+/* scripts/troubleshooting.js animates its height and fade; it clips while that runs. The padding is on
+   .fix-card-body inside it, so the fold closes to nothing */
+.fix-card-fold {
+    overflow: hidden;
 }
 
 /* Opened from a link: a short red bar on the left */

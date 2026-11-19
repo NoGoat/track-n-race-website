@@ -23,5 +23,5 @@ const forList = Astro.props.for ?? ALL;
         <span class="fix-card-tags">{forList.length <= 2 && forList.map(os => <span>{LABELS[os]}</span>)}</span>
         <span class="fix-card-mark" aria-hidden="true"></span>
     </summary>
-    <div class="fix-card-body"><slot /></div>
+    <div class="fix-card-fold"><div class="fix-card-body"><slot /></div></div>
 </details>

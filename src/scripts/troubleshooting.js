@@ -57,6 +57,49 @@ const openFromHash = () => {
     card.scrollIntoView({ block: 'start' });
 };
 
+// The fixes slide open and shut, as the Compare page's fold-outs do (scripts/compare.js). A closing <details> hides
+// its content at once, so `open` comes off only after it has folded away. Clicking again mid-way reverses from
+// where it is. With reduced motion asked for, the browser's own instant open and close is left alone.
+if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    document.querySelectorAll('.fix-card').forEach(card => {
+        const summary = card.querySelector(':scope > summary');
+        const fold = card.querySelector(':scope > .fix-card-fold');
+        let anim = null;
+        let closing = false;
+
+        // Closing is the FAQ's: 280ms on its sharp ease-out. Opening can't be: a fix can be ten times taller than an
+        // answer and would pop open, so its time grows with the distance (280ms short, up to 600ms for the tallest)
+        // on a gentler ease-out that doesn't cover most of the distance in the first few frames.
+        const run = (from, to, done) => {
+            anim?.cancel();
+            const opening = to > from;
+            anim = fold.animate(
+                [{ height: `${from}px`, opacity: from ? 1 : 0 }, { height: `${to}px`, opacity: to ? 1 : 0 }],
+                opening
+                    ? { duration: Math.min(600, 280 + (to - from) * 0.4), easing: 'cubic-bezier(0.33, 1, 0.68, 1)' }
+                    : { duration: 280, easing: 'cubic-bezier(0.16, 1, 0.3, 1)' }
+            );
+            anim.onfinish = () => { anim = null; done?.(); };
+        };
+
+        summary.addEventListener('click', e => {
+            e.preventDefault();
+            // A closed <details> still reports its content's last laid-out height, so from closed it starts at 0
+            const now = card.open ? fold.getBoundingClientRect().height : 0;
+            if (!card.open || closing) {
+                closing = false;
+                card.classList.remove('is-closing');
+                card.open = true;
+                run(now, fold.scrollHeight);
+            } else {
+                closing = true;
+                card.classList.add('is-closing');
+                run(now, 0, () => { card.open = false; closing = false; card.classList.remove('is-closing'); });
+            }
+        });
+    });
+}
+
 const start = new URLSearchParams(location.search).get('for');
 if (FILTERS.includes(start)) form.elements.for.value = start;
 
